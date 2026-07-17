@@ -10,64 +10,48 @@
 
 ```bash
 # 1. Cloner le projet
-git clone <votre-repo>
+git clone <ton-repo-minia-ia>
 cd minia-ia
 
 # 2. Installer les dépendances
 pnpm install
 
-# 3. Créer un fichier .env
-cp .env.example .env
+# 3. Créer ton fichier .env (vois la section Variables d'environnement ci-dessous)
 
-# 4. Modifier .env avec vos valeurs (voir section ci-dessous)
+# 4. Créer la base de données MySQL et appliquer les migrations
+#    Le fichier de migration SQL se trouve dans drizzle/0000_chief_famine.sql
+#    Après modification du schéma, régénère avec : pnpm drizzle-kit generate
+pnpm db:push
 
-# 5. Lancer la base de données et appliquer les migrations
-pnpm drizzle-kit generate
-# Appliquer le SQL généré dans votre base MySQL
-
-# 6. Lancer le serveur de développement
+# 5. Lancer le serveur de développement
 pnpm dev
+# Le site sera disponible sur http://localhost:3000
 ```
 
-## Variables d'environnement (.env)
+## Variables d'environnement
 
-Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+Crée un fichier `.env` à la racine du projet. Voici les variables requises :
 
-```env
-# === Base de données ===
-DATABASE_URL=mysql://user:password@localhost:3306/minia-ia
-
-# === Manus OAuth (si tu veux garder l'auth Manus) ===
-JWT_SECRET=ton-secret-jwt
-OAUTH_SERVER_URL=https://api.manus.im
-VITE_APP_ID=ton-app-id
-VITE_OAUTH_PORTAL_URL=https://auth.manus.im
-
-# === Variables frontend ===
-VITE_APP_TITLE=Minia IA
-VITE_APP_LOGO=https://ton-logo-url/logo.png
-VITE_ANALYTICS_ENDPOINT=
-VITE_ANALYTICS_WEBSITE_ID=
-
-# === Admin (pour le rôle admin) ===
-OWNER_OPEN_ID=ton-open-id
-OWNER_NAME=ton-nom
-
-# === Forge API (injection automatique par le runtime Manus, pas besoin de configurer en local) ===
-BUILT_IN_FORGE_API_KEY=
-BUILT_IN_FORGE_API_URL=
-VITE_FRONTEND_FORGE_API_KEY=
-VITE_FRONTEND_FORGE_API_URL=
-```
+| Variable | Description | Exemple |
+|----------|-------------|---------|
+| `DATABASE_URL` | Connexion MySQL/TiDB | `mysql://root:pass@localhost:3306/minia_ia` |
+| `JWT_SECRET` | Secret pour signer les sessions | Une chaîne aléatoire longue |
+| `OAUTH_SERVER_URL` | URL du serveur OAuth Manus | `https://api.manus.im` |
+| `VITE_APP_ID` | ID de l'app Manus | Trouvable dans Settings |
+| `VITE_OAUTH_PORTAL_URL` | Portail d'auth Manus | `https://auth.manus.im` |
+| `OWNER_OPEN_ID` | Ton openId pour le rôle admin | `user_xxxxxxxx` |
+| `OWNER_NAME` | Ton nom d'affichage | `Admin` |
+| `VITE_APP_TITLE` | Titre du site | `Minia IA` |
+| `VITE_APP_LOGO` | URL du logo | `/logo.png` |
 
 ## Rôle Admin
 
 En tant que super admin, tu as les droits suivants :
 
 1. **Lister les modèles d'IA disponibles** — via `trpc.imageModels.list` (réservé admin)
-2. **Gérer les utilisateurs** — via la base de données MySQL directement ou le panel d'administration
+2. **Gérer les utilisateurs** — via la base de données MySQL directement
 3. **Ajouter des crédits** — modifie directement la table `userCredits` dans la BDD
-4. **Promouvoir un utilisateur en admin** — exécute :
+4. **Promouvoir un utilisateur en admin** — exécute la requête SQL ci-dessous
 
 ```sql
 UPDATE users SET role = 'admin' WHERE openId = 'ton-open-id';
@@ -107,11 +91,53 @@ UPDATE users SET role = 'admin' WHERE openId = 'ton-open-id';
 ## Comment ajouter des crédits manuellement (admin)
 
 ```sql
--- Donner 50 crédits à un utilisateur
+-- Donner 50 crédits à un utilisateur (ID = 1) avec plan Pro
 INSERT INTO userCredits (userId, credits, planType)
 VALUES (1, 50, 'pro')
 ON DUPLICATE KEY UPDATE credits = 50, planType = 'pro';
+
+-- Vérifier les crédits d'un utilisateur
+SELECT * FROM userCredits WHERE userId = 1;
+
+-- Remettre à zéro les crédits (pour test)
+UPDATE userCredits SET credits = 0 WHERE userId = 1;
 ```
+
+## API Forge — Génération IA
+
+### En environnement Manus (production)
+
+Les variables `BUILT_IN_FORGE_API_KEY` et `BUILT_IN_FORGE_API_URL` sont **injectées automatiquement** par le runtime Manus. La génération de miniatures fonctionne out-of-the-box.
+
+### En local (test)
+
+Ces variables ne sont **pas disponibles** hors du runtime Manus. Pour tester la génération IA en local, tu as 3 options :
+
+**Option A — Utiliser une clé Manus directement**
+1. Copie les valeurs de `BUILT_IN_FORGE_API_KEY` et `BUILT_IN_FORGE_API_URL` depuis ton panel Manus Settings → Secrets
+2. Ajoute-les à ton `.env` local
+
+**Option B — Utiliser un provider alternatif (OpenAI)**
+Modifie `server/_core/imageGeneration.ts` pour utiliser OpenAI :
+```ts
+// Exemple avec OpenAI DALL-E
+import OpenAI from "openai";
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+export async function generateImage({ prompt, model, quality }) {
+  const response = await openai.images.generate({
+    model: "dall-e-3",
+    prompt,
+    quality: quality === "high" ? "hd" : "standard",
+    n: 1,
+    size: "1024x1024", // ou "1792x1024" pour 16:9
+  });
+  return { url: response.data[0].url };
+}
+```
+
+**Option C — Utiliser Replicate ou Stability AI**
+Similaire à l'option B, adapte `imageGeneration.ts` pour appeler l'API de ton choix.
 
 ## Comment gérer les témoignages vidéo
 
@@ -121,36 +147,47 @@ ON DUPLICATE KEY UPDATE credits = 50, planType = 'pro';
 2. Mets à jour les quotes, créateurs et métriques
 3. La section s'affiche automatiquement dès qu'au moins un ID est renseigné
 
+```ts
+// Exemple d'activation :
+youtubeId: "dQw4w9WgXcQ", // Remplace par le vrai ID de la vidéo
+```
+
 ## Test de la génération de miniatures
 
 1. Connecte-toi via le bouton "Connexion" en haut à droite
-2. Navigate to `/dashboard`
-3. Décris ta miniature dans le champ texte
-4. Choisis un style et une quantité
-5. Clique sur "Générer"
-6. Les miniatures apparaîtront dans "Miniatures récentes"
+2. Navigue vers `/dashboard`
+3. Décris ta miniature dans le champ texte (min. 10 caractères)
+4. Choisis un style (viral, MrBeast, minimalist, dramatic, tech, retro)
+5. Choisis une quantité (1-4 miniatures)
+6. Clique sur "Générer"
+7. Les miniatures apparaîtront dans "Miniatures récentes" avec statut (en cours / terminé / échoué)
+8. Tu peux télécharger ou supprimer chaque miniature
 
 ## Structure des fichiers clés
 
 ```
 server/
-  routers.ts          → Endpoints tRPC (thumbnail.generate, credits, delete, etc.)
-  db.ts               → Helpers de requêtes (getThumbnailsByUserId, deductCredits, etc.)
-  _core/imageGeneration.ts → Forge API wrapper
+  routers.ts                    → Endpoints tRPC (thumbnail.generate, credits, delete, imageModels)
+  db.ts                         → Helpers de requêtes DB (getThumbnailsByUserId, deductCredits, etc.)
+  _core/imageGeneration.ts      → Forge API wrapper (à adapter pour usage local)
 
 drizzle/
-  schema.ts           → Tables: users, thumbnails, userCredits
+  schema.ts                     → Tables: users, thumbnails, userCredits
 
 client/src/pages/
-  Home.tsx            → Landing page (18 sections)
-  Dashboard.tsx       → Interface de génération (connectée)
+  Home.tsx                      → Landing page (18 sections)
+  Dashboard.tsx                 → Interface de génération (connectée API Forge)
 
 client/src/components/
-  VideoTestimonialsSection.tsx → Témoignages vidéo (conditionnel)
+  VideoTestimonialsSection.tsx  → Témoignages vidéo (conditionnel, auto-hide si vide)
 ```
 
 ## Sécurité implémentée
 
-- **Ownership verification** : `thumbnail.get` et `thumbnail.delete` vérifient que la miniature appartient à l'utilisateur connecté
-- **Crédit deduction** : Les crédits ne sont débités que pour les miniatures réellement générées avec succès
-- **Admin-only** : La route `imageModels.list` est réservée aux admins
+| Fonctionnalité | Protection |
+|----------------|------------|
+| `thumbnail.get` | Vérifie que la miniature appartient à l'utilisateur connecté |
+| `thumbnail.delete` | Vérifie l'ownership avant suppression |
+| `thumbnail.generate` | Crédits débités uniquement pour les générations réussies |
+| `imageModels.list` | Réservé aux admins (role = 'admin') |
+| Système de crédits | Plafond de 4 miniatures par requête, vérification avant génération |
