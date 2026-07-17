@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, thumbnails, userCredits, InsertThumbnail } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -152,4 +152,94 @@ export async function deductCredits(userId: number, amount = 1): Promise<boolean
     .set({ credits: current.credits - amount })
     .where(eq(userCredits.userId, userId));
   return true;
+}
+
+// === Public Gallery ===
+
+/**
+ * Get featured thumbnails for the public gallery.
+ * Returns completed thumbnails, anonymized (no userId exposed),
+ * optionally filtered by style.
+ */
+export async function getGalleryThumbnails(params: {
+  style?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const limit = params.limit ?? 24;
+  const offset = params.offset ?? 0;
+
+  if (params.style && params.style !== "all") {
+    const results = await db
+      .select({
+        id: thumbnails.id,
+        imageUrl: thumbnails.imageUrl,
+        prompt: thumbnails.prompt,
+        style: thumbnails.style,
+        createdAt: thumbnails.createdAt,
+      })
+      .from(thumbnails)
+      .where(eq(thumbnails.style, params.style) && eq(thumbnails.status, "completed"))
+      .orderBy(desc(thumbnails.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return results.map(t => ({
+      id: t.id,
+      imageUrl: t.imageUrl,
+      prompt: t.prompt,
+      style: t.style,
+      createdAt: t.createdAt,
+    }));
+  }
+
+  const results = await db
+    .select({
+      id: thumbnails.id,
+      imageUrl: thumbnails.imageUrl,
+      prompt: thumbnails.prompt,
+      style: thumbnails.style,
+      createdAt: thumbnails.createdAt,
+    })
+    .from(thumbnails)
+    .where(eq(thumbnails.status, "completed"))
+    .orderBy(desc(thumbnails.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return results.map(t => ({
+    id: t.id,
+    imageUrl: t.imageUrl,
+    prompt: t.prompt,
+    style: t.style,
+    createdAt: t.createdAt,
+  }));
+}
+
+/**
+ * Get gallery stats (total public thumbnails, styles breakdown)
+ */
+export async function getGalleryStats() {
+  const db = await getDb();
+  if (!db) return { total: 0, styles: {} };
+
+  // Count total completed thumbnails
+  const totalResult = await db
+    .select()
+    .from(thumbnails)
+    .where(eq(thumbnails.status, "completed"));
+
+  const total = totalResult.length;
+
+  // Count by style
+  const styleCounts: Record<string, number> = {};
+  for (const t of totalResult) {
+    const style = t.style ?? "unknown";
+    styleCounts[style] = (styleCounts[style] || 0) + 1;
+  }
+
+  return { total, styles: styleCounts };
 }

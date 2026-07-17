@@ -16,6 +16,8 @@ import {
   ensureUserCredits,
   deductCredits,
   getDb,
+  getGalleryThumbnails,
+  getGalleryStats,
 } from "./db";
 
 export const appRouter = router({
@@ -159,6 +161,25 @@ export const appRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
       }
       return listImageModels();
+    }),
+  }),
+
+  // === Public Gallery ===
+  gallery: router({
+    /** Get public gallery thumbnails (anonymized, no auth required) */
+    thumbnails: publicProcedure
+      .input(z.object({
+        style: z.string().optional(),
+        limit: z.number().min(1).max(100).default(24),
+        offset: z.number().min(0).default(0),
+      }).optional())
+      .query(async ({ input }) => {
+        return getGalleryThumbnails(input ?? {});
+      }),
+
+    /** Get gallery stats */
+    stats: publicProcedure.query(async () => {
+      return getGalleryStats();
     }),
   }),
 });

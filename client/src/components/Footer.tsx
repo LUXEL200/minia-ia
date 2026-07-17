@@ -3,6 +3,7 @@
  * Clean dark footer with neon accent top border
  */
 import { Zap } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Footer() {
   return (
@@ -33,6 +34,7 @@ export default function Footer() {
                 Produit
               </h4>
               <ul className="space-y-2.5">
+                <li><Link href="/gallery"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Galerie</span></Link></li>
                 {["Fonctionnalités", "Tarifs", "Templates", "Générateur", "FAQ", "Documentation"].map((item) => (
                   <li key={item}>
                     <span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">

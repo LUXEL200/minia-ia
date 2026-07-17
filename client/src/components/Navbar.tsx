@@ -62,15 +62,16 @@ export default function Navbar() {
           {[
             { label: "Fonctionnalités", id: "features" },
             { label: "Comment ça marche", id: "process" },
+            { label: "Galerie", href: "/gallery", external: true },
             { label: "Tarifs", id: "pricing" },
             { label: "FAQ", id: "faq" },
           ].map((item) => (
             <button
-              key={item.id}
-              onClick={() => scrollTo(item.id)}
+              key={item.id || item.href}
+              onClick={() => (item as any).external ? (window.location.href = (item as any).href) : scrollTo((item as any).id)}
               className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
             >
-              {item.label}
+              {(item as any).label}
             </button>
           ))}
         </div>
@@ -147,15 +148,16 @@ export default function Navbar() {
             {[
               { label: "Fonctionnalités", id: "features" },
               { label: "Comment ça marche", id: "process" },
+              { label: "Galerie", href: "/gallery", external: true },
               { label: "Tarifs", id: "pricing" },
               { label: "FAQ", id: "faq" },
             ].map((item) => (
               <button
-                key={item.id}
-                onClick={() => scrollTo(item.id)}
+                key={item.id || item.href}
+                onClick={() => (item as any).external ? (window.location.href = (item as any).href) : scrollTo((item as any).id)}
                 className="block w-full text-left text-zinc-300 hover:text-white py-2"
               >
-                {item.label}
+                {(item as any).label}
               </button>
             ))}
             {isAuthenticated ? (
