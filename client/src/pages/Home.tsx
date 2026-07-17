@@ -1,25 +1,48 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
-
 /**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
+ * Home Page — Minia IA
+ * Neon Noir design system
+ * Sections: Navbar, Hero, SocialProof, Problem, Solution, Podcast, Parallel, Founder, Features, Process, Styles, Comparison, Testimonials, Pricing, FAQ, CTA, Footer
  */
-export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import SocialProofSection from "@/components/SocialProofSection";
+import ProblemSection from "@/components/ProblemSection";
+import SolutionSection from "@/components/SolutionSection";
+import PodcastSection from "@/components/PodcastSection";
+import ParallelSection from "@/components/ParallelSection";
+import FounderSection from "@/components/FounderSection";
+import FeaturesSection from "@/components/FeaturesSection";
+import ProcessSection from "@/components/ProcessSection";
+import StylesSection from "@/components/StylesSection";
+import ComparisonSection from "@/components/ComparisonSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
+import PricingSection from "@/components/PricingSection";
+import FAQSection from "@/components/FAQSection";
+import CTASection from "@/components/CTASection";
+import Footer from "@/components/Footer";
 
+export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-[#09090B] text-white">
+      <Navbar />
       <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
+        <HeroSection />
+        <SocialProofSection />
+        <ProblemSection />
+        <SolutionSection />
+        <PodcastSection />
+        <ParallelSection />
+        <FounderSection />
+        <FeaturesSection />
+        <ProcessSection />
+        <StylesSection />
+        <ComparisonSection />
+        <TestimonialsSection />
+        <PricingSection />
+        <FAQSection />
+        <CTASection />
       </main>
+      <Footer />
     </div>
   );
 }
