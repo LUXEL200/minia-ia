@@ -11,6 +11,7 @@ import ProcessSection from "@/components/ProcessSection";
 import StylesSection from "@/components/StylesSection";
 import ComparisonSection from "@/components/ComparisonSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
+import VideoTestimonialsSection from "@/components/VideoTestimonialsSection";
 import PricingSection from "@/components/PricingSection";
 import FAQSection from "@/components/FAQSection";
 import CTASection from "@/components/CTASection";
@@ -33,6 +34,7 @@ export default function Home() {
         <StylesSection />
         <ComparisonSection />
         <TestimonialsSection />
+        <VideoTestimonialsSection />
         <PricingSection />
         <FAQSection />
         <CTASection />

@@ -1,17 +1,10 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, json, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +18,41 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Thumbnails table — stores generated miniatures
+ */
+export const thumbnails = mysqlTable("thumbnails", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  prompt: text("prompt").notNull(),
+  style: varchar("style", { length: 64 }).default("viral"),
+  /** URL of the generated image stored in S3 */
+  imageUrl: text("imageUrl").notNull(),
+  /** Status: generating, completed, failed */
+  status: mysqlEnum("status", ["generating", "completed", "failed"]).default("generating").notNull(),
+  /** Number of credits used */
+  creditsUsed: int("creditsUsed").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("user_id_idx").on(table.userId),
+}));
+
+export type Thumbnail = typeof thumbnails.$inferSelect;
+export type InsertThumbnail = typeof thumbnails.$inferInsert;
+
+/**
+ * Credits table — tracks available credits per user
+ */
+export const userCredits = mysqlTable("userCredits", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  credits: int("credits").default(10).notNull(),
+  planType: mysqlEnum("planType", ["free", "pro", "max"]).default("free").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("user_credits_user_id_idx").on(table.userId),
+}));
+
+export type UserCredits = typeof userCredits.$inferSelect;
+export type InsertUserCredits = typeof userCredits.$inferInsert;

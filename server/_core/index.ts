@@ -1,4 +1,4 @@
-import "dotenv/config";
+// Environment variables are injected by the runtime, no need for dotenv
 import express from "express";
 import { createServer } from "http";
 import net from "net";

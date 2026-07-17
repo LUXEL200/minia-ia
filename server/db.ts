@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, InsertThumbnail } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,67 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// === Thumbnails ===
+
+export async function getThumbnailsByUserId(userId: number, limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(thumbnails)
+    .where(eq(thumbnails.userId, userId))
+    .orderBy(desc(thumbnails.createdAt))
+    .limit(limit);
+}
+
+export async function getThumbnailById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(thumbnails).where(eq(thumbnails.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createThumbnail(data: InsertThumbnail) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] = await db.insert(thumbnails).values(data);
+  return { id: result.insertId };
+}
+
+export async function updateThumbnailStatus(id: number, status: "generating" | "completed" | "failed", imageUrl?: string) {
+  const db = await getDb();
+  if (!db) return;
+  const updateData: Record<string, unknown> = { status };
+  if (imageUrl) updateData.imageUrl = imageUrl;
+  await db.update(thumbnails).set(updateData).where(eq(thumbnails.id, id));
+}
+
+// === User Credits ===
+
+export async function getUserCredits(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function ensureUserCredits(userId: number): Promise<{ credits: number; planType: string }> {
+  const db = await getDb();
+  if (!db) return { credits: 10, planType: "free" };
+
+  const existing = await db.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+  if (existing.length > 0) return existing[0];
+
+  // Create default credits on first use
+  await db.insert(userCredits).values({ userId, credits: 10, planType: "free" });
+  return { credits: 10, planType: "free" };
+}
+
+export async function deductCredits(userId: number, amount = 1): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const current = await getUserCredits(userId);
+  if (!current || current.credits < amount) return false;
+  await db.update(userCredits)
+    .set({ credits: current.credits - amount })
+    .where(eq(userCredits.userId, userId));
+  return true;
+}
