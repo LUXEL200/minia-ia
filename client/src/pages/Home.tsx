@@ -1,8 +1,3 @@
-/**
- * Home Page — Minia IA
- * Neon Noir design system
- * Sections: Navbar, Hero, SocialProof, Problem, Solution, Podcast, Parallel, Founder, Features, Process, Styles, Comparison, Testimonials, Pricing, FAQ, CTA, Footer
- */
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SocialProofSection from "@/components/SocialProofSection";

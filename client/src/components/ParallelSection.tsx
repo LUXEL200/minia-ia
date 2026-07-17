@@ -1,42 +1,44 @@
 /**
- * Parallel Generation Section v2
- * Speed comparison with neon progress bars
+ * Parallel Generation Section v3
+ * Enhanced speed comparison with animated progress bars and hover effects
  */
 import { motion } from "framer-motion";
 import { Zap, Clock } from "lucide-react";
+import AnimatedSection from "@/components/AnimatedSection";
 
 export default function ParallelSection() {
   return (
     <section className="py-24 lg:py-32 relative">
       <div className="container">
         {/* Section heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
-            / Génération Parallèle
-          </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
-            N'attendez plus.{" "}
-            <span className="text-[#06B6D4]">Générez en parallèle.</span>
-          </h2>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
-            Les autres outils génèrent les miniatures une par une. Minia IA les lance toutes simultanément — 4 miniatures en le temps qu'il faut aux autres pour en faire une.
-          </p>
-        </motion.div>
+        <AnimatedSection animation="fade-up">
+          <div className="text-center mb-16">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
+              / Génération Parallèle
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
+              N'attendez plus.{" "}
+              <span className="text-[#06B6D4]">Générez en parallèle.</span>
+            </h2>
+            <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
+              Les autres outils génèrent les miniatures une par une. Minia IA les lance toutes simultanément — 4 miniatures en le temps qu'il faut aux autres pour en faire une.
+            </p>
+          </div>
+        </AnimatedSection>
 
         {/* Speed comparison — side by side */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8"
         >
           {/* Competitors — slow */}
-          <div className="p-8 rounded-xl bg-[#18181B] border border-[#27272A]">
+          <motion.div
+            className="p-8 rounded-xl bg-[#18181B] border border-[#27272A] hover:border-[#27272A] transition-colors duration-300"
+            whileHover={{ y: -2 }}
+          >
             <div className="flex items-center gap-3 mb-8">
               <Clock className="w-5 h-5 text-zinc-500" />
               <span className="text-sm font-medium text-zinc-400 uppercase tracking-wider">Les autres outils</span>
@@ -53,7 +55,7 @@ export default function ParallelSection() {
                       initial={{ width: 0 }}
                       whileInView={{ width: "100%" }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: i * 0.15 }}
+                      transition={{ duration: 0.8, delay: 0.3 + i * 0.2, ease: [0.77, 0, 0.175, 1] }}
                       className="h-full bg-zinc-600 rounded-full"
                     />
                   </div>
@@ -65,16 +67,25 @@ export default function ParallelSection() {
                 ~160<span className="text-sm text-zinc-600 ml-1">secondes</span>
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Minia IA — fast */}
-          <div className="p-8 rounded-xl bg-[#18181B] border border-[#06B6D4]/30 relative overflow-hidden">
+          <motion.div
+            className="p-8 rounded-xl bg-[#18181B] border border-[#06B6D4]/30 relative overflow-hidden transition-all duration-300 hover:border-[#06B6D4]/50 hover:shadow-lg hover:shadow-[#06B6D4]/10"
+            whileHover={{ y: -2 }}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-[#06B6D4]/5 to-transparent" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-8">
                 <Zap className="w-5 h-5 text-[#06B6D4]" />
                 <span className="text-sm font-medium text-[#06B6D4] uppercase tracking-wider">Minia IA</span>
-                <span className="ml-auto text-xs bg-[#22C55E]/10 text-[#22C55E] px-2 py-0.5 rounded font-bold">5x</span>
+                <motion.span
+                  className="ml-auto text-xs bg-[#22C55E]/10 text-[#22C55E] px-2 py-0.5 rounded font-bold"
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  5x
+                </motion.span>
               </div>
               <div className="space-y-5">
                 {[1, 2, 3, 4].map((i) => (
@@ -88,7 +99,7 @@ export default function ParallelSection() {
                         initial={{ width: 0 }}
                         whileInView={{ width: "100%" }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.3, delay: 0.3 }}
+                        transition={{ duration: 0.4, delay: 0.5, ease: [0.77, 0, 0.175, 1] }}
                         className="h-full bg-[#06B6D4] rounded-full"
                       />
                     </div>
@@ -101,7 +112,7 @@ export default function ParallelSection() {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
