@@ -16,3 +16,12 @@
 - [x] Backend gallery endpoints (public, anonymisé)
 - [x] Preview galerie sur homepage avec CTA vers galerie complète
 - [x] Lien Galerie ajouté dans Navbar et Footer
+- [x] Pages Produit (/features, /pricing, /templates, /generator, /faq, /docs)
+- [x] Pages Ressources (/blog, /models, /best-practices, /examples, /comparisons, /for-creators)
+- [x] Pages Légal (/terms, /privacy, /contact, /cgv)
+- [x] Liens footer/nav mis à jour pour pointer vers les vraies pages
+- [x] Système de likes sur la galerie avec tri par popularité
+- [x] Batch Upload — génération en lot (jusqu'à 100 descriptions)
+- [x] Interface équipe (membres, tâches, validation/refus/cancellation)
+- [x] Notifications email via notifyOwner pour événements clés
+- [x] Navbar refactorisée (suppression liens dupliqués, layout propre)

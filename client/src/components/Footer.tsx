@@ -1,6 +1,5 @@
 /**
- * Footer v2
- * Clean dark footer with neon accent top border
+ * Footer with all links pointing to real pages
  */
 import { Zap } from "lucide-react";
 import { Link } from "wouter";
@@ -34,14 +33,12 @@ export default function Footer() {
                 Produit
               </h4>
               <ul className="space-y-2.5">
-                <li><Link href="/gallery"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Galerie</span></Link></li>
-                {["Fonctionnalités", "Tarifs", "Templates", "Générateur", "FAQ", "Documentation"].map((item) => (
-                  <li key={item}>
-                    <span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">
-                      {item}
-                    </span>
-                  </li>
-                ))}
+                <li><Link href="/features"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Fonctionnalités</span></Link></li>
+                <li><Link href="/pricing"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Tarifs</span></Link></li>
+                <li><Link href="/templates"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Templates</span></Link></li>
+                <li><Link href="/generator"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Générateur</span></Link></li>
+                <li><Link href="/faq"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">FAQ</span></Link></li>
+                <li><Link href="/docs"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Documentation</span></Link></li>
               </ul>
             </div>
 
@@ -51,13 +48,12 @@ export default function Footer() {
                 Ressources
               </h4>
               <ul className="space-y-2.5">
-                {["Blog", "Modèles", "Bonnes pratiques", "Exemples", "Comparatifs", "Pour créateurs"].map((item) => (
-                  <li key={item}>
-                    <span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">
-                      {item}
-                    </span>
-                  </li>
-                ))}
+                <li><Link href="/blog"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Blog</span></Link></li>
+                <li><Link href="/models"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Modèles</span></Link></li>
+                <li><Link href="/best-practices"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Bonnes pratiques</span></Link></li>
+                <li><Link href="/examples"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Exemples</span></Link></li>
+                <li><Link href="/comparisons"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Comparatifs</span></Link></li>
+                <li><Link href="/for-creators"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Pour créateurs</span></Link></li>
               </ul>
             </div>
 
@@ -67,13 +63,10 @@ export default function Footer() {
                 Légal
               </h4>
               <ul className="space-y-2.5">
-                {["Conditions d'utilisation", "Politique de confidentialité", "Contact", "CGV"].map((item) => (
-                  <li key={item}>
-                    <span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">
-                      {item}
-                    </span>
-                  </li>
-                ))}
+                <li><Link href="/terms"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Conditions d'utilisation</span></Link></li>
+                <li><Link href="/privacy"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Politique de confidentialité</span></Link></li>
+                <li><Link href="/contact"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">Contact</span></Link></li>
+                <li><Link href="/cgv"><span className="text-sm text-zinc-500 hover:text-white transition-colors cursor-pointer">CGV</span></Link></li>
               </ul>
             </div>
           </div>

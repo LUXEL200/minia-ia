@@ -2,19 +2,20 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Download, Loader2, ImageIcon, Sparkles, Filter } from "lucide-react";
+import { Download, Loader2, ImageIcon, Sparkles, Filter, Heart, TrendingUp, Clock } from "lucide-react";
 import { Link } from "wouter";
+import { toast } from "sonner";
 
 const STYLES = [
   { key: "all", label: "Tous" },
   { key: "viral", label: "Viral" },
   { key: "mrbeast", label: "MrBeast" },
-  { key: "minimalist", label: "Minimalist" },
-  { key: "dramatic", label: "Dramatic" },
+  { key: "minimalist", label: "Minimaliste" },
+  { key: "dramatic", label: "Dramatique" },
   { key: "tech", label: "Tech" },
-  { key: "retro", label: "Retro" },
+  { key: "retro", label: "Rétro" },
 ];
 
 const STYLE_LABELS: Record<string, string> = {
@@ -23,19 +24,55 @@ const STYLE_LABELS: Record<string, string> = {
   minimalist: "Minimaliste",
   dramatic: "Dramatique",
   tech: "Tech",
-  retro: "Retro",
+  retro: "Rétro",
 };
 
 export default function Gallery() {
   const { isAuthenticated } = useAuth();
   const [selectedStyle, setSelectedStyle] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"recent" | "popular">("recent");
+  const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
 
   const { data: thumbnails, isLoading } = trpc.gallery.thumbnails.useQuery({
     style: selectedStyle === "all" ? undefined : selectedStyle,
     limit: 48,
+    sortBy,
   });
 
   const { data: stats } = trpc.gallery.stats.useQuery();
+
+  // Likes
+  const { data: likesData } = trpc.likes.bulk.useQuery(
+    { thumbnailIds: thumbnails?.filter(t => t.imageUrl).map(t => t.id) ?? [] },
+    { enabled: (thumbnails?.filter(t => t.imageUrl).length ?? 0) > 0 }
+  );
+
+  const likeMutation = trpc.likes.toggle.useMutation({
+    onSuccess: (data, vars) => {
+      setLikedThumbs(prev => ({ ...prev, [vars.thumbnailId]: { count: data.count, liked: data.liked } }));
+      if (!data.liked) {
+        toast.success("Like retiré");
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (likesData) {
+      const mapped: Record<number, { count: number; liked: boolean }> = {};
+      for (const [id, data] of Object.entries(likesData ?? {})) {
+        mapped[Number(id)] = data as any;
+      }
+      setLikedThumbs(mapped);
+    }
+  }, [likesData]);
+
+  const handleLike = (thumbnailId: number) => {
+    if (!isAuthenticated) {
+      toast.error("Connecte-toi pour liker des miniatures");
+      return;
+    }
+    likeMutation.mutate({ thumbnailId });
+  };
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
@@ -44,7 +81,6 @@ export default function Gallery() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden pt-32 pb-16">
-          {/* Background glow */}
           <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
           <div className="absolute top-20 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
           <div className="absolute top-40 right-1/4 w-64 h-64 bg-pink-500/8 rounded-full blur-[100px] pointer-events-none" />
@@ -72,29 +108,54 @@ export default function Gallery() {
 
               <p className="text-lg text-[#A1A1AA] max-w-xl mx-auto">
                 Explore les meilleures miniatures générées par la communauté Minia IA.
-                Filtre par style et laisse-toi inspirer.
+                Filtre par style, vote pour tes préférées, et laisse-toi inspirer.
               </p>
             </motion.div>
           </div>
         </section>
 
-        {/* Style Filter */}
+        {/* Filters + Sort */}
         <section className="container pb-8">
-          <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            <Filter className="w-4 h-4 text-[#71717A] shrink-0" />
-            {STYLES.map((style) => (
-              <button
-                key={style.key}
-                onClick={() => setSelectedStyle(style.key)}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                  selectedStyle === style.key
-                    ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/25"
-                    : "bg-[#18181B] text-[#A1A1AA] border border-[#27272A] hover:border-cyan-500/30 hover:text-white"
-                }`}
-              >
-                {style.label}
-              </button>
-            ))}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
+            {/* Style filter */}
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              <Filter className="w-4 h-4 text-[#71717A] shrink-0" />
+              {STYLES.map(style => (
+                <button
+                  key={style.key}
+                  onClick={() => setSelectedStyle(style.key)}
+                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    selectedStyle === style.key
+                      ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/25"
+                      : "bg-[#18181B] text-[#A1A1AA] border border-[#27272A] hover:border-cyan-500/30 hover:text-white"
+                  }`}
+                >
+                  {style.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sort toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSortBy("recent")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                sortBy === "recent" ? "bg-cyan-500/20 text-cyan-400" : "text-[#71717A] hover:text-white"
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              Récentes
+            </button>
+            <button
+              onClick={() => setSortBy("popular")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                sortBy === "popular" ? "bg-pink-500/20 text-pink-400" : "text-[#71717A] hover:text-white"
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              Populaires
+            </button>
           </div>
         </section>
 
@@ -103,10 +164,7 @@ export default function Gallery() {
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="aspect-video bg-[#18181B] rounded-xl animate-pulse"
-                />
+                <div key={i} className="aspect-video bg-[#18181B] rounded-xl animate-pulse" />
               ))}
             </div>
           ) : thumbnails && thumbnails.length > 0 ? (
@@ -166,6 +224,32 @@ export default function Gallery() {
                       {STYLE_LABELS[thumb.style ?? "viral"]}
                     </span>
                   </div>
+
+                  {/* Like button */}
+                  {isAuthenticated && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleLike(thumb.id); }}
+                      className={`absolute top-3 right-3 p-1.5 rounded-full backdrop-blur-sm transition-all ${
+                        likedThumbs[thumb.id]?.liked
+                          ? "bg-pink-500/30 hover:bg-pink-500/50"
+                          : "bg-black/40 hover:bg-black/60"
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 transition-all ${
+                        likedThumbs[thumb.id]?.liked
+                          ? "text-pink-500 fill-pink-500 scale-110"
+                          : "text-white"
+                      }`} />
+                    </button>
+                  )}
+
+                  {/* Like count badge */}
+                  {likedThumbs[thumb.id] && likedThumbs[thumb.id].count > 0 && (
+                    <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-full">
+                      <Heart className={`w-3 h-3 ${likedThumbs[thumb.id].liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
+                      <span className="text-xs text-white">{likedThumbs[thumb.id].count}</span>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </div>

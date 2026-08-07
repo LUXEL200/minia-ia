@@ -4,34 +4,65 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+
+// Pages
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Gallery from "./pages/Gallery";
+import Features from "./pages/Features";
+import Pricing from "./pages/Pricing";
+import Templates from "./pages/Templates";
+import Generator from "./pages/Generator";
+import Faq from "./pages/Faq";
+import Docs from "./pages/Docs";
+import Blog from "./pages/Blog";
+import Models from "./pages/Models";
+import BestPractices from "./pages/BestPractices";
+import Examples from "./pages/Examples";
+import Comparisons from "./pages/Comparisons";
+import ForCreators from "./pages/ForCreators";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Contact from "./pages/Contact";
+import Cgv from "./pages/Cgv";
 
 function Router() {
   return (
     <Switch>
+      {/* Home */}
       <Route path={"/"} component={Home} />
+      {/* Produit */}
+      <Route path={"/features"} component={Features} />
+      <Route path={"/pricing"} component={Pricing} />
+      <Route path={"/templates"} component={Templates} />
+      <Route path={"/generator"} component={Generator} />
+      <Route path={"/faq"} component={Faq} />
+      <Route path={"/docs"} component={Docs} />
+      {/* Ressources */}
+      <Route path={"/blog"} component={Blog} />
+      <Route path={"/models"} component={Models} />
+      <Route path={"/best-practices"} component={BestPractices} />
+      <Route path={"/examples"} component={Examples} />
+      <Route path={"/comparisons"} component={Comparisons} />
+      <Route path={"/for-creators"} component={ForCreators} />
+      {/* Légal */}
+      <Route path={"/terms"} component={Terms} />
+      <Route path={"/privacy"} component={Privacy} />
+      <Route path={"/contact"} component={Contact} />
+      <Route path={"/cgv"} component={Cgv} />
+      {/* Auth */}
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/gallery"} component={Gallery} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-      >
+      <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
           <Router />
