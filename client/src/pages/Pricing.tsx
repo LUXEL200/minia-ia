@@ -130,15 +130,13 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <Link href={plan.ctaHref}>
-                <a className={`flex items-center justify-center gap-2 w-full py-3 rounded-lg font-semibold transition-all duration-200 ${
-                  plan.popular
-                    ? "bg-cyan-500 text-black hover:bg-cyan-400"
-                    : "bg-[#27272A] text-white hover:bg-[#3F3F46]"
-                }`}>
-                  {plan.cta}
-                  <ArrowRight className="w-4 h-4" />
-                </a>
+              <Link href={plan.ctaHref} className={`flex items-center justify-center gap-2 w-full py-3 rounded-lg font-semibold transition-all duration-200 ${
+                plan.popular
+                  ? "bg-cyan-500 text-black hover:bg-cyan-400"
+                  : "bg-[#27272A] text-white hover:bg-[#3F3F46]"
+              }`}>
+                {plan.cta}
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
           ))}
@@ -154,15 +152,11 @@ export default function Pricing() {
           <h3 className="text-xl font-bold text-white mb-2">Des questions ?</h3>
           <p className="text-[#A1A1AA] mb-4">Consulte notre FAQ ou contacte-nous directement.</p>
           <div className="flex gap-3 justify-center">
-            <Link href="/faq">
-              <a className="px-5 py-2.5 bg-[#27272A] text-white rounded-lg hover:bg-[#3F3F46] transition-colors text-sm font-medium">
-                Voir la FAQ
-              </a>
+            <Link href="/faq" className="px-5 py-2.5 bg-[#27272A] text-white rounded-lg hover:bg-[#3F3F46] transition-colors text-sm font-medium">
+              Voir la FAQ
             </Link>
-            <Link href="/contact">
-              <a className="px-5 py-2.5 bg-cyan-500 text-black rounded-lg hover:bg-cyan-400 transition-colors text-sm font-medium">
-                Nous contacter
-              </a>
+            <Link href="/contact" className="px-5 py-2.5 bg-cyan-500 text-black rounded-lg hover:bg-cyan-400 transition-colors text-sm font-medium">
+              Nous contacter
             </Link>
           </div>
         </motion.div>

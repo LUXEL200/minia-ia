@@ -46,11 +46,11 @@ export default function Generator() {
               <>
                 <h3 className="text-xl font-bold text-white mb-2">Accès au générateur</h3>
                 <p className="text-[#A1A1AA] mb-6">Rends-toi sur le dashboard pour générer tes miniatures.</p>
-                <Link href="/dashboard">
-                  <a className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                  
                     Ouvrir le dashboard
                     <ArrowRight className="w-4 h-4" />
-                  </a>
+                  
                 </Link>
               </>
             ) : (
@@ -58,10 +58,10 @@ export default function Generator() {
                 <h3 className="text-xl font-bold text-white mb-2">Connexion requise</h3>
                 <p className="text-[#A1A1AA] mb-6">Connecte-toi pour accéder au générateur de miniatures IA et créer tes premières miniatures.</p>
                 <Link href="/">
-                  <a className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                  
                     Se connecter
                     <ArrowRight className="w-4 h-4" />
-                  </a>
+                  
                 </Link>
                 <p className="text-xs text-[#52525B] mt-4">Sans carte bancaire • 5 miniatures gratuites</p>
               </>

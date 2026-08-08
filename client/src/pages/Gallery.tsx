@@ -268,18 +268,14 @@ export default function Gallery() {
                   : `Aucune miniature de style "${STYLE_LABELS[selectedStyle]}" pour le moment.`}
               </p>
               {isAuthenticated ? (
-                <Link href="/dashboard">
-                  <a className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
-                    <Sparkles className="w-4 h-4" />
-                    Générer des miniatures
-                  </a>
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                  <Sparkles className="w-4 h-4" />
+                  Générer des miniatures
                 </Link>
               ) : (
-                <Link href="/">
-                  <a className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
-                    Essayer gratuitement
-                    <span className="text-lg">→</span>
-                  </a>
+                <Link href="/" className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                  Essayer gratuitement
+                  <span className="text-lg">→</span>
                 </Link>
               )}
             </div>
@@ -303,16 +299,12 @@ export default function Gallery() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 {isAuthenticated ? (
-                  <Link href="/dashboard">
-                    <a className="px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
-                      Ouvrir le Dashboard →
-                    </a>
+                  <Link href="/dashboard" className="px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Ouvrir le Dashboard →
                   </Link>
                 ) : (
-                  <Link href="/">
-                    <a className="px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
-                      Essayer gratuitement →
-                    </a>
+                  <Link href="/" className="px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                    Essayer gratuitement →
                   </Link>
                 )}
               </div>

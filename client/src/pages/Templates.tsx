@@ -114,12 +114,10 @@ export default function Templates() {
                   </span>
                 </div>
                 <p className="text-sm text-[#71717A] mb-4">{template.description}</p>
-                <Link href="/dashboard">
-                  <a className="inline-flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
-                    <Eye className="w-4 h-4" />
-                    Utiliser ce template
-                    <ArrowRight className="w-3 h-3" />
-                  </a>
+                <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                  <Eye className="w-4 h-4" />
+                  Utiliser ce template
+                  <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
             </motion.div>
@@ -130,11 +128,9 @@ export default function Templates() {
         <div className="text-center p-8 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-xl">
           <h3 className="text-xl font-bold text-white mb-2">Prêt à créer ?</h3>
           <p className="text-[#A1A1AA] mb-4">Génère ta miniature en 30 secondes depuis le dashboard.</p>
-          <Link href="/dashboard">
-            <a className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
-              Ouvrir le générateur
-              <ArrowRight className="w-4 h-4" />
-            </a>
+          <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+            Ouvrir le générateur
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { Link } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -209,9 +210,9 @@ export default function Dashboard() {
             <span className="font-display text-base font-bold text-white">
               Minia<span className="text-[#06B6D4]">IA</span>
             </span>
-            <a href="/" className="ml-4 text-sm text-zinc-500 hover:text-white transition-colors">
+            <Link href="/" className="ml-4 text-sm text-zinc-500 hover:text-white transition-colors">
               ← Retour au site
-            </a>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181B] border border-[#27272A]">

@@ -97,11 +97,11 @@ export default function ForCreators() {
         >
           <h3 className="text-xl font-bold text-white mb-2">Rejoins la communauté</h3>
           <p className="text-[#A1A1AA] mb-4">Plus de 2 800 créateurs utilisent déjà Minia IA.</p>
-          <Link href="/">
-            <a className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+            
               Essayer gratuitement
               <ArrowRight className="w-4 h-4" />
-            </a>
+            
           </Link>
         </motion.div>
       </div>

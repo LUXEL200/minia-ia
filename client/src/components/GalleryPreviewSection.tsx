@@ -105,12 +105,10 @@ export default function GalleryPreviewSection() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center"
         >
-          <Link href="/gallery">
-            <a className="inline-flex items-center gap-2 px-6 py-3 bg-[#18181B] border border-[#27272A] rounded-lg text-white font-medium hover:border-cyan-500/30 hover:bg-[#1F1F23] transition-all duration-300 group">
-              <Eye className="w-4 h-4 text-cyan-400" />
-              Voir la galerie complète
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </a>
+          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-[#18181B] border border-[#27272A] rounded-lg text-white font-medium hover:border-cyan-500/30 hover:bg-[#1F1F23] transition-all duration-300 group">
+            <Eye className="w-4 h-4 text-cyan-400" />
+            Voir la galerie complète
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
       </div>

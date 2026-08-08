@@ -116,9 +116,9 @@ export default function Faq() {
           <h3 className="text-xl font-bold text-white mb-2">Pas de réponse à ta question ?</h3>
           <p className="text-[#A1A1AA] mb-4">Notre équipe répond en moins de 24h.</p>
           <Link href="/contact">
-            <a className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+            
               Nous contacter →
-            </a>
+            
           </Link>
         </motion.div>
       </div>

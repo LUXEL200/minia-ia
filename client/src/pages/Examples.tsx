@@ -105,11 +105,11 @@ export default function Examples() {
         >
           <h3 className="text-xl font-bold text-white mb-2">Explore la galerie communautaire</h3>
           <p className="text-[#A1A1AA] mb-4">Des milliers de miniatures générées par des créateurs comme toi.</p>
-          <Link href="/gallery">
-            <a className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+            
               Voir la galerie
               <ArrowRight className="w-4 h-4" />
-            </a>
+            
           </Link>
         </motion.div>
       </div>
