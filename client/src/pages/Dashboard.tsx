@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
 import { startLogin } from "@/const";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -49,14 +49,21 @@ export default function Dashboard() {
   // Likes state
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
 
-  // tRPC queries
-  const { data: thumbnails, isLoading: loadingThumbs, refetch: refetchThumbs } = trpc.thumbnail.list.useQuery();
-  const { data: credits, refetch: refetchCredits } = trpc.thumbnail.credits.useQuery();
-  const { data: teamMembers, refetch: refetchTeam } = trpc.team.members.useQuery();
-  const { data: teamTasks, refetch: refetchTasks } = trpc.team.tasks.useQuery();
+  // Auth gate
+  const isAuthed = !authLoading && isAuthenticated && !!user;
+
+  // tRPC queries - only enabled when authenticated
+  const { data: thumbnails, isLoading: loadingThumbs, refetch: refetchThumbs } = trpc.thumbnail.list.useQuery(undefined, { enabled: isAuthed });
+  const { data: credits, refetch: refetchCredits } = trpc.thumbnail.credits.useQuery(undefined, { enabled: isAuthed });
+  const { data: teamMembers, refetch: refetchTeam } = trpc.team.members.useQuery(undefined, { enabled: isAuthed });
+  const { data: teamTasks, refetch: refetchTasks } = trpc.team.tasks.useQuery(undefined, { enabled: isAuthed });
+  const completedThumbIds = useMemo(
+    () => thumbnails?.filter(t => t.status === "completed").map(t => t.id) ?? [],
+    [thumbnails]
+  );
   const { data: likesData } = trpc.likes.bulk.useQuery(
-    { thumbnailIds: thumbnails?.filter(t => t.status === "completed").map(t => t.id) ?? [] },
-    { enabled: (thumbnails?.filter(t => t.status === "completed").length ?? 0) > 0 }
+    { thumbnailIds: completedThumbIds },
+    { enabled: isAuthed && completedThumbIds.length > 0 }
   );
 
   const generateMutation = trpc.thumbnail.generate.useMutation();
@@ -83,12 +90,6 @@ export default function Dashboard() {
   const updateTaskMutation = trpc.team.updateTask.useMutation({
     onSuccess: () => { refetchTasks(); toast.success("Statut mis à jour"); },
   });
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      startLogin();
-    }
-  }, [authLoading, isAuthenticated]);
 
   // Sync likes data
   useEffect(() => {
@@ -193,10 +194,34 @@ export default function Dashboard() {
     );
   }
 
-  if (!isAuthenticated || !user) return null;
-
   const completedThumbnails = thumbnails?.filter(t => t.status === "completed") ?? [];
   const generatingThumbnails = thumbnails?.filter(t => t.status === "generating") ?? [];
+
+  // Login prompt
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center mx-auto mb-6">
+            <Zap className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-3">Connecte-toi à Minia IA</h1>
+          <p className="text-gray-400 mb-8">
+            Accède à ton dashboard pour générer des miniatures, gérer ton équipe et suivre tes crédits.
+          </p>
+          <Button
+            onClick={() => startLogin()}
+            className="w-full py-6 text-lg font-semibold"
+          >
+            Se connecter avec Manus
+          </Button>
+          <Link href="/" className="block mt-4 text-sm text-gray-500 hover:text-cyan-400 transition-colors">
+            ← Retour à l'accueil
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#09090B]">
@@ -221,7 +246,7 @@ export default function Dashboard() {
               <span className="text-xs text-zinc-500">crédits</span>
             </div>
             <div className="text-right">
-              <p className="text-sm text-white font-medium">{user.name || user.email}</p>
+              <p className="text-sm text-white font-medium">{user?.name || user?.email || "Utilisateur"}</p>
               <p className="text-xs text-zinc-500 capitalize">{credits?.planType || "free"} plan</p>
             </div>
           </div>
