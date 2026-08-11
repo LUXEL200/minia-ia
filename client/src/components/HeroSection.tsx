@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import AnimatedSection from "@/components/AnimatedSection";
+import { startLogin } from "@/const";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useLocation } from "wouter";
 
 function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -30,6 +33,21 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
 }
 
 export default function HeroSection() {
+  const { isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
+
+  const handleCTAClick = () => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    } else {
+      startLogin();
+    }
+  };
+
+  const handleExamplesClick = () => {
+    navigate("/gallery");
+  };
+
   return (
     <section className="relative min-h-screen flex items-center pt-24 overflow-hidden">
       {/* Background grid with parallax feel */}
@@ -108,6 +126,7 @@ export default function HeroSection() {
               <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
                 <Button
                   size="lg"
+                  onClick={handleCTAClick}
                   className="bg-[#06B6D4] hover:bg-[#06B6D4]/90 text-black font-bold text-base px-8 py-6 rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-lg shadow-[#06B6D4]/25 magnetic-btn group"
                 >
                   Essayer gratuitement
@@ -116,6 +135,7 @@ export default function HeroSection() {
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={handleExamplesClick}
                   className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-white/5 text-base px-8 py-6 rounded-lg magnetic-btn"
                 >
                   <Play className="mr-2 w-5 h-5" />

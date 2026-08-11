@@ -30,3 +30,7 @@
 - [x] Redirection vers /dashboard après connexion réussie
 - [x] Stockage du chemin de retour dans sessionStorage pour auto-login
 - [x] Test unitaire mis à jour pour sameSite=lax
+
+- [x] Bouton CTA HeroSection fonctionnel (login/dashboard selon auth state)
+- [x] Bouton "Voir des exemples" → /gallery
+- [x] Tables base de données créées (users, thumbnails, userCredits, thumbnailLikes, teamMembers, teamTasks)
