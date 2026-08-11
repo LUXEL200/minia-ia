@@ -1,62 +1,50 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
 import { startLogin } from "@/const";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
-  Zap, Image, CreditCard, Download, Trash2, Loader2, Sparkles,
-  ChevronDown, Play, Clock, CheckCircle2, XCircle, Heart, Users,
-  ListChecks, Send, X, Plus, MessageSquare, Filter,
+  Image, CreditCard, Download, Trash2, Loader2, Sparkles,
+  ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
+  Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
 } from "lucide-react";
 
 const STYLES = [
-  { id: "viral", label: "Viral", emoji: "🔥", desc: "Bold, vibrant, high CTR" },
-  { id: "mrbeast", label: "MrBeast", emoji: "🤩", desc: "Exaggerated, saturated" },
-  { id: "minimalist", label: "Minimaliste", emoji: "✨", desc: "Clean, elegant, subtle" },
-  { id: "dramatic", label: "Dramatique", emoji: "🎬", desc: "Dark, moody, cinematic" },
-  { id: "tech", label: "Tech", emoji: "💻", desc: "Futuristic, neon, digital" },
-  { id: "retro", label: "Rétro", emoji: "📼", desc: "Vintage, 80s, nostalgic" },
+  { id: "viral", label: "Viral", emoji: "🔥" },
+  { id: "mrbeast", label: "MrBeast", emoji: "🤩" },
+  { id: "minimalist", label: "Minimaliste", emoji: "✨" },
+  { id: "dramatic", label: "Dramatique", emoji: "🎬" },
+  { id: "tech", label: "Tech", emoji: "💻" },
+  { id: "retro", label: "Rétro", emoji: "📼" },
 ];
 
-const QUANTITY_OPTIONS = [
-  { value: 1, label: "1 miniature" },
-  { value: 2, label: "2 miniatures" },
-  { value: 3, label: "3 miniatures" },
-  { value: 4, label: "4 miniatures" },
-];
-
-type Tab = "generate" | "batch" | "team" | "history";
+const STYLE_LABELS: Record<string, string> = Object.fromEntries(STYLES.map(s => [s.id, s.label]));
 
 export default function Dashboard() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user, loading: authLoading, isAuthenticated, logout } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState<string>("viral");
   const [quantity, setQuantity] = useState<number>(1);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showStyleDropdown, setShowStyleDropdown] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>("generate");
-
-  // Batch state
+  const [activeView, setActiveView] = useState<"home" | "generate" | "team" | "all-generations">("home");
   const [batchPrompts, setBatchPrompts] = useState("");
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
-
-  // Team state
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-
-  // Likes state
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
+  const [showStyleDropdown, setShowStyleDropdown] = useState(false);
 
   // Auth gate
   const isAuthed = !authLoading && isAuthenticated && !!user;
 
-  // tRPC queries - only enabled when authenticated
+  // tRPC queries
   const { data: thumbnails, isLoading: loadingThumbs, refetch: refetchThumbs } = trpc.thumbnail.list.useQuery(undefined, { enabled: isAuthed });
   const { data: credits, refetch: refetchCredits } = trpc.thumbnail.credits.useQuery(undefined, { enabled: isAuthed });
   const { data: teamMembers, refetch: refetchTeam } = trpc.team.members.useQuery(undefined, { enabled: isAuthed });
   const { data: teamTasks, refetch: refetchTasks } = trpc.team.tasks.useQuery(undefined, { enabled: isAuthed });
+
   const completedThumbIds = useMemo(
     () => thumbnails?.filter(t => t.status === "completed").map(t => t.id) ?? [],
     [thumbnails]
@@ -102,7 +90,7 @@ export default function Dashboard() {
     }
   }, [likesData]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!prompt.trim() || prompt.length < 10) {
       toast.error("Décris ta miniature en au moins 10 caractères");
       return;
@@ -123,14 +111,15 @@ export default function Dashboard() {
       setPrompt("");
       refetchThumbs();
       refetchCredits();
+      setActiveView("home");
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la génération");
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [prompt, credits, quantity, style, generateMutation, refetchThumbs, refetchCredits]);
 
-  const handleBatchGenerate = async () => {
+  const handleBatchGenerate = useCallback(async () => {
     const prompts = batchPrompts.split("\n").filter(p => p.trim().length >= 10);
     if (prompts.length === 0) {
       toast.error("Entre au moins une description par ligne (10 caractères minimum)");
@@ -151,21 +140,20 @@ export default function Dashboard() {
       setBatchPrompts("");
       refetchThumbs();
       refetchCredits();
+      setActiveView("home");
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la génération en lot");
     } finally {
       setIsBatchGenerating(false);
     }
-  };
+  }, [batchPrompts, credits, style, batchMutation, refetchThumbs, refetchCredits]);
 
-  const handleDelete = (id: number) => {
-    deleteMutation.mutate({ id });
-  };
+  const handleDelete = (id: number) => deleteMutation.mutate({ id });
 
-  const handleDownload = (url: string, id: number) => {
+  const handleDownload = (url: string) => {
     const link = document.createElement("a");
     link.href = url;
-    link.download = `minia-ia-${id}.png`;
+    link.download = `minia-ia.png`;
     link.target = "_blank";
     link.click();
   };
@@ -175,47 +163,38 @@ export default function Dashboard() {
     likeMutation.mutate({ thumbnailId });
   };
 
-  const handleCreateTask = (thumbnailId: number) => {
-    createTaskMutation.mutate({ thumbnailId, status: "pending" });
-  };
+  const handleCreateTask = (thumbnailId: number) => createTaskMutation.mutate({ thumbnailId, status: "pending" });
 
   const handleUpdateTask = (taskId: number, status: "pending" | "reviewing" | "approved" | "rejected" | "cancelled") => {
     updateTaskMutation.mutate({ taskId, status });
   };
 
+  // ===== Loading state =====
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#06B6D4] to-[#EC4899]" />
+      <div className="min-h-screen bg-[#000] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
           <p className="text-zinc-500 text-sm">Chargement...</p>
         </div>
       </div>
     );
   }
 
-  const completedThumbnails = thumbnails?.filter(t => t.status === "completed") ?? [];
-  const generatingThumbnails = thumbnails?.filter(t => t.status === "generating") ?? [];
-
-  // Login prompt
-  if (!authLoading && !isAuthenticated) {
+  // ===== Not authenticated =====
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#09090B] flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center mx-auto mb-6">
-            <Zap className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-3">Connecte-toi à Minia IA</h1>
-          <p className="text-gray-400 mb-8">
-            Accède à ton dashboard pour générer des miniatures, gérer ton équipe et suivre tes crédits.
-          </p>
+      <div className="min-h-screen bg-[#000] flex items-center justify-center">
+        <div className="text-center max-w-sm mx-auto p-8">
+          <h1 className="text-2xl font-semibold text-white mb-2">Tableau de bord</h1>
+          <p className="text-zinc-500 text-sm mb-6">Connecte-toi pour accéder à ton espace de création.</p>
           <Button
             onClick={() => startLogin()}
-            className="w-full py-6 text-lg font-semibold"
+            className="w-full py-5 text-base font-medium bg-white text-black hover:bg-white/90 rounded-xl"
           >
-            Se connecter avec Manus
+            Se connecter
           </Button>
-          <Link href="/" className="block mt-4 text-sm text-gray-500 hover:text-cyan-400 transition-colors">
+          <Link href="/" className="block mt-4 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
             ← Retour à l'accueil
           </Link>
         </div>
@@ -223,450 +202,590 @@ export default function Dashboard() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#09090B]">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#09090B]/90 backdrop-blur-xl border-b border-[#27272A]">
-        <nav className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="font-display text-base font-bold text-white">
-              Minia<span className="text-[#06B6D4]">IA</span>
-            </span>
-            <Link href="/" className="ml-4 text-sm text-zinc-500 hover:text-white transition-colors">
-              ← Retour au site
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181B] border border-[#27272A]">
-              <CreditCard className="w-3.5 h-3.5 text-[#22C55E]" />
-              <span className="text-sm font-bold text-[#22C55E]">{credits?.credits ?? 10}</span>
-              <span className="text-xs text-zinc-500">crédits</span>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-white font-medium">{user?.name || user?.email || "Utilisateur"}</p>
-              <p className="text-xs text-zinc-500 capitalize">{credits?.planType || "free"} plan</p>
-            </div>
-          </div>
-        </nav>
-      </header>
+  // ===== Computed values =====
+  const completedThumbnails = thumbnails?.filter(t => t.status === "completed") ?? [];
+  const generatingThumbnails = thumbnails?.filter(t => t.status === "generating") ?? [];
+  const failedThumbnails = thumbnails?.filter(t => t.status === "failed") ?? [];
+  const totalGenerations = completedThumbnails.length + failedThumbnails.length;
+  const recentThumbnails = [...thumbnails ?? []].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 8);
+  const templateThumbnails = completedThumbnails.slice(0, 4);
 
-      {/* Main */}
-      <main className="pt-20 pb-16 px-6">
-        <div className="max-w-5xl mx-auto">
-          {/* Tabs */}
-          <div className="flex gap-1 mb-8 bg-[#18181B] rounded-lg p-1 border border-[#27272A]">
-            {[
-              { key: "generate" as Tab, label: "Générer", icon: Sparkles },
-              { key: "batch" as Tab, label: "Batch", icon: ListChecks },
-              { key: "team" as Tab, label: "Équipe", icon: Users },
-              { key: "history" as Tab, label: "Historique", icon: Clock },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-all ${
-                  activeTab === tab.key
-                    ? "bg-[#06B6D4] text-black"
-                    : "text-zinc-400 hover:text-white"
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
+  // ===== Header =====
+  const renderHeader = () => (
+    <header className="sticky top-0 z-50 bg-[#000]/90 backdrop-blur-xl border-b border-white/5">
+      <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setActiveView("home")} className="text-zinc-400 hover:text-white transition-colors">
+            <Home className="w-5 h-5" />
+          </button>
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+          <span className="text-sm text-zinc-300 font-medium">Tableau de bord</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#181818] border border-white/5 text-xs text-zinc-300">
+            <CreditCard className="w-3.5 h-3.5 text-zinc-500" />
+            {credits?.credits ?? 10} crédit{credits && credits.credits !== 1 ? "s" : ""}
+          </button>
+          <button className="text-zinc-400 hover:text-white transition-colors">
+            <MessageSquare className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+
+  // ===== Home View (default) =====
+  const renderHomeView = () => (
+    <div className="max-w-2xl mx-auto px-4 pb-8">
+      {/* Title */}
+      <div className="pt-6 pb-6">
+        <h1 className="text-lg font-semibold text-white">Tableau de bord</h1>
+        <p className="text-xs text-zinc-500 mt-1">Aperçu de ton espace de création</p>
+      </div>
+
+      {/* Stat Cards — 2x2 grid */}
+      <div className="grid grid-cols-2 gap-3 mb-8">
+        <div className="bg-[#181818] rounded-xl p-4 relative">
+          <Image className="absolute top-4 right-4 w-4 h-4 text-zinc-500" />
+          <span className="text-xs text-zinc-500">Miniatures</span>
+          <p className="text-2xl font-bold text-white mt-2">{completedThumbnails.length}</p>
+          <span className="text-[10px] text-zinc-600">Génération totale</span>
+        </div>
+        <div className="bg-[#181818] rounded-xl p-4 relative">
+          <Sparkles className="absolute top-4 right-4 w-4 h-4 text-zinc-500" />
+          <span className="text-xs text-zinc-500">Générations</span>
+          <p className="text-2xl font-bold text-white mt-2">{totalGenerations}</p>
+          <span className="text-[10px] text-zinc-600">Tous les projets achevés</span>
+        </div>
+        <div className="bg-[#181818] rounded-xl p-4 relative">
+          <UserCircle2 className="absolute top-4 right-4 w-4 h-4 text-zinc-500" />
+          <span className="text-xs text-zinc-500">Avatars</span>
+          <p className="text-2xl font-bold text-white mt-2">0</p>
+          <span className="text-[10px] text-zinc-600">Génération totale</span>
+        </div>
+        <div className="bg-[#181818] rounded-xl p-4 relative">
+          <CreditCard className="absolute top-4 right-4 w-4 h-4 text-zinc-500" />
+          <span className="text-xs text-zinc-500">Crédits</span>
+          <p className="text-2xl font-bold text-white mt-2">{credits?.credits ?? 10}</p>
+          <span className="text-[10px] text-zinc-600">Disponible</span>
+        </div>
+      </div>
+
+      {/* Vos personnes */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-white">Vos personnes</h2>
+          <button
+            onClick={() => setActiveView("team")}
+            className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
+          >
+            Afficher tout <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {/* Self */}
+          <div className="flex-shrink-0 w-40 bg-[#181818] rounded-xl p-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
+              {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
+            </div>
+            <div>
+              <p className="text-xs text-white font-medium truncate">{user?.name || "Créateur"}</p>
+              <p className="text-[10px] text-zinc-500">Créateur</p>
+            </div>
+          </div>
+          {/* Team members */}
+          {teamMembers?.slice(0, 3).map(member => (
+            <div key={member.id} className="flex-shrink-0 w-40 bg-[#181818] rounded-xl p-3 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-600 to-zinc-700 flex items-center justify-center text-xs font-bold text-white">
+                {member.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <div>
+                <p className="text-xs text-white font-medium truncate">{member.name || "Membre"}</p>
+                <p className="text-[10px] text-zinc-500 capitalize">{member.role}</p>
+              </div>
+            </div>
+          ))}
+          {/* Add member */}
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="flex-shrink-0 w-12 h-12 rounded-full bg-[#181818] border border-dashed border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-white hover:border-zinc-500 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Générations récentes */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-white">Générations récentes</h2>
+          <button
+            onClick={() => setActiveView("all-generations")}
+            className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
+          >
+            Afficher tout <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+        {loadingThumbs ? (
+          <div className="aspect-video rounded-xl bg-[#181818] animate-pulse" />
+        ) : recentThumbnails.length === 0 ? (
+          <div className="bg-[#181818] rounded-xl p-8 text-center">
+            <Image className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+            <p className="text-xs text-zinc-500">Aucune miniature générée</p>
+            <p className="text-[10px] text-zinc-600 mt-1">Va dans Générer pour créer ta première miniature !</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {recentThumbnails.slice(0, 4).map(thumb => (
+              <div key={thumb.id} className="relative aspect-video rounded-xl overflow-hidden bg-[#181818] group">
+                {thumb.status === "generating" ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-zinc-600 animate-spin" />
+                  </div>
+                ) : thumb.status === "completed" && thumb.imageUrl ? (
+                  <>
+                    <img src={thumb.imageUrl} alt={thumb.prompt} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <p className="text-xs text-white/80 line-clamp-1">{thumb.prompt}</p>
+                      <p className="text-[10px] text-zinc-500 mt-0.5">
+                        {new Date(thumb.createdAt).toLocaleDateString("fr-FR")}
+                      </p>
+                    </div>
+                    {/* Actions overlay */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                        <Download className="w-4 h-4 text-white" />
+                      </button>
+                      <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors">
+                        <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
+                      </button>
+                      <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Créer une tâche">
+                        <ListChecks className="w-4 h-4 text-white" />
+                      </button>
+                      <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors">
+                        <Trash2 className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <XCircle className="w-8 h-8 text-zinc-700" />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
+        )}
+      </div>
 
-          {/* GENERATE TAB */}
-          {activeTab === "generate" && (
-            <div className="rounded-xl bg-[#18181B] border border-[#27272A] p-6">
-              <h2 className="text-lg font-bold text-white mb-4">Crée ta miniature virale</h2>
-
-              {/* Prompt */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-zinc-300 mb-2">Décris ta miniature</label>
-                <div className="relative">
-                  <textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Ex: Un homme surpris avec un gros plan, fond bleu électrique, texte 'IL A GAGNÉ 100 000€' en gros..."
-                    className="w-full h-28 px-4 py-3 rounded-lg bg-[#09090B] border border-[#27272A] text-white placeholder:text-zinc-600 focus:border-[#06B6D4]/50 focus:ring-1 focus:ring-[#06B6D4]/20 outline-none resize-none transition-all"
-                    maxLength={500}
-                  />
-                  <span className="absolute bottom-2 right-2 text-xs text-zinc-600">{prompt.length}/500</span>
+      {/* Modèles */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-white">Modèles</h2>
+          <Link href="/templates" className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors">
+            Afficher tout <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {templateThumbnails.length > 0 ? (
+            templateThumbnails.map(thumb => (
+              <div key={thumb.id} className="relative aspect-video rounded-xl overflow-hidden bg-[#181818] group cursor-pointer" onClick={() => thumb.imageUrl && handleDownload(thumb.imageUrl)}>
+                {thumb.imageUrl && <img src={thumb.imageUrl} alt={thumb.prompt} className="w-full h-full object-cover" />}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                  <p className="text-[11px] text-white/80 line-clamp-1">{thumb.prompt}</p>
                 </div>
               </div>
-
-              {/* Style + Quantity */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Style</label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowStyleDropdown(!showStyleDropdown)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#09090B] border border-[#27272A] text-white hover:border-[#06B6D4]/30 transition-colors"
-                    >
-                      <span>{STYLES.find(s => s.id === style)?.emoji} {STYLES.find(s => s.id === style)?.label}</span>
-                      <ChevronDown className="w-4 h-4 text-zinc-500" />
-                    </button>
-                    {showStyleDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 rounded-lg bg-[#18181B] border border-[#27272A] overflow-hidden z-10">
-                        {STYLES.map(s => (
-                          <button
-                            key={s.id}
-                            onClick={() => { setStyle(s.id); setShowStyleDropdown(false); }}
-                            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[#09090B] transition-colors ${style === s.id ? "bg-[#06B6D4]/10" : ""}`}
-                          >
-                            <span className="text-lg">{s.emoji}</span>
-                            <div>
-                              <span className="text-sm text-white">{s.label}</span>
-                              <span className="block text-xs text-zinc-500">{s.desc}</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Quantité</label>
-                  <div className="flex gap-2">
-                    {QUANTITY_OPTIONS.map(opt => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setQuantity(opt.value)}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          quantity === opt.value
-                            ? "bg-[#06B6D4] text-black"
-                            : "bg-[#09090B] border border-[#27272A] text-zinc-400 hover:border-[#06B6D4]/30"
-                        }`}
-                      >
-                        {opt.value}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={handleGenerate}
-                  disabled={isGenerating || !prompt.trim() || prompt.length < 10}
-                  className="bg-[#06B6D4] hover:bg-[#06B6D4]/90 text-black font-bold px-6 h-11"
-                >
-                  {isGenerating ? (
-                    <><Loader2 className="mr-2 w-4 h-4 animate-spin" />Génération...</>
-                  ) : (
-                    <><Sparkles className="mr-2 w-4 h-4" />Générer {quantity} miniature{quantity > 1 ? "s" : ""}</>
-                  )}
-                </Button>
-                <span className="text-xs text-zinc-500">
-                  Coût : {quantity} crédit{quantity > 1 ? "s" : ""} ({credits?.credits ?? 10} restants)
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* BATCH TAB */}
-          {activeTab === "batch" && (
-            <div className="rounded-xl bg-[#18181B] border border-[#27272A] p-6">
-              <h2 className="text-lg font-bold text-white mb-2">Génération en lot (Batch)</h2>
-              <p className="text-sm text-zinc-400 mb-4">
-                Colle une description par ligne. Chaque ligne = 1 miniature. Jusqu'à 20 descriptions.
-              </p>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-zinc-300 mb-2">Descriptions (une par ligne)</label>
-                <textarea
-                  value={batchPrompts}
-                  onChange={(e) => setBatchPrompts(e.target.value)}
-                  placeholder={`Exemple :\nUn scientifique dans un labo futuriste, texte 'L'IA DU FUTUR'\nUn chat sur un skateboard, fond néon, texte 'INCROYABLE'\nUn paysage de montagnes au coucher du soleil, texte 'AVENTURE'`}
-                  className="w-full h-64 px-4 py-3 rounded-lg bg-[#09090B] border border-[#27272A] text-white placeholder:text-zinc-600 focus:border-[#06B6D4]/50 focus:ring-1 focus:ring-[#06B6D4]/20 outline-none resize-none transition-all font-mono text-sm"
-                />
-              </div>
-
-              {/* Style selector for batch */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-zinc-300 mb-2">Style</label>
-                <div className="flex flex-wrap gap-2">
-                  {STYLES.map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => setStyle(s.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm transition-all ${
-                        style === s.id
-                          ? "bg-[#06B6D4] text-black"
-                          : "bg-[#09090B] border border-[#27272A] text-zinc-400 hover:border-[#06B6D4]/30"
-                      }`}
-                    >
-                      {s.emoji} {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={handleBatchGenerate}
-                  disabled={isBatchGenerating || !batchPrompts.trim()}
-                  className="bg-[#06B6D4] hover:bg-[#06B6D4]/90 text-black font-bold px-6 h-11"
-                >
-                  {isBatchGenerating ? (
-                    <><Loader2 className="mr-2 w-4 h-4 animate-spin" />Génération en cours...</>
-                  ) : (
-                    <><ListChecks className="mr-2 w-4 h-4" />Générer le lot ({batchPrompts.split("\n").filter(p => p.trim().length >= 10).length} miniatures)</>
-                  )}
-                </Button>
-                <span className="text-xs text-zinc-500">
-                  Coût : {batchPrompts.split("\n").filter(p => p.trim().length >= 10).length} crédit(s) ({credits?.credits ?? 10} restants)
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* TEAM TAB */}
-          {activeTab === "team" && (
-            <div className="space-y-6">
-              {/* Team Members */}
-              <div className="rounded-xl bg-[#18181B] border border-[#27272A] p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Users className="w-5 h-5 text-[#06B6D4]" />
-                    Membres de l'équipe
-                  </h2>
-                  <Button
-                    onClick={() => setShowInviteModal(true)}
-                    className="bg-[#06B6D4] text-black font-bold h-9 text-sm"
-                  >
-                    <Plus className="w-4 h-4 mr-1" /> Inviter
-                  </Button>
-                </div>
-
-                {teamMembers && teamMembers.length > 0 ? (
-                  <div className="space-y-3">
-                    {teamMembers.map(member => (
-                      <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-[#09090B] border border-[#27272A]">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
-                            {member.name?.charAt(0).toUpperCase() || "U"}
-                          </div>
-                          <div>
-                            <p className="text-sm text-white">{member.name || "Utilisateur"}</p>
-                            <p className="text-xs text-zinc-500">{member.email || ""}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${member.role === "admin" ? "bg-cyan-500/20 text-cyan-400" : "bg-zinc-700 text-zinc-400"}`}>
-                            {member.role === "admin" ? "Admin" : "Membre"}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeMutation.mutate({ userId: member.userId })}
-                            className="text-zinc-500 hover:text-red-400 h-8 w-8 p-0"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Users className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
-                    <p className="text-zinc-500 text-sm">Aucun membre dans l'équipe</p>
-                    <p className="text-zinc-600 text-xs mt-1">Invite des collaborateurs pour travailler ensemble.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Team Tasks */}
-              <div className="rounded-xl bg-[#18181B] border border-[#27272A] p-6">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                  <ListChecks className="w-5 h-5 text-[#06B6D4]" />
-                  Tâches & Validation
-                </h2>
-
-                {teamTasks && teamTasks.length > 0 ? (
-                  <div className="space-y-3">
-                    {teamTasks.map(task => (
-                      <div key={task.id} className="p-4 rounded-lg bg-[#09090B] border border-[#27272A]">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              task.status === "approved" ? "bg-green-500/20 text-green-400" :
-                              task.status === "rejected" ? "bg-red-500/20 text-red-400" :
-                              task.status === "reviewing" ? "bg-yellow-500/20 text-yellow-400" :
-                              task.status === "cancelled" ? "bg-zinc-600 text-zinc-400" :
-                              "bg-cyan-500/20 text-cyan-400"
-                            }`}>
-                              {task.status === "pending" ? "En attente" : task.status === "reviewing" ? "En révision" : task.status === "approved" ? "Approuvé" : task.status === "rejected" ? "Rejeté" : "Annulé"}
-                            </span>
-                          </div>
-                          <span className="text-xs text-zinc-600">
-                            {new Date(task.createdAt).toLocaleDateString("fr-FR")}
-                          </span>
-                        </div>
-                        {task.comment && (
-                          <p className="text-sm text-zinc-400 mb-3">{task.comment}</p>
-                        )}
-                        <div className="flex gap-2">
-                          {task.status !== "approved" && task.status !== "cancelled" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleUpdateTask(task.id, "approved")}
-                              className="bg-green-500/20 text-green-400 hover:bg-green-500/30 h-8 text-xs"
-                            >
-                              <CheckCircle2 className="w-3 h-3 mr-1" /> Approuver
-                            </Button>
-                          )}
-                          {task.status !== "rejected" && task.status !== "cancelled" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleUpdateTask(task.id, "rejected")}
-                              className="bg-red-500/20 text-red-400 hover:bg-red-500/30 h-8 text-xs"
-                            >
-                              <XCircle className="w-3 h-3 mr-1" /> Rejeter
-                            </Button>
-                          )}
-                          {task.status === "pending" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleUpdateTask(task.id, "reviewing")}
-                              className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 h-8 text-xs"
-                            >
-                              En révision
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            onClick={() => handleUpdateTask(task.id, "cancelled")}
-                            className="bg-zinc-700 text-zinc-400 hover:bg-zinc-600 h-8 text-xs"
-                          >
-                            Annuler
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <ListChecks className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
-                    <p className="text-zinc-500 text-sm">Aucune tâche en cours</p>
-                    <p className="text-zinc-600 text-xs mt-1">Crée des tâches depuis l'historique pour collaborer.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* HISTORY TAB */}
-          {activeTab === "history" && (
-            <div className="rounded-xl bg-[#18181B] border border-[#27272A] p-6">
-              <h3 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Historique des miniatures
-              </h3>
-
-              {loadingThumbs ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="aspect-video rounded-lg bg-[#09090B] border border-[#27272A] animate-pulse" />
-                  ))}
-                </div>
-              ) : !thumbnails || thumbnails.length === 0 ? (
-                <div className="text-center py-12">
-                  <Image className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-                  <p className="text-zinc-500 text-sm">Aucune miniature générée</p>
-                  <p className="text-zinc-600 text-xs mt-1">Va dans l'onglet "Générer" pour créer ta première miniature !</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {thumbnails.map(thumb => (
-                    <div
-                      key={thumb.id}
-                      className="rounded-lg bg-[#09090B] border border-[#27272A] overflow-hidden group hover:border-[#06B6D4]/30 transition-all"
-                    >
-                      <div className="aspect-video relative">
-                        {thumb.status === "generating" ? (
-                          <div className="absolute inset-0 flex items-center justify-center bg-[#09090B]">
-                            <Loader2 className="w-8 h-8 text-[#06B6D4] animate-spin" />
-                          </div>
-                        ) : thumb.status === "completed" ? (
-                          <>
-                            <img src={thumb.imageUrl} alt={thumb.prompt} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                              <button onClick={() => handleDownload(thumb.imageUrl, thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
-                                <Download className="w-5 h-5 text-white" />
-                              </button>
-                              <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors">
-                                <Heart className={`w-5 h-5 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
-                              </button>
-                              <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Créer une tâche">
-                                <ListChecks className="w-5 h-5 text-white" />
-                              </button>
-                              <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors">
-                                <Trash2 className="w-5 h-5 text-white" />
-                              </button>
-                            </div>
-                            {/* Like count badge */}
-                            {likedThumbs[thumb.id] && likedThumbs[thumb.id].count > 0 && (
-                              <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-full">
-                                <Heart className={`w-3 h-3 ${likedThumbs[thumb.id].liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
-                                <span className="text-xs text-white">{likedThumbs[thumb.id].count}</span>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center bg-[#09090B]">
-                            <XCircle className="w-8 h-8 text-red-500" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-[#18181B] text-zinc-400 capitalize">{thumb.style}</span>
-                          <span className="text-xs text-zinc-600">
-                            {thumb.status === "completed" ? (
-                              <span className="flex items-center gap-1 text-[#22C55E]"><CheckCircle2 className="w-3 h-3" /> Terminé</span>
-                            ) : thumb.status === "generating" ? (
-                              <span className="flex items-center gap-1 text-[#06B6D4]"><Play className="w-3 h-3" /> En cours...</span>
-                            ) : (
-                              <span className="flex items-center gap-1 text-red-400"><XCircle className="w-3 h-3" /> Échoué</span>
-                            )}
-                          </span>
-                        </div>
-                        <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{thumb.prompt}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            ))
+          ) : (
+            <div className="col-span-2 bg-[#181818] rounded-xl p-4 text-center">
+              <Image className="w-6 h-6 text-zinc-700 mx-auto mb-2" />
+              <p className="text-[11px] text-zinc-500">Génère ta première miniature pour la retrouver ici comme modèle</p>
+              <button onClick={() => setActiveView("generate")} className="mt-2 text-[11px] text-zinc-300 hover:text-white underline transition-colors">
+                Créer maintenant
+              </button>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Avatars récents */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-white">Avatars récents</h2>
+          <button className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors">
+            Afficher tout <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="w-14 h-14 rounded-full bg-[#181818] border border-dashed border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-white hover:border-zinc-500 transition-colors">
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Quick generate CTA */}
+      <button
+        onClick={() => setActiveView("generate")}
+        className="w-full py-4 rounded-xl bg-[#181818] border border-white/5 flex items-center justify-center gap-2 text-sm text-zinc-300 hover:text-white hover:border-white/10 transition-all"
+      >
+        <Sparkles className="w-4 h-4" />
+        Générer une miniature
+      </button>
+    </div>
+  );
+
+  // ===== Generate View =====
+  const renderGenerateView = () => (
+    <div className="max-w-2xl mx-auto px-4 pb-8">
+      <div className="pt-6 pb-4">
+        <h1 className="text-lg font-semibold text-white">Générer</h1>
+        <p className="text-xs text-zinc-500 mt-1">Crée ta miniature virale</p>
+      </div>
+
+      {/* Prompt input */}
+      <div className="mb-6">
+        <label className="block text-xs text-zinc-400 mb-2">Décris ta miniature</label>
+        <div className="relative">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Ex: Un homme surpris avec un gros plan, fond bleu électrique, texte 'IL A GAGNÉ 100 000€' en gros..."
+            className="w-full h-32 px-4 py-3 rounded-xl bg-[#181818] border border-white/5 text-white placeholder:text-zinc-600 text-sm focus:border-white/10 focus:ring-0 outline-none resize-none transition-all"
+            maxLength={500}
+          />
+          <span className="absolute bottom-2 right-3 text-[10px] text-zinc-600">{prompt.length}/500</span>
+        </div>
+      </div>
+
+      {/* Style selector */}
+      <div className="mb-6">
+        <label className="block text-xs text-zinc-400 mb-2">Style</label>
+        <div className="flex flex-wrap gap-2">
+          {STYLES.map(s => (
+            <button
+              key={s.id}
+              onClick={() => setStyle(s.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                style === s.id
+                  ? "bg-white text-black"
+                  : "bg-[#181818] text-zinc-400 border border-white/5 hover:border-white/10"
+              }`}
+            >
+              {s.emoji} {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Quantity */}
+      <div className="mb-6">
+        <label className="block text-xs text-zinc-400 mb-2">Quantité</label>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map(q => (
+            <button
+              key={q}
+              onClick={() => setQuantity(q)}
+              className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                quantity === q
+                  ? "bg-white text-black"
+                  : "bg-[#181818] text-zinc-400 border border-white/5 hover:border-white/10"
+              }`}
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Cost + Generate button */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-zinc-600">
+          Coût : {quantity} crédit{quantity > 1 ? "s" : ""} ({credits?.credits ?? 10} restants)
+        </span>
+        <Button
+          onClick={handleGenerate}
+          disabled={isGenerating || !prompt.trim() || prompt.length < 10}
+          className="bg-white text-black hover:bg-white/90 rounded-xl px-6 h-10 text-sm font-medium"
+        >
+          {isGenerating ? (
+            <><Loader2 className="mr-2 w-4 h-4 animate-spin" />Génération...</>
+          ) : (
+            <><Sparkles className="mr-2 w-4 h-4" />Générer</>
+          )}
+        </Button>
+      </div>
+
+      {/* Batch mode toggle */}
+      <div className="mt-8 pt-6 border-t border-white/5">
+        <label className="block text-xs text-zinc-400 mb-2">Mode lot (une description par ligne)</label>
+        <textarea
+          value={batchPrompts}
+          onChange={(e) => setBatchPrompts(e.target.value)}
+          placeholder={`Un scientifique dans un labo futuriste\nUn chat sur un skateboard\nUn paysage de montagnes au coucher du soleil`}
+          className="w-full h-40 px-4 py-3 rounded-xl bg-[#181818] border border-white/5 text-white placeholder:text-zinc-600 text-sm focus:border-white/10 outline-none resize-none transition-all font-mono text-xs"
+        />
+        <div className="flex items-center justify-between mt-3">
+          <span className="text-xs text-zinc-600">
+            {batchPrompts.split("\n").filter(p => p.trim().length >= 10).length} miniature(s)
+          </span>
+          <Button
+            onClick={handleBatchGenerate}
+            disabled={isBatchGenerating || !batchPrompts.trim()}
+            variant="outline"
+            className="bg-[#181818] border-white/5 text-zinc-300 hover:text-white rounded-xl px-4 h-9 text-xs"
+          >
+            {isBatchGenerating ? <><Loader2 className="mr-1.5 w-3.5 h-3.5 animate-spin" />En cours...</> : "Générer le lot"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ===== Team View =====
+  const renderTeamView = () => (
+    <div className="max-w-2xl mx-auto px-4 pb-8">
+      <div className="pt-6 pb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold text-white">Équipe</h1>
+          <p className="text-xs text-zinc-500 mt-1">Gère tes collaborateurs</p>
+        </div>
+        <Button
+          onClick={() => setShowInviteModal(true)}
+          className="bg-white text-black hover:bg-white/90 rounded-lg h-8 text-xs font-medium px-3"
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" /> Inviter
+        </Button>
+      </div>
+
+      {/* Members */}
+      <div className="mb-6">
+        <h2 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Membres</h2>
+        <div className="space-y-2">
+          {/* Self */}
+          <div className="flex items-center justify-between p-3 rounded-xl bg-[#181818]">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <div>
+                <p className="text-xs text-white font-medium">{user?.name || "Moi"}</p>
+                <p className="text-[10px] text-zinc-500">Propriétaire</p>
+              </div>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-zinc-300">Admin</span>
+          </div>
+          {teamMembers?.map(member => (
+            <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-[#181818]">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-600 to-zinc-700 flex items-center justify-center text-xs font-bold text-white">
+                  {member.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                <div>
+                  <p className="text-xs text-white font-medium">{member.name || "Membre"}</p>
+                  <p className="text-[10px] text-zinc-500">{member.email || ""}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] px-2 py-0.5 rounded-full capitalize ${member.role === "admin" ? "bg-white/10 text-zinc-300" : "bg-[#09090B] text-zinc-500"}`}>
+                  {member.role}
+                </span>
+                <button
+                  onClick={() => removeMutation.mutate({ userId: member.userId })}
+                  className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tasks */}
+      <div>
+        <h2 className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Tâches & Validation</h2>
+        {teamTasks && teamTasks.length > 0 ? (
+          <div className="space-y-2">
+            {teamTasks.map(task => (
+              <div key={task.id} className="p-3 rounded-xl bg-[#181818]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    task.status === "approved" ? "bg-green-500/20 text-green-400" :
+                    task.status === "rejected" ? "bg-red-500/20 text-red-400" :
+                    task.status === "reviewing" ? "bg-yellow-500/20 text-yellow-400" :
+                    task.status === "cancelled" ? "bg-zinc-700 text-zinc-400" :
+                    "bg-white/10 text-zinc-300"
+                  }`}>
+                    {task.status === "pending" ? "En attente" : task.status === "reviewing" ? "En révision" : task.status === "approved" ? "Approuvé" : task.status === "rejected" ? "Rejeté" : "Annulé"}
+                  </span>
+                  <span className="text-[10px] text-zinc-600">
+                    {new Date(task.createdAt).toLocaleDateString("fr-FR")}
+                  </span>
+                </div>
+                {task.comment && <p className="text-xs text-zinc-400 mb-2">{task.comment}</p>}
+                <div className="flex gap-1.5 flex-wrap">
+                  {task.status !== "approved" && task.status !== "cancelled" && (
+                    <button onClick={() => handleUpdateTask(task.id, "approved")} className="px-2.5 py-1 rounded-md text-[10px] bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors">
+                      <CheckCircle2 className="w-3 h-3 inline mr-1" />Approuver
+                    </button>
+                  )}
+                  {task.status !== "rejected" && task.status !== "cancelled" && (
+                    <button onClick={() => handleUpdateTask(task.id, "rejected")} className="px-2.5 py-1 rounded-md text-[10px] bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors">
+                      <XCircle className="w-3 h-3 inline mr-1" />Rejeter
+                    </button>
+                  )}
+                  {task.status === "pending" && (
+                    <button onClick={() => handleUpdateTask(task.id, "reviewing")} className="px-2.5 py-1 rounded-md text-[10px] bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors">
+                      En révision
+                    </button>
+                  )}
+                  <button onClick={() => handleUpdateTask(task.id, "cancelled")} className="px-2.5 py-1 rounded-md text-[10px] bg-zinc-700 text-zinc-400 hover:bg-zinc-600 transition-colors">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <ListChecks className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+            <p className="text-xs text-zinc-500">Aucune tâche en cours</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ===== All Generations View =====
+  const renderAllGenerationsView = () => (
+    <div className="max-w-2xl mx-auto px-4 pb-8">
+      <div className="pt-6 pb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold text-white">Toutes les générations</h1>
+          <p className="text-xs text-zinc-500 mt-1">{completedThumbnails.length} miniature(s) créée(s)</p>
+        </div>
+        <Button
+          onClick={() => setActiveView("generate")}
+          className="bg-white text-black hover:bg-white/90 rounded-lg h-8 text-xs font-medium px-3"
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle
+        </Button>
+      </div>
+
+      {loadingThumbs ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="aspect-video rounded-xl bg-[#181818] animate-pulse" />
+          ))}
+        </div>
+      ) : completedThumbnails.length === 0 ? (
+        <div className="text-center py-16">
+          <Image className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+          <p className="text-sm text-zinc-500">Aucune miniature générée</p>
+          <button onClick={() => setActiveView("generate")} className="mt-3 text-xs text-zinc-300 hover:text-white underline">
+            Créer ta première miniature
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {completedThumbnails.map(thumb => (
+            <div key={thumb.id} className="relative aspect-video rounded-xl overflow-hidden bg-[#181818] group">
+              <img src={thumb.imageUrl} alt={thumb.prompt} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <p className="text-xs text-white/80 line-clamp-1">{thumb.prompt}</p>
+                <p className="text-[10px] text-zinc-500 mt-0.5">
+                  {STYLE_LABELS[thumb.style ?? "viral"] || thumb.style} · {new Date(thumb.createdAt).toLocaleDateString("fr-FR")}
+                </p>
+              </div>
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                  <Download className="w-4 h-4 text-white" />
+                </button>
+                <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors">
+                  <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
+                </button>
+                <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors">
+                  <ListChecks className="w-4 h-4 text-white" />
+                </button>
+                <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors">
+                  <Trash2 className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // ===== Main render =====
+  return (
+    <div className="min-h-screen bg-[#000]">
+      {renderHeader()}
+      <main className="pt-2">
+        {activeView === "home" && renderHomeView()}
+        {activeView === "generate" && renderGenerateView()}
+        {activeView === "team" && renderTeamView()}
+        {activeView === "all-generations" && renderAllGenerationsView()}
       </main>
+
+      {/* Floating nav (like Youthumb) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <div className="flex items-center gap-1 px-2 py-1.5 rounded-2xl bg-[#181818] border border-white/5 shadow-2xl shadow-black/50 backdrop-blur-xl">
+          <button
+            onClick={() => setActiveView("home")}
+            className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
+              activeView === "home" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Accueil</span>
+          </button>
+          <button
+            onClick={() => setActiveView("generate")}
+            className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
+              activeView === "generate" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Générer</span>
+          </button>
+          <button
+            onClick={() => setActiveView("team")}
+            className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
+              activeView === "team" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            <Users className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Équipe</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom spacing for floating nav */}
+      <div className="h-24" />
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowInviteModal(false)}>
-          <div className="bg-[#18181B] border border-[#27272A] rounded-xl p-6 w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-white mb-4">Inviter un collaborateur</h3>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowInviteModal(false)}>
+          <div className="bg-[#181818] border border-white/5 rounded-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-semibold text-white mb-4">Inviter un collaborateur</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">Email de l'utilisateur</label>
+                <label className="block text-xs text-zinc-400 mb-1.5">ID utilisateur</label>
                 <input
-                  type="email"
+                  type="number"
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
-                  placeholder="email@exemple.com"
-                  className="w-full px-4 py-2.5 rounded-lg bg-[#09090B] border border-[#27272A] text-white placeholder:text-zinc-600 focus:border-[#06B6D4]/50 outline-none"
+                  placeholder="Ex: 42"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#09090B] border border-white/5 text-white text-sm placeholder:text-zinc-600 focus:border-white/10 outline-none"
                 />
               </div>
-              <p className="text-xs text-zinc-500">
-                L'utilisateur doit déjà avoir un compte Minia IA. Tu peux ensuite l'ajouter par son ID utilisateur.
+              <p className="text-[10px] text-zinc-600">
+                L'utilisateur doit déjà avoir un compte Minia IA. Trouve son ID dans la base de données.
               </p>
               <div className="flex gap-3">
                 <Button
@@ -679,11 +798,11 @@ export default function Dashboard() {
                     inviteMutation.mutate({ userId });
                   }}
                   disabled={!inviteEmail || inviteMutation.isPending}
-                  className="bg-[#06B6D4] text-black font-bold flex-1"
+                  className="bg-white text-black hover:bg-white/90 rounded-xl flex-1 text-sm"
                 >
                   {inviteMutation.isPending ? "Invitation..." : "Inviter"}
                 </Button>
-                <Button variant="outline" onClick={() => setShowInviteModal(false)} className="border-[#27272A] text-zinc-400">
+                <Button variant="outline" onClick={() => setShowInviteModal(false)} className="border-white/5 text-zinc-400 rounded-xl text-sm">
                   Annuler
                 </Button>
               </div>

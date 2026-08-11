@@ -34,3 +34,11 @@
 - [x] Bouton CTA HeroSection fonctionnel (login/dashboard selon auth state)
 - [x] Bouton "Voir des exemples" → /gallery
 - [x] Tables base de données créées (users, thumbnails, userCredits, thumbnailLikes, teamMembers, teamTasks)
+
+- [x] Bouton CTA HeroSection fonctionnel (login/dashboard selon auth state)
+- [x] Bouton "Voir des exemples" → /gallery
+- [x] Tables base de données créées (users, thumbnails, userCredits, thumbnailLikes, teamMembers, teamTasks)
+- [x] Dashboard redesign — style Youthumb.ai : fond noir épuré, header breadcrumb + crédits, 4 cartes stats (Miniatures, Générations, Avatars, Crédits)
+- [x] Dashboard redesign — section "Générations récentes" avec miniatures en grille + "Afficher tout"
+- [x] Dashboard redesign — section "Modèles" avec templates en grille
+- [x] Dashboard redesign — navigation flottante (Accueil/Générer/Équipe) en bas d'écran
