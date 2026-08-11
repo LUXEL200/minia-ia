@@ -18,14 +18,22 @@ export const startLogin = () => {
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
 
   const nonce = crypto.randomUUID();
-  document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`;
-  const state = encodeOAuthState({ redirectUri, nonce });
+  // Use SameSite=Lax for better browser compatibility.
+  // SameSite=None+Secure can be blocked in iframes/preview environments.
+  const isSecure = window.location.protocol === "https:";
+  const sameSite = isSecure ? "Lax" : "Lax";
+  document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=${sameSite}${isSecure ? "; Secure" : ""}`;
+    // Store the current page so we can redirect after login completes.
+  // This helps when the cookie-based redirect doesn't reach the client (e.g., iframe).
+  try {
+    sessionStorage.setItem("manus-login-return", window.location.pathname);
+  } catch { /* sessionStorage unavailable */ }
 
+  const state = encodeOAuthState({ redirectUri, nonce });
   const url = new URL(`${oauthPortalUrl}/app-auth`);
   url.searchParams.set("appId", appId);
   url.searchParams.set("redirectUri", redirectUri);
   url.searchParams.set("state", state);
   url.searchParams.set("type", "signIn");
-
   window.location.href = url.toString();
 };

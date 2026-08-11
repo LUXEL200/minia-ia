@@ -25,3 +25,8 @@
 - [x] Interface équipe (membres, tâches, validation/refus/cancellation)
 - [x] Notifications email via notifyOwner pour événements clés
 - [x] Navbar refactorisée (suppression liens dupliqués, layout propre)
+
+- [x] OAuth callback tolérant aux cookies bloqués (preview/iframe/Safari ITP)
+- [x] Redirection vers /dashboard après connexion réussie
+- [x] Stockage du chemin de retour dans sessionStorage pour auto-login
+- [x] Test unitaire mis à jour pour sameSite=lax

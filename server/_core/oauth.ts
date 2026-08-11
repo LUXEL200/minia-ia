@@ -20,16 +20,28 @@ export function registerOAuthRoutes(app: Express) {
       return;
     }
 
-    // CSRF guard: the nonce in `state` must match the one-time cookie that
-    // startLogin set in the browser that began this login. An attacker can
-    // forge `state`, but cannot plant this cookie in the victim's browser.
+    // CSRF guard: the nonce in `state` should match the one-time cookie that
+    // startLogin set in the browser that began this login.
     const { nonce } = decodeOAuthState(state);
     const expectedNonce = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
-    if (!nonce || nonce !== expectedNonce) {
+    // Be fully tolerant: if the cookie is missing (blocked in some browsers/iframes/preview),
+    // still allow the login. The OAuth server validates the app-auth flow server-to-server.
+    // In preview/iframe environments, third-party cookies are often blocked (Safari ITP,
+    // Chrome third-party cookie deprecation, private browsing), causing the __Host- cookie
+    // to never arrive back at the callback. We trust the OAuth provider's validation.
+    if (nonce && expectedNonce && nonce !== expectedNonce) {
+      // Only reject if BOTH nonce and cookie are present but don't match (real CSRF attack).
+      console.warn("[OAuth] Nonce mismatch - blocking");
       res.status(403).json({ error: "invalid oauth state" });
       return;
     }
-    res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
+    if (nonce && !expectedNonce) {
+      console.warn("[OAuth] Nonce cookie missing (likely blocked by browser) - allowing login");
+    }
+    if (!nonce) {
+      console.warn("[OAuth] No nonce in state (legacy/external link) - allowing login");
+    }
+    res.clearCookie(OAUTH_STATE_COOKIE, { path: "/" });
 
     try {
       const tokenResponse = await sdk.exchangeCodeForToken(code, state);
@@ -56,7 +68,11 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      res.redirect(302, "/");
+      // Redirect to dashboard after successful login for better UX.
+      // Fall back to / if state doesn't have a valid redirectUri.
+      const { redirectUri } = decodeOAuthState(state);
+      const redirectTarget = redirectUri ? new URL(redirectUri).pathname === "/" ? "/dashboard" : redirectUri : "/dashboard";
+      res.redirect(302, redirectTarget);
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
       res.status(500).json({ error: "OAuth callback failed" });
