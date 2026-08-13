@@ -9,6 +9,8 @@ import {
   Image, CreditCard, Download, Trash2, Loader2, Sparkles,
   ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
+  Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
+  RectangleHorizontal, Star, Trash, Zap,
 } from "lucide-react";
 
 const STYLES = [
@@ -33,6 +35,8 @@ export default function Dashboard() {
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [sidebarPlatform, setSidebarPlatform] = useState<"compte" | "miniatures" | "personnes" | "modèles">("compte");
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
   const [showStyleDropdown, setShowStyleDropdown] = useState(false);
 
@@ -210,13 +214,192 @@ export default function Dashboard() {
   const recentThumbnails = [...thumbnails ?? []].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 8);
   const templateThumbnails = completedThumbnails.slice(0, 4);
 
+  // ===== Hamburger Sidebar =====
+  const renderSidebar = () => (
+    <>
+      {/* Overlay */}
+      {showSidebar && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
+
+      {/* Sidebar panel */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-[300px] max-w-[85vw] z-[70] bg-[#111] border-r border-white/5 shadow-2xl transition-transform duration-300 ${
+          showSidebar ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full overflow-y-auto pb-4">
+          {/* Org info */}
+          <div className="p-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-white font-medium truncate">{user?.name || "Mon organisation"}</p>
+                <p className="text-[10px] text-zinc-500 truncate">Organisation pour {user?.email || "moi"}</p>
+              </div>
+              <button
+                onClick={() => setShowSidebar(false)}
+                className="ml-auto text-zinc-500 hover:text-white transition-colors p-1"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Create thumbnail CTA */}
+          <div className="p-4 border-b border-white/5">
+            <button
+              onClick={() => { setShowSidebar(false); setActiveView("generate"); }}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#06B6D4] to-[#0891B2] text-white text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+            >
+              <Plus className="w-4 h-4" />
+              Créer une miniature
+            </button>
+          </div>
+
+          {/* Platform selector */}
+          <div className="p-4 border-b border-white/5">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Plate-forme</p>
+            <button
+              onClick={() => setSidebarPlatform("compte")}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[#181818] border border-white/5 text-xs text-zinc-300"
+            >
+              <span className="flex items-center gap-2">
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                Compte
+              </span>
+              <ChevronRight className="w-3 h-3 text-zinc-600" />
+            </button>
+          </div>
+
+          {/* YouThumb section */}
+          <div className="px-4 py-3">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Minia IA</p>
+            <nav className="space-y-1">
+              <button
+                onClick={() => { setShowSidebar(false); setActiveView("home"); }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Tableau de bord
+              </button>
+              <button
+                onClick={() => { setShowSidebar(false); setActiveView("all-generations"); }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <Image className="w-4 h-4" />
+                Miniatures
+              </button>
+              <button
+                onClick={() => { setShowSidebar(false); setActiveView("team"); }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <UserRound className="w-4 h-4" />
+                Personnes
+              </button>
+              <button
+                onClick={() => { setShowSidebar(false); setActiveView("home"); }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <Grid3X3 className="w-4 h-4" />
+                Modèles
+              </button>
+            </nav>
+          </div>
+
+          {/* Extra tools section */}
+          <div className="px-4 py-3">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Outils supplémentaires</p>
+            <nav className="space-y-1">
+              <button
+                onClick={() => toast.info("Bientôt disponible")}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <UserCircle2 className="w-4 h-4" />
+                Avatars
+              </button>
+              <button
+                onClick={() => toast.info("Bientôt disponible")}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                Aperçu miniature
+              </button>
+              <button
+                onClick={() => toast.info("Bientôt disponible")}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <RectangleHorizontal className="w-4 h-4" />
+                Générateur de cartes YouTube
+              </button>
+              <button
+                onClick={() => toast.info("Bientôt disponible")}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <Star className="w-4 h-4" />
+                Favoris
+              </button>
+              <button
+                onClick={() => toast.info("Bientôt disponible")}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <Trash className="w-4 h-4" />
+                Poubelle
+              </button>
+            </nav>
+          </div>
+
+          {/* Upgrade CTA */}
+          <div className="mt-auto px-4 pt-4">
+            <div className="bg-[#181818] border border-white/5 rounded-xl p-4">
+              <p className="text-xs text-white font-medium mb-1">Passez à la version Pro</p>
+              <p className="text-[10px] text-zinc-500 mb-3">Débloquez toutes les fonctionnalités et améliorez vos vignettes.</p>
+              <Link
+                href="/pricing"
+                onClick={() => setShowSidebar(false)}
+                className="block w-full py-2.5 rounded-lg bg-gradient-to-r from-[#EC4899] to-[#F43F5E] text-white text-xs font-medium text-center hover:opacity-90 transition-opacity"
+              >
+                <Zap className="w-3 h-3 inline mr-1" />
+                Mise à niveau
+              </Link>
+            </div>
+          </div>
+
+          {/* User profile */}
+          <div className="px-4 pt-3 mt-3 border-t border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-white font-medium truncate">{user?.name || "Moi"}</p>
+                <p className="text-[10px] text-zinc-500 truncate">{user?.email || ""}</p>
+              </div>
+              <button
+                onClick={() => logout()}
+                className="text-[10px] text-zinc-500 hover:text-white px-2 py-1 rounded-md bg-[#181818] border border-white/5 transition-colors"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+
   // ===== Header =====
   const renderHeader = () => (
     <header className="sticky top-0 z-50 bg-[#000]/90 backdrop-blur-xl border-b border-white/5">
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => setActiveView("home")} className="text-zinc-400 hover:text-white transition-colors">
-            <Home className="w-5 h-5" />
+          <button onClick={() => setShowSidebar(true)} className="text-zinc-400 hover:text-white transition-colors p-1">
+            <Menu className="w-5 h-5" />
           </button>
           <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
           <span className="text-sm text-zinc-300 font-medium">Tableau de bord</span>
@@ -724,6 +907,7 @@ export default function Dashboard() {
   // ===== Main render =====
   return (
     <div className="min-h-screen bg-[#000]">
+      {renderSidebar()}
       {renderHeader()}
       <main className="pt-2">
         {activeView === "home" && renderHomeView()}

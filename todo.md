@@ -42,3 +42,6 @@
 - [x] Dashboard redesign — section "Générations récentes" avec miniatures en grille + "Afficher tout"
 - [x] Dashboard redesign — section "Modèles" avec templates en grille
 - [x] Dashboard redesign — navigation flottante (Accueil/Générer/Équipe) en bas d'écran
+- [x] Dashboard redesign — navigation flottante (Accueil/Générer/Équipe) en bas d'écran
+- [ ] Menu hamburger latéral avec tous les sous-menus (org info, créer miniature, plateforme/compte, YouThumb: Tableau de bord/Miniatures/Personnes/Modèles, Outils: Avatars/Aperçu/Générateur cartes YouTube/Favoris/Poubelle, upgrade Pro, profil utilisateur)
+- [ ] Sidebar hamburger avec org info + CTA créer miniature + sections YouThumb et Outils + upgrade Pro + profil
