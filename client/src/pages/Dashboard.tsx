@@ -10,7 +10,8 @@ import {
   ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
-  RectangleHorizontal, Star, Trash, Zap,
+  RectangleHorizontal, Star, Trash, Zap, Sun, Key,
+  Settings, Bell, LogOut,
 } from "lucide-react";
 
 const STYLES = [
@@ -39,6 +40,7 @@ export default function Dashboard() {
   const [sidebarPlatform, setSidebarPlatform] = useState<"compte" | "miniatures" | "personnes" | "modèles">("compte");
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
   const [showStyleDropdown, setShowStyleDropdown] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Auth gate
   const isAuthed = !authLoading && isAuthenticated && !!user;
@@ -370,9 +372,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* User profile */}
-          <div className="px-4 pt-3 mt-3 border-t border-white/5">
-            <div className="flex items-center gap-3">
+          {/* User profile with dropdown */}
+          <div className="px-4 pt-3 mt-auto border-t border-white/5 relative">
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#181818] transition-colors text-left"
+            >
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                 {user?.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
@@ -380,13 +385,88 @@ export default function Dashboard() {
                 <p className="text-xs text-white font-medium truncate">{user?.name || "Moi"}</p>
                 <p className="text-[10px] text-zinc-500 truncate">{user?.email || ""}</p>
               </div>
-              <button
-                onClick={() => logout()}
-                className="text-[10px] text-zinc-500 hover:text-white px-2 py-1 rounded-md bg-[#181818] border border-white/5 transition-colors"
-              >
-                Déconnexion
-              </button>
-            </div>
+              <svg className="w-3 h-3 text-zinc-500 flex-shrink-0 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showProfileMenu ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"} />
+              </svg>
+            </button>
+
+            {/* Dropdown menu */}
+            {showProfileMenu && (
+              <div className="absolute bottom-full left-4 right-4 mb-1 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-80">
+                {/* User info in dropdown */}
+                <div className="p-3 border-b border-white/5">
+                  <p className="text-xs text-white font-medium">{user?.name || "Moi"}</p>
+                  <p className="text-[10px] text-zinc-500">{user?.email || ""}</p>
+                </div>
+
+                <div className="py-1">
+                  <Link
+                    href="/pricing"
+                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
+                    className="flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-[#181818] transition-colors"
+                  >
+                    <Zap className="w-4 h-4 text-pink-500" />
+                    <span className="font-medium">Passez à la version Pro</span>
+                  </Link>
+                </div>
+
+                <div className="py-1 border-t border-white/5">
+                  <button
+                    onClick={() => toast.info("Bientôt disponible")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <Sun className="w-4 h-4" />
+                    Mode clair
+                  </button>
+                  <button
+                    onClick={() => toast.info("Bientôt disponible")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <UserRound className="w-4 h-4" />
+                    Compte
+                  </button>
+                  <button
+                    onClick={() => toast.info("Bientôt disponible")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <Key className="w-4 h-4" />
+                    Clés API
+                  </button>
+                  <button
+                    onClick={() => toast.info("Bientôt disponible")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Paramètres
+                  </button>
+                  <button
+                    onClick={() => toast.info("Bientôt disponible")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Facturation
+                  </button>
+                  <button
+                    onClick={() => toast.info("Bientôt disponible")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <Bell className="w-4 h-4" />
+                    Notifications
+                    <span className="ml-auto bg-red-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">1</span>
+                  </button>
+                </div>
+
+                <div className="py-1 border-t border-white/5">
+                  <button
+                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); logout(); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Déconnexion
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </aside>
