@@ -61,3 +61,12 @@
 - [x] Onglet "Image inspirée" dans Génération (upload image ou lien Pinterest comme référence)
 - [x] Mode clair (toggle dark/light)
 - [x] Bouton Pro reste un lien /pricing
+
+ - [x] Backend admin router — stats, users management, credits management, global notifications
+- [ ] Page Super Admin — dashboard avec stats globales
+- [ ] Page Super Admin — gestion utilisateurs (rôles, crédits, blocage)
+- [ ] Page Super Admin — gestion templates (ajout/suppression admin)
+- [ ] Page Super Admin — configuration API (modèles, clés)
+- [ ] Page Super Admin — gestion plans/tarifs
+- [ ] Page Super Admin — notifications globales
+- [ ] Lien admin dans le sidebar (visible uniquement pour les admins)

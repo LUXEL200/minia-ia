@@ -36,6 +36,7 @@ import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
 import ThumbnailPreview from "./pages/ThumbnailPreview";
 import Editor from "./pages/Editor";
+import Admin from "./pages/Admin";
 
 function Router() {
   return (
@@ -75,6 +76,7 @@ function Router() {
       <Route path={"/billing"} component={Billing} />
       <Route path={"/preview"} component={ThumbnailPreview} />
       <Route path={"/editor"} component={Editor} />
+      <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

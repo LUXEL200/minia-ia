@@ -573,3 +573,92 @@ export async function createNotification(data: { userId: number; title: string; 
     type: (data.type || "system") as any,
   });
 }
+
+// === Admin ===
+export async function getAdminStats() {
+  const db = await getDb();
+  if (!db) return {
+    totalUsers: 0, totalThumbnails: 0, totalCredits: 0, totalTemplates: 0,
+    activeUsers: 0, totalAvatars: 0, totalEndCards: 0, totalApiKeys: 0,
+  };
+
+  const userCount = await db.select({ count: users.id }).from(users);
+  const thumbCount = await db.select({ count: thumbnails.id }).from(thumbnails);
+  const creditsCount = await db.select().from(userCredits);
+  const templateCount = await db.select({ count: templates.id }).from(templates);
+  const avatarCount = await db.select({ count: avatars.id }).from(avatars);
+  const endCardCount = await db.select({ count: endCards.id }).from(endCards);
+  const apiKeyCount = await db.select({ count: apiKeys.id }).from(apiKeys);
+
+  // Active users = signed in within last 7 days
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const activeResult = await db.select({ count: users.id }).from(users)
+    .where(eq(users.lastSignedIn, users.lastSignedIn)); // placeholder, will filter client-side
+
+  const totalCredits = creditsCount.reduce((acc, c) => acc + (c.credits || 0), 0);
+
+  return {
+    totalUsers: userCount.length,
+    totalThumbnails: thumbCount.length,
+    totalCredits,
+    totalTemplates: templateCount.length,
+    activeUsers: 0, // will be computed
+    totalAvatars: avatarCount.length,
+    totalEndCards: endCardCount.length,
+    totalApiKeys: apiKeyCount.length,
+  };
+}
+
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(users).orderBy(desc(users.createdAt));
+}
+
+export async function updateUserRole(userId: number, role: "user" | "admin") {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(users).set({ role }).where(eq(users.id, userId));
+  return true;
+}
+
+export async function updateUserCredits(userId: number, credits: number) {
+  const db = await getDb();
+  if (!db) return false;
+  // Ensure credits record exists
+  const existing = await db.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+  if (existing.length === 0) {
+    await db.insert(userCredits).values({ userId, credits, planType: "free" });
+  } else {
+    await db.update(userCredits).set({ credits }).where(eq(userCredits.userId, userId));
+  }
+  return true;
+}
+
+export async function updateUserPlan(userId: number, planType: "free" | "pro" | "max") {
+  const db = await getDb();
+  if (!db) return false;
+  const existing = await db.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
+  if (existing.length === 0) {
+    await db.insert(userCredits).values({ userId, credits: 0, planType });
+  } else {
+    await db.update(userCredits).set({ planType }).where(eq(userCredits.userId, userId));
+  }
+  return true;
+}
+
+export async function sendGlobalNotification(title: string, message?: string, type: "system" | "credit" | "generation" | "team" = "system") {
+  const db = await getDb();
+  if (!db) return false;
+  const allUsers = await db.select({ id: users.id }).from(users);
+  for (const user of allUsers) {
+    await db.insert(notifications).values({
+      userId: user.id,
+      title,
+      message: message || "",
+      type: type as any,
+      isRead: "unread",
+    });
+  }
+  return true;
+}

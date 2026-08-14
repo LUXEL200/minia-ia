@@ -12,7 +12,7 @@ import {
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
   RectangleHorizontal, Star, Trash, Zap, Sun, Key,
-  Settings, Bell, LogOut, Type,
+  Settings, Bell, LogOut, Type, Shield,
 } from "lucide-react";
 
 const STYLES = [
@@ -468,6 +468,21 @@ export default function Dashboard() {
                     <span className="ml-auto bg-red-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">1</span>
                   </Link>
                 </div>
+
+                {/* Admin link — visible only to admins */}
+                {user?.role === "admin" && (
+                  <div className="py-1 border-t border-white/5">
+                    <Link
+                      href="/admin"
+                      onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Super Admin
+                      <span className="ml-auto bg-red-500/20 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">ADMIN</span>
+                    </Link>
+                  </div>
+                )}
 
                 <div className="py-1 border-t border-white/5">
                   <button

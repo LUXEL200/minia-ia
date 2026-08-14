@@ -48,7 +48,14 @@ import {
   getUnreadCountByUserId,
   markNotificationRead,
   markAllNotificationsRead,
+  getAdminStats,
+  getAllUsers,
+  updateUserRole,
+  updateUserCredits,
+  updateUserPlan,
+  sendGlobalNotification,
 } from "./db";
+import { adminProcedure } from "./_core/trpc";
 
 // === Sub-routers (defined before appRouter to avoid TDZ) ===
 
@@ -263,6 +270,87 @@ export const notificationsRouter = router({
     await markAllNotificationsRead(ctx.user.id);
     return { success: true } as const;
   }),
+});
+
+// === Admin Router ===
+export const adminRouter = router({
+  // Stats overview
+  stats: adminProcedure.query(async () => {
+    return getAdminStats();
+  }),
+
+  // User management
+  users: adminProcedure.query(async () => {
+    return getAllUsers();
+  }),
+
+  updateRole: adminProcedure
+    .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))
+    .mutation(async ({ input }) => {
+      await updateUserRole(input.userId, input.role);
+      return { success: true } as const;
+    }),
+
+  updateCredits: adminProcedure
+    .input(z.object({ userId: z.number(), credits: z.number().min(0).max(10000) }))
+    .mutation(async ({ input }) => {
+      await updateUserCredits(input.userId, input.credits);
+      return { success: true } as const;
+    }),
+
+  updatePlan: adminProcedure
+    .input(z.object({ userId: z.number(), planType: z.enum(["free", "pro", "max"]) }))
+    .mutation(async ({ input }) => {
+      await updateUserPlan(input.userId, input.planType);
+      return { success: true } as const;
+    }),
+
+  // Templates management (admin only - force delete any template)
+  templates: adminProcedure.query(async () => {
+    return getAllTemplates();
+  }),
+
+  deleteTemplate: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await deleteTemplate(input.id, undefined, true);
+      return { success: true } as const;
+    }),
+
+  // API models list
+  models: adminProcedure.query(async () => {
+    return listImageModels();
+  }),
+
+  // Global notifications
+  sendNotification: adminProcedure
+    .input(z.object({
+      title: z.string().min(1).max(200),
+      message: z.string().max(2000).optional(),
+      type: z.enum(["system", "credit", "generation", "team"]).default("system"),
+    }))
+    .mutation(async ({ input }) => {
+      await sendGlobalNotification(input.title, input.message, input.type);
+      return { success: true } as const;
+    }),
+
+  // Credit management - bulk assign credits to all users with a plan
+  bulkCredits: adminProcedure
+    .input(z.object({ planType: z.enum(["free", "pro", "max"]).optional(), amount: z.number().min(1).max(1000) }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const allUsers = await getAllUsers();
+      let updated = 0;
+      for (const user of allUsers) {
+        const existing = await getUserCredits(user.id);
+        if (!input.planType || (existing && existing.planType === input.planType) || (!existing && input.planType === "free")) {
+          await updateUserCredits(user.id, (existing?.credits ?? 0) + input.amount);
+          updated++;
+        }
+      }
+      return { success: true, updated } as const;
+    }),
 });
 
 export const appRouter = router({
@@ -607,6 +695,9 @@ export const appRouter = router({
 
   // === Notifications ===
   notifications: notificationsRouter,
+
+  // === Admin ===
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;
