@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import PageHeader from "@/components/PageHeader";
 import {
   ArrowLeft,
   Bell,
@@ -48,29 +49,24 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Back */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
-          <ArrowLeft size={16} /> Retour au dashboard
-        </Link>
-
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold">Notifications</h1>
-            <p className="text-sm text-zinc-500 mt-1">
-              {unread && unread.length > 0 ? `${unread.length} non lue(s)` : "Tout est à jour"}
-            </p>
-          </div>
-          {unread && unread.length > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              className="flex items-center gap-2 text-zinc-400 hover:text-white text-sm transition-colors"
-            >
-              <CheckCheck size={16} /> Tout marquer lu
-            </button>
-          )}
-        </div>
+        <PageHeader
+          title="Notifications"
+          subtitle={unread && unread.length > 0 ? `${unread.length} non lue(s)` : "Tout est à jour"}
+          breadcrumb={[{ label: "Notifications" }]}
+          right={
+            unread && unread.length > 0 ? (
+              <button
+                onClick={handleMarkAllRead}
+                className="flex items-center gap-2 text-zinc-400 hover:text-white text-xs sm:text-sm transition-colors"
+              >
+                <CheckCheck size={14} /> <span className="hidden sm:inline">Tout marquer lu</span>
+                <span className="sm:hidden">Marquer lu</span>
+              </button>
+            ) : undefined
+          }
+        />
 
         {/* Notifications List */}
         {isLoading ? (

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import PageHeader from "@/components/PageHeader";
 import {
   ArrowLeft,
   Settings,
@@ -49,17 +50,13 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Back */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
-          <ArrowLeft size={16} /> Retour au dashboard
-        </Link>
-
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">Paramètres</h1>
-          <p className="text-sm text-zinc-500 mt-1">Configure ton expérience Minia IA</p>
-        </div>
+        <PageHeader
+          title="Paramètres"
+          subtitle="Configure ton expérience Minia IA"
+          breadcrumb={[{ label: "Paramètres" }]}
+        />
 
         {/* Notifications */}
         <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 mb-4">

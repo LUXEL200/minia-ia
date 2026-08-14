@@ -63,10 +63,24 @@
 - [x] Bouton Pro reste un lien /pricing
 
  - [x] Backend admin router — stats, users management, credits management, global notifications
-- [ ] Page Super Admin — dashboard avec stats globales
-- [ ] Page Super Admin — gestion utilisateurs (rôles, crédits, blocage)
-- [ ] Page Super Admin — gestion templates (ajout/suppression admin)
-- [ ] Page Super Admin — configuration API (modèles, clés)
-- [ ] Page Super Admin — gestion plans/tarifs
-- [ ] Page Super Admin — notifications globales
-- [ ] Lien admin dans le sidebar (visible uniquement pour les admins)
+ - [x] Page Super Admin — dashboard avec stats globales
+ - [x] Page Super Admin — gestion utilisateurs (rôles, crédits, blocage)
+ - [x] Page Super Admin — gestion templates (ajout/suppression admin)
+ - [x] Page Super Admin — configuration API (modèles, clés)
+ - [x] Page Super Admin — gestion plans/tarifs
+ - [x] Page Super Admin — notifications globales
+ - [x] Lien admin dans le sidebar (visible uniquement pour les admins)
+
+- [x] Composant PageHeader partagé (titre + breadcrumb + retour)
+- [ ] Rendre Templates responsive (desktop/tablet/mobile)
+- [ ] Rendre Avatars responsive (desktop/tablet/mobile)
+- [ ] Rendre EndCards responsive (desktop/tablet/mobile)
+- [ ] Rendre Favorites responsive (desktop/tablet/mobile)
+- [ ] Rendre Trash responsive (desktop/tablet/mobile)
+- [ ] Rendre Notifications responsive (desktop/tablet/mobile)
+- [ ] Rendre Account responsive (desktop/tablet/mobile)
+- [ ] Rendre ApiKeys responsive (desktop/tablet/mobile)
+- [ ] Rendre Settings responsive (desktop/tablet/mobile)
+- [ ] Rendre Billing responsive (desktop/tablet/mobile)
+- [ ] Rendre ThumbnailPreview responsive (desktop/tablet/mobile)
+- [ ] Rendre Admin responsive (desktop/tablet/mobile)

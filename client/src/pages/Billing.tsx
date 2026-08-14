@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { ArrowLeft, CreditCard, Zap, Crown, Sparkles } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 const plans = [
   {
@@ -57,17 +58,18 @@ export default function BillingPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Back */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
-          <ArrowLeft size={16} /> Retour au dashboard
-        </Link>
-
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">Facturation</h1>
-          <p className="text-sm text-zinc-500 mt-1">Gère ton abonnement et tes crédits</p>
-        </div>
+        <PageHeader
+          title="Facturation"
+          subtitle="Gère ton abonnement et tes crédits"
+          breadcrumb={[{ label: "Facturation" }]}
+          right={
+            <Link href="/pricing" className="bg-[#ff0050] hover:bg-[#e60048] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors inline-block">
+              Mettre à niveau
+            </Link>
+          }
+        />
 
         {/* Current Plan */}
         <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 mb-8">

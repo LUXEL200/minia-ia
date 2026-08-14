@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { ArrowLeft, User, Coins, Shield } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 export default function AccountPage() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -29,17 +30,13 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Back */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
-          <ArrowLeft size={16} /> Retour au dashboard
-        </Link>
-
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">Compte</h1>
-          <p className="text-sm text-zinc-500 mt-1">Gère tes informations personnelles</p>
-        </div>
+        <PageHeader
+          title="Compte"
+          subtitle="Gère tes informations personnelles"
+          breadcrumb={[{ label: "Compte" }]}
+        />
 
         {/* Profile Card */}
         <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 mb-6">

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
+import PageHeader from "@/components/PageHeader";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -62,27 +63,24 @@ export default function TrashPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Back */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
-          <ArrowLeft size={16} /> Retour au dashboard
-        </Link>
-
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold">Poubelle</h1>
-            <p className="text-sm text-zinc-500 mt-1">Miniatures supprimées — restaure-les avant suppression définitive</p>
-          </div>
-          {trashed && trashed.length > 0 && (
-            <button
-              onClick={handleEmpty}
-              className="flex items-center gap-2 text-red-400 hover:text-red-300 text-sm transition-colors"
-            >
-              <Trash2 size={16} /> Vider la poubelle
-            </button>
-          )}
-        </div>
+        <PageHeader
+          title="Poubelle"
+          subtitle="Miniatures supprimées — restaure-les avant suppression définitive"
+          breadcrumb={[{ label: "Poubelle" }]}
+          right={
+            trashed && trashed.length > 0 ? (
+              <button
+                onClick={handleEmpty}
+                className="flex items-center gap-2 text-red-400 hover:text-red-300 text-xs sm:text-sm transition-colors"
+              >
+                <Trash2 size={14} /> <span className="hidden sm:inline">Vider la poubelle</span>
+                <span className="sm:hidden">Vider</span>
+              </button>
+            ) : undefined
+          }
+        />
 
         {/* Trash List */}
         {isLoading ? (

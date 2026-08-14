@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import PageHeader from "@/components/PageHeader";
 import {
   Plus,
   Trash2,
@@ -96,27 +97,21 @@ export default function Templates() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Back Button */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
-          <ArrowLeft size={16} /> Retour au dashboard
-        </Link>
-
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Templates</h1>
-            <p className="text-sm text-zinc-500 mt-1">
-              Miniatures d'inspiration — ajoutées par l'admin et les utilisateurs
-            </p>
-          </div>
-          <button
-            onClick={() => setShowUpload(true)}
-            className="flex items-center gap-2 bg-[#ff0050] hover:bg-[#e60048] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Plus size={16} /> Ajouter
-          </button>
-        </div>
+        <PageHeader
+          title="Templates"
+          subtitle="Miniatures d'inspiration — ajoutées par l'admin et les utilisateurs"
+          breadcrumb={[{ label: "Templates" }]}
+          right={
+            <button
+              onClick={() => setShowUpload(true)}
+              className="flex items-center gap-2 bg-[#ff0050] hover:bg-[#e60048] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+            >
+              <Plus size={14} /> <span className="hidden sm:inline">Ajouter</span>
+            </button>
+          }
+        />
 
         {/* Category Filters */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">

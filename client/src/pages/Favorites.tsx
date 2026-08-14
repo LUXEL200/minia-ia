@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { ArrowLeft, Heart, Download } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 export default function FavoritesPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -29,17 +30,13 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Back */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
-          <ArrowLeft size={16} /> Retour au dashboard
-        </Link>
-
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">Favoris</h1>
-          <p className="text-sm text-zinc-500 mt-1">Tes miniatures préférées</p>
-        </div>
+        <PageHeader
+          title="Favoris"
+          subtitle="Tes miniatures préférées"
+          breadcrumb={[{ label: "Favoris" }]}
+        />
 
         {/* Favorites Grid */}
         {isLoading ? (
