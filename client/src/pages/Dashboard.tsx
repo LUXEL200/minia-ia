@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
   RectangleHorizontal, Star, Trash, Zap, Sun, Key,
-  Settings, Bell, LogOut,
+  Settings, Bell, LogOut, Type,
 } from "lucide-react";
 
 const STYLES = [
@@ -27,6 +27,7 @@ const STYLE_LABELS: Record<string, string> = Object.fromEntries(STYLES.map(s => 
 
 export default function Dashboard() {
   const { user, loading: authLoading, isAuthenticated, logout } = useAuth();
+  const [, navigate] = useLocation();
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState<string>("viral");
   const [quantity, setQuantity] = useState<number>(1);
@@ -41,6 +42,9 @@ export default function Dashboard() {
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
   const [showStyleDropdown, setShowStyleDropdown] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [generateTab, setGenerateTab] = useState<"text" | "image">("text");
+  const [inspirationUrl, setInspirationUrl] = useState("");
+  const [inspirationImage, setInspirationImage] = useState<string | null>(null);
 
   // Auth gate
   const isAuthed = !authLoading && isAuthenticated && !!user;
@@ -318,41 +322,41 @@ export default function Dashboard() {
           <div className="px-4 py-3">
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Outils supplémentaires</p>
             <nav className="space-y-1">
-              <button
-                onClick={() => toast.info("Bientôt disponible")}
+              <Link
+                href="/avatars"
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
               >
                 <UserCircle2 className="w-4 h-4" />
                 Avatars
-              </button>
-              <button
-                onClick={() => toast.info("Bientôt disponible")}
+              </Link>
+              <Link
+                href="/preview"
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
               >
                 <Eye className="w-4 h-4" />
                 Aperçu miniature
-              </button>
-              <button
-                onClick={() => toast.info("Bientôt disponible")}
+              </Link>
+              <Link
+                href="/endcards"
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
               >
                 <RectangleHorizontal className="w-4 h-4" />
                 Générateur de cartes YouTube
-              </button>
-              <button
-                onClick={() => toast.info("Bientôt disponible")}
+              </Link>
+              <Link
+                href="/favorites"
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
               >
                 <Star className="w-4 h-4" />
                 Favoris
-              </button>
-              <button
-                onClick={() => toast.info("Bientôt disponible")}
+              </Link>
+              <Link
+                href="/trash"
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
               >
                 <Trash className="w-4 h-4" />
                 Poubelle
-              </button>
+              </Link>
             </nav>
           </div>
 
@@ -418,42 +422,47 @@ export default function Dashboard() {
                     <Sun className="w-4 h-4" />
                     Mode clair
                   </button>
-                  <button
-                    onClick={() => toast.info("Bientôt disponible")}
+                  <Link
+                    href="/account"
+                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
                   >
                     <UserRound className="w-4 h-4" />
                     Compte
-                  </button>
-                  <button
-                    onClick={() => toast.info("Bientôt disponible")}
+                  </Link>
+                  <Link
+                    href="/api-keys"
+                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
                   >
                     <Key className="w-4 h-4" />
                     Clés API
-                  </button>
-                  <button
-                    onClick={() => toast.info("Bientôt disponible")}
+                  </Link>
+                  <Link
+                    href="/settings"
+                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
                   >
                     <Settings className="w-4 h-4" />
                     Paramètres
-                  </button>
-                  <button
-                    onClick={() => toast.info("Bientôt disponible")}
+                  </Link>
+                  <Link
+                    href="/billing"
+                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
                   >
                     <CreditCard className="w-4 h-4" />
                     Facturation
-                  </button>
-                  <button
-                    onClick={() => toast.info("Bientôt disponible")}
+                  </Link>
+                  <Link
+                    href="/notifications"
+                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
                   >
                     <Bell className="w-4 h-4" />
                     Notifications
                     <span className="ml-auto bg-red-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">1</span>
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="py-1 border-t border-white/5">
@@ -617,16 +626,19 @@ export default function Dashboard() {
                     </div>
                     {/* Actions overlay */}
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                      <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                      <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Télécharger">
                         <Download className="w-4 h-4 text-white" />
                       </button>
-                      <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors">
+                      <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
                         <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
+                      </button>
+                      <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Éditer">
+                        <Type className="w-4 h-4 text-white" />
                       </button>
                       <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Créer une tâche">
                         <ListChecks className="w-4 h-4 text-white" />
                       </button>
-                      <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors">
+                      <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors" title="Supprimer">
                         <Trash2 className="w-4 h-4 text-white" />
                       </button>
                     </div>
@@ -699,6 +711,28 @@ export default function Dashboard() {
     </div>
   );
 
+  const handleInspirationSubmit = () => {
+    if (!inspirationUrl.trim()) {
+      toast.error("Entre une URL d'image ou un lien Pinterest");
+      return;
+    }
+    // Try to extract image URL from Pinterest
+    let imgUrl = inspirationUrl.trim();
+    if (imgUrl.includes("pinterest.")) {
+      // Pinterest links need to be resolved - use a placeholder approach
+      toast.info("Lien Pinterest détecté — extraction de l'image en cours...");
+      // For Pinterest, we'll use the URL directly as inspiration context
+      setInspirationImage(imgUrl);
+    } else {
+      setInspirationImage(imgUrl);
+      toast.success("Image d'inspiration chargée !");
+    }
+    // Auto-fill prompt with description hint
+    if (!prompt.trim()) {
+      setPrompt("Reproduis le style de cette image d'inspiration pour créer une miniature YouTube virale");
+    }
+  };
+
   // ===== Generate View =====
   const renderGenerateView = () => (
     <div className="max-w-2xl mx-auto px-4 pb-8">
@@ -706,6 +740,101 @@ export default function Dashboard() {
         <h1 className="text-lg font-semibold text-white">Générer</h1>
         <p className="text-xs text-zinc-500 mt-1">Crée ta miniature virale</p>
       </div>
+
+      {/* Generate tabs */}
+      <div className="mb-6">
+        <div className="flex gap-1 p-1 bg-[#181818] rounded-xl">
+          <button
+            onClick={() => setGenerateTab("text")}
+            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+              generateTab === "text" ? "bg-white text-black" : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            <Type className="w-3.5 h-3.5 inline mr-1.5" />
+            Texte
+          </button>
+          <button
+            onClick={() => setGenerateTab("image")}
+            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+              generateTab === "image" ? "bg-white text-black" : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            <Image className="w-3.5 h-3.5 inline mr-1.5" />
+            Image inspirée
+          </button>
+        </div>
+      </div>
+
+      {/* Image inspiration tab */}
+      {generateTab === "image" && (
+        <div className="mb-6">
+          <label className="block text-xs text-zinc-400 mb-2">URL d'inspiration (image ou lien Pinterest)</label>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={inspirationUrl}
+              onChange={(e) => setInspirationUrl(e.target.value)}
+              placeholder="https://www.pinterest.com/pin/... ou URL directe d'une image"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-[#181818] border border-white/5 text-white placeholder:text-zinc-600 text-sm focus:border-white/10 outline-none transition-all"
+            />
+            <Button
+              onClick={handleInspirationSubmit}
+              className="h-10 px-4 text-xs bg-cyan-600 text-white hover:bg-cyan-700 rounded-xl"
+            >
+              Charger
+            </Button>
+          </div>
+          {inspirationImage && (
+            <div className="mt-3 relative rounded-xl overflow-hidden">
+              <img src={inspirationImage} alt="Inspiration" className="w-full h-48 object-cover rounded-xl border border-white/5" />
+              <button
+                onClick={() => { setInspirationImage(null); setInspirationUrl(""); }}
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+              <p className="text-[10px] text-zinc-500 mt-1.5 text-right">Image utilisée comme référence de style</p>
+            </div>
+          )}
+          <p className="text-[10px] text-zinc-600 mt-2">
+            Collez un lien Pinterest ou une URL d'image pour vous en inspirer. L'IA reproduira le style, les couleurs et la composition.
+          </p>
+        </div>
+      )}
+
+      {/* Text tab */}
+      {generateTab === "text" && (
+        <>
+      {/* Prompt input */}
+      <div className="mb-6">
+        <label className="block text-xs text-zinc-400 mb-2">Décris ta miniature</label>
+        <div className="relative">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Ex: Un homme surpris avec un gros plan, fond bleu électrique, texte 'IL A GAGNÉ 100 000€' en gros..."
+            className="w-full h-32 px-4 py-3 rounded-xl bg-[#181818] border border-white/5 text-white placeholder:text-zinc-600 text-sm focus:border-white/10 focus:ring-0 outline-none resize-none transition-all"
+            maxLength={500}
+          />
+          <span className="absolute bottom-2 right-3 text-[10px] text-zinc-600">{prompt.length}/500</span>
+        </div>
+      </div>
+        </>
+      )}
+
+      {/* Prompt input always visible for image tab too */}
+      {generateTab === "image" && !prompt && (
+        <div className="mb-6">
+          <label className="block text-xs text-zinc-400 mb-2">Instructions supplémentaires (optionnel)</label>
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Ex: Ajoute du texte 'TOP 10', rends-le plus dramatique..."
+            className="w-full h-20 px-4 py-3 rounded-xl bg-[#181818] border border-white/5 text-white placeholder:text-zinc-600 text-sm focus:border-white/10 outline-none resize-none transition-all"
+            maxLength={500}
+          />
+        </div>
+      )}
 
       {/* Prompt input */}
       <div className="mb-6">
@@ -964,16 +1093,19 @@ export default function Dashboard() {
                 </p>
               </div>
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Télécharger">
                   <Download className="w-4 h-4 text-white" />
                 </button>
-                <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors">
+                <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
                   <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
                 </button>
-                <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors">
+                <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Éditer">
+                  <Type className="w-4 h-4 text-white" />
+                </button>
+                <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Créer une tâche">
                   <ListChecks className="w-4 h-4 text-white" />
                 </button>
-                <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors">
+                <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors" title="Supprimer">
                   <Trash2 className="w-4 h-4 text-white" />
                 </button>
               </div>

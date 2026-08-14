@@ -15,6 +15,13 @@
       "when": 1785993060841,
       "tag": "0001_little_betty_brant",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786729841353,
+      "tag": "0002_blue_firelord",
+      "breakpoints": true
     }
   ]
 }

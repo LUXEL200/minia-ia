@@ -110,3 +110,128 @@ export const teamTasks = mysqlTable("teamTasks", {
 
 export type TeamTask = typeof teamTasks.$inferSelect;
 export type InsertTeamTask = typeof teamTasks.$inferInsert;
+
+/**
+ * Favorites table — user favorites
+ */
+export const favorites = mysqlTable("favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  thumbnailId: int("thumbnailId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  uniqueFav: index("unique_fav_idx").on(table.userId, table.thumbnailId),
+  thumbIdx: index("fav_thumb_idx").on(table.thumbnailId),
+}));
+
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = typeof favorites.$inferInsert;
+
+/**
+ * Templates table — inspiration templates (admin + user uploaded)
+ */
+export const templates = mysqlTable("templates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  title: text("title").notNull(),
+  imageUrl: text("imageUrl").notNull(),
+  source: mysqlEnum("source", ["unsplash", "pexels", "custom", "user"]).default("custom"),
+  category: varchar("category", { length: 64 }).default("viral"),
+  likesCount: int("likesCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("template_user_idx").on(table.userId),
+}));
+
+export type Template = typeof templates.$inferSelect;
+export type InsertTemplate = typeof templates.$inferInsert;
+
+/**
+ * Avatars table — generated avatar images
+ */
+export const avatars = mysqlTable("avatars", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  prompt: text("prompt").notNull(),
+  style: varchar("style", { length: 64 }).default("professional"),
+  imageUrl: text("imageUrl").notNull(),
+  status: mysqlEnum("status", ["generating", "completed", "failed"]).default("generating").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("avatar_user_idx").on(table.userId),
+}));
+
+export type Avatar = typeof avatars.$inferSelect;
+export type InsertAvatar = typeof avatars.$inferInsert;
+
+/**
+ * YouTube end cards table
+ */
+export const endCards = mysqlTable("endCards", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  prompt: text("prompt").notNull(),
+  style: varchar("style", { length: 64 }).default("viral"),
+  imageUrl: text("imageUrl").notNull(),
+  status: mysqlEnum("status", ["generating", "completed", "failed"]).default("generating").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("endcard_user_idx").on(table.userId),
+}));
+
+export type EndCard = typeof endCards.$inferSelect;
+export type InsertEndCard = typeof endCards.$inferInsert;
+
+/**
+ * Soft-deleted thumbnails (trash)
+ */
+export const trashedThumbnails = mysqlTable("trashedThumbnails", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  thumbnailId: int("thumbnailId").notNull(),
+  prompt: text("prompt"),
+  imageUrl: text("imageUrl"),
+  style: varchar("style", { length: 64 }),
+  deletedAt: timestamp("deletedAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+}, (table) => ({
+  userIdIdx: index("trash_user_idx").on(table.userId),
+}));
+
+export type TrashedThumbnail = typeof trashedThumbnails.$inferSelect;
+export type InsertTrashedThumbnail = typeof trashedThumbnails.$inferInsert;
+
+/**
+ * API Keys table
+ */
+export const apiKeys = mysqlTable("apiKeys", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  key: varchar("key", { length: 255 }).notNull(),
+  isActive: mysqlEnum("isActive", ["active", "revoked"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("apikey_user_idx").on(table.userId),
+}));
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+/**
+ * Notifications table
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: text("title").notNull(),
+  message: text("message"),
+  type: mysqlEnum("type", ["generation", "credit", "team", "system"]).default("system").notNull(),
+  isRead: mysqlEnum("isRead", ["read", "unread"]).default("unread").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("notif_user_idx").on(table.userId),
+}));
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

@@ -25,6 +25,17 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import Cgv from "./pages/Cgv";
+import Avatars from "./pages/Avatars";
+import EndCards from "./pages/EndCards";
+import Favorites from "./pages/Favorites";
+import Trash from "./pages/Trash";
+import Notifications from "./pages/Notifications";
+import Account from "./pages/Account";
+import ApiKeys from "./pages/ApiKeys";
+import Settings from "./pages/Settings";
+import Billing from "./pages/Billing";
+import ThumbnailPreview from "./pages/ThumbnailPreview";
+import Editor from "./pages/Editor";
 
 function Router() {
   return (
@@ -53,6 +64,17 @@ function Router() {
       {/* Auth */}
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/gallery"} component={Gallery} />
+      <Route path={"/avatars"} component={Avatars} />
+      <Route path={"/endcards"} component={EndCards} />
+      <Route path={"/favorites"} component={Favorites} />
+      <Route path={"/trash"} component={Trash} />
+      <Route path={"/notifications"} component={Notifications} />
+      <Route path={"/account"} component={Account} />
+      <Route path={"/api-keys"} component={ApiKeys} />
+      <Route path={"/settings"} component={Settings} />
+      <Route path={"/billing"} component={Billing} />
+      <Route path={"/preview"} component={ThumbnailPreview} />
+      <Route path={"/editor"} component={Editor} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

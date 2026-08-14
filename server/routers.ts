@@ -1,12 +1,12 @@
 import { COOKIE_NAME } from "@shared/const";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { generateImage, listImageModels } from "./_core/imageGeneration";
-import { thumbnails } from "../drizzle/schema";
+import { thumbnails, avatars, endCards } from "../drizzle/schema";
 import {
   getThumbnailsByUserId,
   getThumbnailById,
@@ -26,7 +26,244 @@ import {
   getTeamTasks,
   createTeamTask,
   updateTaskStatus,
+  toggleFavorite,
+  getFavoritesByUserId,
+  getAllTemplates,
+  createTemplate,
+  deleteTemplate,
+  getAvatarsByUserId,
+  createAvatar,
+  updateAvatarStatus,
+  getEndCardsByUserId,
+  createEndCard,
+  updateEndCardStatus,
+  moveToTrash,
+  getTrashedByUserId,
+  restoreFromTrash,
+  emptyTrash,
+  getApiKeysByUserId,
+  createApiKey,
+  revokeApiKey,
+  getNotificationsByUserId,
+  getUnreadCountByUserId,
+  markNotificationRead,
+  markAllNotificationsRead,
 } from "./db";
+
+// === Sub-routers (defined before appRouter to avoid TDZ) ===
+
+export const favoritesRouter = router({
+  toggle: protectedProcedure
+    .input(z.object({ thumbnailId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const isFav = await toggleFavorite(ctx.user.id, input.thumbnailId);
+      return { favorited: isFav } as const;
+    }),
+
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return getFavoritesByUserId(ctx.user.id);
+  }),
+});
+
+export const templatesRouter = router({
+  list: publicProcedure
+    .input(z.object({ category: z.string().optional() }).optional())
+    .query(async ({ input }) => {
+      return getAllTemplates(input?.category);
+    }),
+
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string().min(1).max(200),
+      imageUrl: z.string().url(),
+      source: z.enum(["unsplash", "pexels", "custom", "user"]).default("custom"),
+      category: z.string().max(64).default("viral"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return createTemplate({
+        userId: ctx.user.id,
+        title: input.title,
+        imageUrl: input.imageUrl,
+        source: input.source,
+        category: input.category,
+      });
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const isAdmin = ctx.user.role === "admin";
+      await deleteTemplate(input.id, ctx.user.id, isAdmin);
+      return { success: true } as const;
+    }),
+});
+
+export const avatarsRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return getAvatarsByUserId(ctx.user.id);
+  }),
+
+  generate: protectedProcedure
+    .input(z.object({
+      prompt: z.string().min(10).max(500),
+      style: z.string().max(64).default("professional"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const credits = await ensureUserCredits(ctx.user.id);
+      if (credits.credits < 1) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Crédits insuffisants" });
+      }
+
+      const { id } = await createAvatar({ userId: ctx.user.id, prompt: input.prompt, style: input.style });
+
+      try {
+        const { url } = await generateImage({
+          prompt: `${input.prompt} — avatar portrait, professional headshot style`,
+          model: "MODEL_GPT_IMAGE_2",
+          quality: "high",
+        });
+        if (url) {
+          await updateAvatarStatus(id, "completed", url);
+          await deductCredits(ctx.user.id, 1);
+        } else {
+          await updateAvatarStatus(id, "failed");
+        }
+      } catch {
+        await updateAvatarStatus(id, "failed");
+      }
+
+      return { success: true, avatarId: id } as const;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      await db.delete(avatars).where(and(eq(avatars.id, input.id), eq(avatars.userId, ctx.user.id)));
+      return { success: true } as const;
+    }),
+});
+
+export const endCardsRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return getEndCardsByUserId(ctx.user.id);
+  }),
+
+  generate: protectedProcedure
+    .input(z.object({
+      prompt: z.string().min(10).max(500),
+      style: z.string().max(64).default("viral"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const credits = await ensureUserCredits(ctx.user.id);
+      if (credits.credits < 1) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Crédits insuffisants" });
+      }
+
+      const { id } = await createEndCard({ userId: ctx.user.id, prompt: input.prompt, style: input.style });
+
+      try {
+        const { url } = await generateImage({
+          prompt: `${input.prompt} — YouTube end card, subscribe button area, video suggestion boxes, CTA text`,
+          model: "MODEL_GPT_IMAGE_2",
+          quality: "high",
+        });
+        if (url) {
+          await updateEndCardStatus(id, "completed", url);
+          await deductCredits(ctx.user.id, 1);
+        } else {
+          await updateEndCardStatus(id, "failed");
+        }
+      } catch {
+        await updateEndCardStatus(id, "failed");
+      }
+
+      return { success: true, endCardId: id } as const;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      await db.delete(endCards).where(and(eq(endCards.id, input.id), eq(endCards.userId, ctx.user.id)));
+      return { success: true } as const;
+    }),
+});
+
+export const trashRouter = router({
+  moveToTrash: protectedProcedure
+    .input(z.object({ thumbnailId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const thumb = await getThumbnailById(input.thumbnailId);
+      if (!thumb || thumb.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Miniature non trouvée" });
+      }
+      await moveToTrash(ctx.user.id, input.thumbnailId, thumb.prompt, thumb.imageUrl, thumb.style ?? undefined);
+      const db = await getDb();
+      if (db) await db.delete(thumbnails).where(eq(thumbnails.id, input.thumbnailId));
+      return { success: true } as const;
+    }),
+
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return getTrashedByUserId(ctx.user.id);
+  }),
+
+  restore: protectedProcedure
+    .input(z.object({ trashId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const success = await restoreFromTrash(input.trashId, ctx.user.id);
+      if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Élément introuvable" });
+      return { success: true } as const;
+    }),
+
+  empty: protectedProcedure.mutation(async ({ ctx }) => {
+    await emptyTrash(ctx.user.id);
+    return { success: true } as const;
+  }),
+});
+
+export const apiKeysRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return getApiKeysByUserId(ctx.user.id);
+  }),
+
+  create: protectedProcedure
+    .input(z.object({ name: z.string().min(1).max(255) }))
+    .mutation(async ({ ctx, input }) => {
+      return createApiKey(ctx.user.id, input.name);
+    }),
+
+  revoke: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await revokeApiKey(input.id, ctx.user.id);
+      return { success: true } as const;
+    }),
+});
+
+export const notificationsRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return getNotificationsByUserId(ctx.user.id);
+  }),
+
+  unreadCount: protectedProcedure.query(async ({ ctx }) => {
+    return getUnreadCountByUserId(ctx.user.id);
+  }),
+
+  markRead: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await markNotificationRead(input.id, ctx.user.id);
+      return { success: true } as const;
+    }),
+
+  markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+    await markAllNotificationsRead(ctx.user.id);
+    return { success: true } as const;
+  }),
+});
 
 export const appRouter = router({
   system: systemRouter,
@@ -349,6 +586,27 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // === Templates ===
+  templates: templatesRouter,
+
+  // === Favorites ===
+  favorites: favoritesRouter,
+
+  // === Avatars ===
+  avatars: avatarsRouter,
+
+  // === End Cards ===
+  endCards: endCardsRouter,
+
+  // === Trash ===
+  trash: trashRouter,
+
+  // === API Keys ===
+  apiKeys: apiKeysRouter,
+
+  // === Notifications ===
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

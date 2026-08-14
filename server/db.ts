@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 
@@ -353,4 +353,223 @@ export async function updateTaskStatus(taskId: number, status: "pending" | "revi
       content: `Une tâche a été ${status === "approved" ? "approuvée" : status === "rejected" ? "rejetée" : "mise à jour"} (ID: ${taskId}).${comment ? ` Commentaire: ${comment}` : ""}`,
     });
   } catch { /* ignore notification errors */ }
+}
+
+// === Favorites ===
+export async function toggleFavorite(userId: number, thumbnailId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const existing = await db.select().from(favorites)
+    .where(and(eq(favorites.userId, userId), eq(favorites.thumbnailId, thumbnailId))).limit(1);
+  if (existing.length > 0) {
+    await db.delete(favorites).where(eq(favorites.id, existing[0].id));
+    return false;
+  }
+  await db.insert(favorites).values({ userId, thumbnailId });
+  return true;
+}
+
+export async function getFavoritesByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const favs = await db.select().from(favorites).where(eq(favorites.userId, userId)).orderBy(desc(favorites.createdAt));
+  const results = [];
+  for (const f of favs) {
+    const thumb = await getThumbnailById(f.thumbnailId);
+    if (thumb) results.push({ ...thumb, favoritedAt: f.createdAt });
+  }
+  return results;
+}
+
+// === Templates ===
+export async function getAllTemplates(category?: string, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [eq(templates.id, templates.id)]; // always true
+  if (category && category !== "all") conditions.push(eq(templates.category, category));
+  return db.select().from(templates)
+    .where(and(...conditions))
+    .orderBy(desc(templates.createdAt))
+    .limit(limit);
+}
+
+export async function createTemplate(data: { userId?: number; title: string; imageUrl: string; source?: string; category?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] = await db.insert(templates).values({
+    userId: data.userId,
+    title: data.title,
+    imageUrl: data.imageUrl,
+    source: (data.source || "custom") as any,
+    category: data.category || "viral",
+  });
+  return { id: result.insertId };
+}
+
+export async function deleteTemplate(id: number, userId?: number, isAdmin = false) {
+  const db = await getDb();
+  if (!db) return false;
+  if (isAdmin) {
+    await db.delete(templates).where(eq(templates.id, id));
+  } else if (userId) {
+    await db.delete(templates).where(and(eq(templates.id, id), eq(templates.userId, userId)));
+  }
+  return true;
+}
+
+// === Avatars ===
+export async function getAvatarsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(avatars).where(eq(avatars.userId, userId)).orderBy(desc(avatars.createdAt));
+}
+
+export async function createAvatar(data: { userId: number; prompt: string; style?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] =   await db.insert(avatars).values({
+    userId: data.userId,
+    prompt: data.prompt,
+    style: data.style || "professional",
+    imageUrl: "pending",
+  });
+  return { id: result.insertId };
+}
+
+export async function updateAvatarStatus(id: number, status: string, imageUrl?: string) {
+  const db = await getDb();
+  if (!db) return;
+  const updateData: Record<string, unknown> = { status };
+  if (imageUrl) updateData.imageUrl = imageUrl;
+  await db.update(avatars).set(updateData).where(eq(avatars.id, id));
+}
+
+// === End Cards ===
+export async function getEndCardsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(endCards).where(eq(endCards.userId, userId)).orderBy(desc(endCards.createdAt));
+}
+
+export async function createEndCard(data: { userId: number; prompt: string; style?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] =   await db.insert(endCards).values({
+    userId: data.userId,
+    prompt: data.prompt,
+    style: data.style || "viral",
+    imageUrl: "pending",
+  });
+  return { id: result.insertId };
+}
+
+export async function updateEndCardStatus(id: number, status: string, imageUrl?: string) {
+  const db = await getDb();
+  if (!db) return;
+  const updateData: Record<string, unknown> = { status };
+  if (imageUrl) updateData.imageUrl = imageUrl;
+  await db.update(endCards).set(updateData).where(eq(endCards.id, id));
+}
+
+// === Trash ===
+export async function moveToTrash(userId: number, thumbnailId: number, prompt?: string, imageUrl?: string, style?: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+  await db.insert(trashedThumbnails).values({
+    userId, thumbnailId, prompt, imageUrl, style, deletedAt: new Date(), expiresAt,
+  });
+  return true;
+}
+
+export async function getTrashedByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(trashedThumbnails).where(eq(trashedThumbnails.userId, userId)).orderBy(desc(trashedThumbnails.deletedAt));
+}
+
+export async function restoreFromTrash(trashId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const trash = await db.select().from(trashedThumbnails)
+    .where(and(eq(trashedThumbnails.id, trashId), eq(trashedThumbnails.userId, userId))).limit(1);
+  if (trash.length === 0) return false;
+  const t = trash[0];
+  // Create new thumbnail entry
+  await db.insert(thumbnails).values({
+    userId: t.userId,
+    prompt: t.prompt || "Restauré",
+    style: t.style || "viral",
+    imageUrl: t.imageUrl || "",
+    status: "completed",
+    creditsUsed: 0,
+  });
+  await db.delete(trashedThumbnails).where(eq(trashedThumbnails.id, trashId));
+  return true;
+}
+
+export async function emptyTrash(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(trashedThumbnails).where(eq(trashedThumbnails.userId, userId));
+}
+
+// === API Keys ===
+export async function getApiKeysByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt));
+}
+
+export async function createApiKey(userId: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const key = `minia-${crypto.randomUUID().replace(/-/g, "").slice(0, 32)}`;
+  const [result] = await db.insert(apiKeys).values({ userId, name, key, isActive: "active" });
+  return { id: result.insertId, key };
+}
+
+export async function revokeApiKey(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(apiKeys).set({ isActive: "revoked" }).where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)));
+  return true;
+}
+
+// === Notifications ===
+export async function getNotificationsByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt)).limit(50);
+}
+
+export async function getUnreadCountByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const results = await db.select().from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, "unread")));
+  return results.length;
+}
+
+export async function markNotificationRead(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(notifications).set({ isRead: "read" }).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+}
+
+export async function markAllNotificationsRead(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(notifications).set({ isRead: "read" }).where(eq(notifications.userId, userId));
+}
+
+export async function createNotification(data: { userId: number; title: string; message?: string; type?: string }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(notifications).values({
+    userId: data.userId,
+    title: data.title,
+    message: data.message,
+    type: (data.type || "system") as any,
+  });
 }

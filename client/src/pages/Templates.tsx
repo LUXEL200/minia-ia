@@ -1,139 +1,278 @@
-import SubPageLayout from "@/components/SubPageLayout";
-import { motion } from "framer-motion";
-import { Sparkles, Eye, ArrowRight } from "lucide-react";
-import { Link } from "wouter";
+import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Link, useLocation } from "wouter";
+import { toast } from "sonner";
+import {
+  Plus,
+  Trash2,
+  Shield,
+  ImageIcon,
+  Search,
+  X,
+  ArrowLeft,
+  User,
+} from "lucide-react";
 
-const templates = [
-  {
-    name: "Viral Hook",
-    category: "Gaming",
-    style: "viral",
-    description: "Titre accrocheur en rouge, visage expressif, flèches et cercles. Optimisé pour les niches gaming.",
-    thumbnail: "/manus-storage/thumbnail-mrbeast.png",
-  },
-  {
-    name: "Tech Review",
-    category: "Tech",
-    style: "tech",
-    description: "Fond sombre, produit en lumière, typographie clean. Parfait pour les reviews et unboxings.",
-    thumbnail: "/manus-storage/thumbnail-tech.png",
-  },
-  {
-    name: "Dramatic Story",
-    category: "Storytelling",
-    style: "dramatic",
-    description: "Contraste fort, éclairage dramatique, expressions intenses. Pour les vidéos de storytelling.",
-    thumbnail: "/manus-storage/thumbnail-dramatic.png",
-  },
-  {
-    name: "Podcast Guest",
-    category: "Podcast",
-    style: "viral",
-    description: "Portrait invité, nom en gros, citation percutante. Format vertical et horizontal disponible.",
-    thumbnail: "/manus-storage/podcast-mode.png",
-  },
-  {
-    name: "MrBeast Style",
-    category: "Challenge",
-    style: "mrbeast",
-    description: "Couleurs saturées, gros textes, réactions exagérées. Le format MrBeast qui convertit.",
-    thumbnail: "/manus-storage/thumbnail-mrbeast.png",
-  },
-  {
-    name: "Minimal Art",
-    category: "Design",
-    style: "minimalist",
-    description: "Espace négatif, palette limitée, typographie élégante. Pour les créateurs premium.",
-    thumbnail: "/manus-storage/styles-gallery.png",
-  },
+const categories = [
+  { id: "all", label: "Tous" },
+  { id: "viral", label: "Viral" },
+  { id: "minimalist", label: "Minimaliste" },
+  { id: "dramatic", label: "Dramatic" },
+  { id: "tech", label: "Tech" },
+  { id: "retro", label: "Retro" },
+  { id: "mrbeast", label: "MrBeast" },
 ];
 
-const categories = ["Tous", "Gaming", "Tech", "Storytelling", "Podcast", "Challenge", "Design"];
-
 export default function Templates() {
-  return (
-    <SubPageLayout>
-      <div className="container">
-        {/* Hero */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto mb-12"
-        >
-          <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span className="text-sm text-[#A1A1AA]">Templates professionnels</span>
-          </div>
-          <h1 className="font-[Space_Grotesk] text-4xl md:text-5xl font-bold mb-4">
-            Des templates qui{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
-              convertissent
-            </span>
-          </h1>
-          <p className="text-lg text-[#A1A1AA]">
-            Inspire-toi des meilleures pratiques et génère ta miniature en un clic.
-          </p>
-        </motion.div>
+  const { user, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
+  const [category, setCategory] = useState("all");
+  const [showUpload, setShowUpload] = useState(false);
+  const [title, setTitle] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [source, setSource] = useState<"unsplash" | "pexels" | "custom" | "user">("custom");
+  const [uploadCategory, setUploadCategory] = useState("viral");
+  const [searchQuery, setSearchQuery] = useState("");
 
-        {/* Categories */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-4 mb-10 scrollbar-hide">
+  const { data: templates, isLoading, refetch } = trpc.templates.list.useQuery({ category });
+  const createTemplate = trpc.templates.create.useMutation();
+  const deleteTemplate = trpc.templates.delete.useMutation();
+
+  const isAdmin = user?.role === "admin";
+
+  const handleUpload = () => {
+    if (!title.trim()) { toast.error("Titre requis"); return; }
+    if (!imageUrl.trim()) { toast.error("URL d'image requise"); return; }
+    createTemplate.mutate(
+      { title: title.trim(), imageUrl: imageUrl.trim(), source, category: uploadCategory },
+      {
+        onSuccess: () => {
+          toast.success("Template ajouté !");
+          setShowUpload(false);
+          setTitle("");
+          setImageUrl("");
+          refetch();
+        },
+        onError: (err) => toast.error(err.message),
+      }
+    );
+  };
+
+  const handleDelete = (id: number) => {
+    deleteTemplate.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          toast.success("Template supprimé");
+          refetch();
+        },
+        onError: (err) => toast.error(err.message),
+      }
+    );
+  };
+
+  const filtered = templates?.filter((t: any) =>
+    t.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (!isAuthenticated) {
+    navigate("/dashboard");
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Back Button */}
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-6 transition-colors">
+          <ArrowLeft size={16} /> Retour au dashboard
+        </Link>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Templates</h1>
+            <p className="text-sm text-zinc-500 mt-1">
+              Miniatures d'inspiration — ajoutées par l'admin et les utilisateurs
+            </p>
+          </div>
+          <button
+            onClick={() => setShowUpload(true)}
+            className="flex items-center gap-2 bg-[#ff0050] hover:bg-[#e60048] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <Plus size={16} /> Ajouter
+          </button>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
           {categories.map((cat) => (
             <button
-              key={cat}
-              className="shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-[#18181B] border border-[#27272A] text-[#A1A1AA] hover:border-cyan-500/30 hover:text-white transition-all"
+              key={cat.id}
+              onClick={() => setCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+                category === cat.id
+                  ? "bg-white text-black"
+                  : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800"
+              }`}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
 
-        {/* Templates Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {templates.map((template, index) => (
-            <motion.div
-              key={template.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="group bg-[#18181B] border border-[#27272A] rounded-xl overflow-hidden hover:border-cyan-500/20 transition-all duration-300"
-            >
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src={template.thumbnail}
-                  alt={template.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-white">{template.name}</h3>
-                  <span className="px-2 py-0.5 bg-[#27272A] rounded text-xs text-[#A1A1AA]">
-                    {template.category}
-                  </span>
-                </div>
-                <p className="text-sm text-[#71717A] mb-4">{template.description}</p>
-                <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
-                  <Eye className="w-4 h-4" />
-                  Utiliser ce template
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-            </motion.div>
-          ))}
+        {/* Search */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher un template..."
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
+          />
         </div>
 
-        {/* CTA */}
-        <div className="text-center p-8 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-xl">
-          <h3 className="text-xl font-bold text-white mb-2">Prêt à créer ?</h3>
-          <p className="text-[#A1A1AA] mb-4">Génère ta miniature en 30 secondes depuis le dashboard.</p>
-          <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
-            Ouvrir le générateur
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+        {/* Templates Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="aspect-video bg-zinc-900 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : filtered?.length === 0 ? (
+          <div className="text-center py-20 text-zinc-500">
+            <ImageIcon className="mx-auto mb-4" size={48} />
+            <p className="text-lg mb-2">Aucun template trouvé</p>
+            <p className="text-sm">Sois le premier à ajouter un template d'inspiration !</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {filtered?.map((t: any) => (
+              <div key={t.id} className="group relative aspect-video rounded-lg overflow-hidden bg-zinc-900">
+                <img
+                  src={t.imageUrl}
+                  alt={t.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-xs font-medium truncate">{t.title}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-[10px] text-zinc-400">{t.category}</span>
+                      {(isAdmin || t.userId === user?.id) && (
+                        <button
+                          onClick={() => handleDelete(t.id)}
+                          className="text-red-400 hover:text-red-300 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {t.userId ? (
+                  <div className="absolute top-2 right-2">
+                    {isAdmin ? (
+                      <span className="bg-[#ff0050] text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1">
+                        <Shield size={10} /> Admin
+                      </span>
+                    ) : (
+                      <span className="bg-zinc-800 text-zinc-300 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1">
+                        <User size={10} /> User
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="absolute top-2 right-2">
+                    <span className="bg-zinc-800 text-zinc-300 text-[10px] px-1.5 py-0.5 rounded">
+                      {t.source === "unsplash" ? "Unsplash" : t.source === "pexels" ? "Pexels" : "Custom"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </SubPageLayout>
+
+      {/* Upload Modal */}
+      {showUpload && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Ajouter un template</h2>
+              <button onClick={() => setShowUpload(false)} className="text-zinc-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Titre</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex: Miniature gaming viral"
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">URL de l'image</label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+                />
+                <p className="text-xs text-zinc-600 mt-1">
+                  Utilise des images libres de droits (Unsplash, Pexels, etc.)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Source</label>
+                <select
+                  value={source}
+                  onChange={(e) => setSource(e.target.value as any)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500"
+                >
+                  <option value="custom">Personnalisé</option>
+                  <option value="unsplash">Unsplash</option>
+                  <option value="pexels">Pexels</option>
+                  <option value="user">Créé par l'utilisateur</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Catégorie</label>
+                <select
+                  value={uploadCategory}
+                  onChange={(e) => setUploadCategory(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500"
+                >
+                  {categories.filter(c => c.id !== "all").map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={handleUpload}
+                disabled={createTemplate.isPending}
+                className="w-full bg-[#ff0050] hover:bg-[#e60048] disabled:opacity-50 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                {createTemplate.isPending ? "Ajout..." : "Ajouter le template"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

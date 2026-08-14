@@ -46,3 +46,18 @@
 - [ ] Menu hamburger latéral avec tous les sous-menus (org info, créer miniature, plateforme/compte, YouThumb: Tableau de bord/Miniatures/Personnes/Modèles, Outils: Avatars/Aperçu/Générateur cartes YouTube/Favoris/Poubelle, upgrade Pro, profil utilisateur)
 - [x] Sidebar hamburger avec org info + CTA créer miniature + sections Minia IA et Outils + upgrade Pro + profil
 - [x] Menu déroulant sous profil connecté (Pro, Mode clair, Compte, Clés API, Paramètres, Facturation, Notifications, Déconnexion)
+- [ ] Page Avatars (génération d'avatars/mini profil)
+- [ ] Page Aperçu miniature (prévisualisation dans contexte YouTube)
+- [ ] Page Générateur de cartes YouTube (end cards)
+- [ ] Page Favoris (filtrage des miniatures favorisées)
+- [ ] Page Poubelle (soft delete + restauration 30 jours)
+- [ ] Page Compte (édition profil)
+- [ ] Page Clés API
+- [ ] Page Paramètres
+- [ ] Page Facturation
+- [ ] Page Notifications (avec badge et marquage lu)
+- [ ] Système Templates (admin + utilisateurs peuvent ajouter des miniatures d'inspiration)
+- [ ] Éditeur Canva après génération (édition manuelle de l'image)
+- [ ] Onglet "Image inspirée" dans Génération (upload image ou lien Pinterest comme référence)
+- [ ] Mode clair (toggle dark/light)
+- [ ] Bouton Pro reste un lien /pricing
