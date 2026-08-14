@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
@@ -32,12 +33,25 @@ const plans = [
 ];
 
 export default function BillingPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [loading, isAuthenticated, navigate]);
   const { data: credits } = trpc.thumbnail.credits.useQuery();
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse text-zinc-500 text-sm">Chargement...</div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
-    navigate("/dashboard");
     return null;
   }
 

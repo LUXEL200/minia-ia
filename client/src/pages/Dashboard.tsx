@@ -4,6 +4,7 @@ import { startLogin } from "@/const";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
 import {
   Image, CreditCard, Download, Trash2, Loader2, Sparkles,
@@ -45,6 +46,9 @@ export default function Dashboard() {
   const [generateTab, setGenerateTab] = useState<"text" | "image">("text");
   const [inspirationUrl, setInspirationUrl] = useState("");
   const [inspirationImage, setInspirationImage] = useState<string | null>(null);
+
+  // Theme
+  const { theme, toggleTheme } = useTheme();
 
   // Auth gate
   const isAuthed = !authLoading && isAuthenticated && !!user;
@@ -416,7 +420,7 @@ export default function Dashboard() {
 
                 <div className="py-1 border-t border-white/5">
                   <button
-                    onClick={() => toast.info("Bientôt disponible")}
+                    onClick={() => { setShowProfileMenu(false); if (toggleTheme) { toggleTheme(); toast.success(theme === "dark" ? "Mode clair activé" : "Mode sombre activé"); } }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
                   >
                     <Sun className="w-4 h-4" />

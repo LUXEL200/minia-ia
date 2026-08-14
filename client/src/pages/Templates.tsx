@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
@@ -25,8 +25,14 @@ const categories = [
 ];
 
 export default function Templates() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [loading, isAuthenticated, navigate]);
   const [category, setCategory] = useState("all");
   const [showUpload, setShowUpload] = useState(false);
   const [title, setTitle] = useState("");
@@ -76,8 +82,15 @@ export default function Templates() {
     t.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse text-zinc-500 text-sm">Chargement...</div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
-    navigate("/dashboard");
     return null;
   }
 

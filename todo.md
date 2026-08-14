@@ -43,21 +43,21 @@
 - [x] Dashboard redesign — section "Modèles" avec templates en grille
 - [x] Dashboard redesign — navigation flottante (Accueil/Générer/Équipe) en bas d'écran
 - [x] Dashboard redesign — navigation flottante (Accueil/Générer/Équipe) en bas d'écran
-- [ ] Menu hamburger latéral avec tous les sous-menus (org info, créer miniature, plateforme/compte, YouThumb: Tableau de bord/Miniatures/Personnes/Modèles, Outils: Avatars/Aperçu/Générateur cartes YouTube/Favoris/Poubelle, upgrade Pro, profil utilisateur)
+- [x] Menu hamburger latéral avec tous les sous-menus (org info, créer miniature, plateforme/compte, YouThumb: Tableau de bord/Miniatures/Personnes/Modèles, Outils: Avatars/Aperçu/Générateur cartes YouTube/Favoris/Poubelle, upgrade Pro, profil utilisateur)
 - [x] Sidebar hamburger avec org info + CTA créer miniature + sections Minia IA et Outils + upgrade Pro + profil
 - [x] Menu déroulant sous profil connecté (Pro, Mode clair, Compte, Clés API, Paramètres, Facturation, Notifications, Déconnexion)
-- [ ] Page Avatars (génération d'avatars/mini profil)
-- [ ] Page Aperçu miniature (prévisualisation dans contexte YouTube)
-- [ ] Page Générateur de cartes YouTube (end cards)
-- [ ] Page Favoris (filtrage des miniatures favorisées)
-- [ ] Page Poubelle (soft delete + restauration 30 jours)
-- [ ] Page Compte (édition profil)
-- [ ] Page Clés API
-- [ ] Page Paramètres
-- [ ] Page Facturation
-- [ ] Page Notifications (avec badge et marquage lu)
-- [ ] Système Templates (admin + utilisateurs peuvent ajouter des miniatures d'inspiration)
-- [ ] Éditeur Canva après génération (édition manuelle de l'image)
-- [ ] Onglet "Image inspirée" dans Génération (upload image ou lien Pinterest comme référence)
-- [ ] Mode clair (toggle dark/light)
-- [ ] Bouton Pro reste un lien /pricing
+- [x] Page Avatars (génération d'avatars/mini profil)
+- [x] Page Aperçu miniature (prévisualisation dans contexte YouTube)
+- [x] Page Générateur de cartes YouTube (end cards)
+- [x] Page Favoris (filtrage des miniatures favorisées)
+- [x] Page Poubelle (soft delete + restauration 30 jours)
+- [x] Page Compte (édition profil)
+- [x] Page Clés API
+- [x] Page Paramètres
+- [x] Page Facturation
+- [x] Page Notifications (avec badge et marquage lu)
+- [x] Système Templates (admin + utilisateurs peuvent ajouter des miniatures d'inspiration)
+- [x] Éditeur Canva après génération (édition manuelle de l'image)
+- [x] Onglet "Image inspirée" dans Génération (upload image ou lien Pinterest comme référence)
+- [x] Mode clair (toggle dark/light)
+- [x] Bouton Pro reste un lien /pricing

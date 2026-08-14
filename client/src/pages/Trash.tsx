@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
@@ -10,8 +11,14 @@ import {
 } from "lucide-react";
 
 export default function TrashPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [loading, isAuthenticated, navigate]);
   const { data: trashed, isLoading, refetch } = trpc.trash.list.useQuery();
   const restoreMutation = trpc.trash.restore.useMutation();
   const emptyMutation = trpc.trash.empty.useMutation();
@@ -41,8 +48,15 @@ export default function TrashPage() {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse text-zinc-500 text-sm">Chargement...</div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
-    navigate("/dashboard");
     return null;
   }
 

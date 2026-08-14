@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -12,8 +12,14 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [loading, isAuthenticated, navigate]);
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [pushNotifs, setPushNotifs] = useState(true);
   const [autoDownload, setAutoDownload] = useState(false);
@@ -29,8 +35,15 @@ export default function SettingsPage() {
     { id: "mrbeast", label: "MrBeast" },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse text-zinc-500 text-sm">Chargement...</div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
-    navigate("/dashboard");
     return null;
   }
 
