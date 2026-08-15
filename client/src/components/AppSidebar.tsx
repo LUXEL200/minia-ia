@@ -47,6 +47,13 @@ export function AppSidebar({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAccountsDialog, setShowAccountsDialog] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showBellMenu, setShowBellMenu] = useState(false);
+
+  // Cloche dynamique : compteur réel + rappels J-1
+  const { data: unreadCount } = trpc.notifications.unreadCount.useQuery(undefined, { enabled: !!user });
+  const { data: recentNotifs } = trpc.notifications.recent.useQuery(undefined, { enabled: !!user && showBellMenu });
+
+  const markReadMut = trpc.notifications.markRead.useMutation();
 
   const { data: credits } = trpc.thumbnail.credits.useQuery(undefined, {
     enabled: false, // never auto-fetch in the shared sidebar: pages fetch it themselves when authenticated
@@ -324,11 +331,71 @@ export function AppSidebar({
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
                   <CreditCard className="w-4 h-4" /> Facturation
                 </Link>
-                <Link href="/notifications" onClick={onClose}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
-                  <Bell className="w-4 h-4" /> Notifications
-                  <span className="ml-auto bg-red-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">1</span>
-                </Link>
+                {/* Cloche avec dropdown de rappels J-1 */}
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowBellMenu(!showBellMenu); setShowAccountsDialog(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                  >
+                    <Bell className="w-4 h-4" /> Notifications
+                    {unreadCount !== undefined && unreadCount > 0 && (
+                      <span className="ml-auto bg-red-600 text-white text-[10px] font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {showBellMenu && recentNotifs && recentNotifs.length > 0 && (
+                    <div className="absolute left-full top-0 ml-1 w-72 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-80">
+                      <div className="p-2 border-b border-white/5 flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-white">Rappels de planification</span>
+                        <button
+                          onClick={() => { onClose(); }}
+                          className="text-[9px] text-cyan-400 hover:text-cyan-300"
+                        >
+                          Ouvrir tout
+                        </button>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {recentNotifs.map((n: any) => {
+                          const meta = (() => { try { return n.metadata ? JSON.parse(n.metadata) : {}; } catch { return {}; } })();
+                          const isReminder = meta.kind === "planning-reminder";
+                          return (
+                            <Link
+                              key={n.id}
+                              href={`/notifications`}
+                              onClick={async () => {
+                                await markReadMut.mutateAsync({ id: n.id });
+                                onClose();
+                              }}
+                              className="block p-2.5 hover:bg-[#181818] transition-colors border-b border-white/5 last:border-0"
+                            >
+                              <div className="flex items-start gap-2">
+                                {isReminder ? (
+                                  <span className="mt-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#EC4899]/15 text-[9px] font-bold text-[#EC4899] flex-shrink-0">
+                                    J-1
+                                  </span>
+                                ) : (
+                                  <span className="mt-0.5 w-4 flex-shrink-0" />
+                                )}
+                                <div>
+                                  <p className="text-[11px] text-white leading-snug">{n.title}</p>
+                                  <p className="text-[10px] text-zinc-400 leading-snug mt-0.5">{n.message}</p>
+                                </div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {showBellMenu && (!recentNotifs || recentNotifs.length === 0) && (
+                    <div className="absolute left-full top-0 ml-1 w-64 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl p-4 z-80 text-center">
+                      <Bell className="w-5 h-5 text-zinc-500 mx-auto mb-1.5" />
+                      <p className="text-[11px] text-zinc-400">Aucun rappel de planification</p>
+                      <Link href="/notifications" onClick={onClose} className="text-[10px] text-cyan-400 hover:text-cyan-300 mt-1 inline-block">Voir toutes les notifications</Link>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Admin link — visible only to admins */}

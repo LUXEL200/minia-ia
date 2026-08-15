@@ -558,13 +558,25 @@ export async function markNotificationRead(id: number, userId: number) {
   await db.update(notifications).set({ isRead: "read" }).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
 }
 
+export async function getRecentUnreadNotifications(userId: number, limit: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select()
+    .from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, "unread" as any)))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+  return rows;
+}
+
 export async function markAllNotificationsRead(userId: number) {
   const db = await getDb();
   if (!db) return;
   await db.update(notifications).set({ isRead: "read" }).where(eq(notifications.userId, userId));
 }
 
-export async function createNotification(data: { userId: number; title: string; message?: string; type?: string }) {
+export async function createNotification(data: { userId: number; title: string; message?: string; type?: string; metadata?: string }) {
   const db = await getDb();
   if (!db) return;
   await db.insert(notifications).values({
@@ -572,6 +584,7 @@ export async function createNotification(data: { userId: number; title: string; 
     title: data.title,
     message: data.message,
     type: (data.type || "system") as any,
+    ...(data.metadata !== undefined ? { metadata: data.metadata } : {}),
   });
 }
 
@@ -1039,6 +1052,23 @@ export async function deletePublishedSchedule(id: number, userId: number) {
   const db = await getDb();
   if (!db) return false;
   await db.delete(publishedSchedules).where(and(eq(publishedSchedules.id, id), eq(publishedSchedules.userId, userId)));
+  return true;
+}
+
+export async function getScheduleByIdWithCheck(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [row] = await db.select().from(publishedSchedules)
+    .where(and(eq(publishedSchedules.id, id), eq(publishedSchedules.userId, userId)));
+  return row;
+}
+
+export async function updatePublishedSchedule(id: number, userId: number, data: { youtubeTitle?: string; scheduledAt?: Date }) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(publishedSchedules)
+    .set({ ...(data.youtubeTitle !== undefined ? { youtubeTitle: data.youtubeTitle } : {}), ...(data.scheduledAt !== undefined ? { scheduledAt: data.scheduledAt } : {}) })
+    .where(and(eq(publishedSchedules.id, id), eq(publishedSchedules.userId, userId)));
   return true;
 }
 

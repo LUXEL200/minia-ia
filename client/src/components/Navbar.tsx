@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const NAV_LINKS = [
   { href: "/features", label: "Fonctionnalités" },
@@ -30,6 +31,16 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, loading, isAuthenticated, logout } = useAuth();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  // Fond clair en light : teinte card semi-transparente ; dark : noir glassmorphism
+  const navBg = isLight ? "bg-card/85" : "bg-[#09090B]/90";
+  const navBorder = isLight ? "border-border/60" : "border-[#27272A]/50";
+  const linkText = isLight ? "text-zinc-600 hover:text-zinc-900" : "text-zinc-400 hover:text-white";
+  const mobilePanel = isLight
+    ? "bg-card/95 backdrop-blur-xl border-b border-border px-6 py-6 space-y-3"
+    : "bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-6 py-6 space-y-3";
+  const mobileLinkText = isLight ? "text-zinc-700 hover:text-zinc-900" : "text-zinc-300 hover:text-white";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -41,7 +52,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-[#09090B]/90 backdrop-blur-xl border-b border-[#27272A]/50"
+          ? `${navBg} backdrop-blur-xl border-b ${navBorder}`
           : "bg-transparent"
       }`}
     >
@@ -51,7 +62,7 @@ export default function Navbar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center shrink-0">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <span className="font-[Space_Grotesk] text-lg font-bold text-white tracking-tight">
+          <span className={`font-[Space_Grotesk] text-lg font-bold tracking-tight ${isLight ? "text-zinc-900" : "text-white"}`}>
             Minia<span className="text-[#06B6D4]">IA</span>
           </span>
         </Link>
@@ -62,7 +73,7 @@ export default function Navbar() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+              className={`text-sm transition-colors duration-200 ${linkText}`}
             >
               {item.label}
             </Link>
@@ -129,21 +140,21 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="lg:hidden bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-6 py-6 space-y-3"
+            className={`lg:hidden ${mobilePanel}`}
           >
             {NAV_LINKS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className="block text-zinc-300 hover:text-white py-1.5 text-sm"
+                className={`block py-1.5 text-sm ${mobileLinkText}`}
               >
                 {item.label}
               </Link>
             ))}
             {isAuthenticated ? (
               <div className="flex flex-col gap-2 pt-4 border-t border-[#27272A]">
-                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="text-[#06B6D4] font-medium py-1.5 text-sm">
+                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={`font-medium py-1.5 text-sm ${isLight ? "text-[#0891B2]" : "text-[#06B6D4]"}`}>
                   Dashboard
                 </Link>
                 <Button variant="outline" onClick={() => { logout(); setMobileOpen(false); }} className="border-[#27272A] text-zinc-400 text-sm w-full justify-start">

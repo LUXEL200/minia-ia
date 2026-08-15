@@ -177,3 +177,12 @@
 - [x] Rappels de planification : notification in-app (J-1) pour les miniatures planifiées qui approchent (cron quotidien ou à la connexion)
 - [x] Vue « Calendrier » : grille mensuelle des publications planifiées dans le Dashboard
 - [x] Tests vitest + tsc + vérifications mode clair/sombre + responsive + checkpoint
+
+## Vague v10 (demande utilisateur — 15/08)
+
+- [x] Audit : repérer les éléments sombres restants en mode clair (bouton hamburger rond noir, badges, dropdowns, hero landing mobile)
+- [x] Corriger les hardcodés dark restants via overrides .light / tokens
+- [x] Calendrier interactif : clic sur un événement → dialog « Planifier » pour modifier heure/titre
+- [x] Vue semaine dans le calendrier : bascule mois/semaine
+- [x] Badge J-1 dans la cloche Notifications + lien direct vers la miniature
+- [x] Tests vitest + tsc + vérifications mode clair + responsive + checkpoint

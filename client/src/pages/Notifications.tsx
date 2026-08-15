@@ -9,7 +9,30 @@ import {
   Bell,
   BellRing,
   CheckCheck,
+  CalendarClock,
+  Image as ImageIcon,
 } from "lucide-react";
+
+function parseMeta(n: { metadata?: string | null }): { kind?: string; thumbnailId?: number } {
+  if (!n.metadata) return {};
+  try {
+    return JSON.parse(n.metadata);
+  } catch {
+    return {};
+  }
+}
+
+function isPlanningReminder(n: { metadata?: string | null }): boolean {
+  return parseMeta(n).kind === "planning-reminder";
+}
+
+function getThumbId(metadata: string): number | null {
+  try {
+    return JSON.parse(metadata)?.thumbnailId ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default function NotificationsPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -98,12 +121,27 @@ export default function NotificationsPage() {
                   <BellRing className="text-[#ff0050] mt-0.5 shrink-0" size={18} />
                 )}
                 <div className="flex-1">
-                  <p className={`text-sm ${n.isRead ? "text-zinc-400" : "text-white"}`}>
-                    {n.message}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className={`text-sm ${n.isRead ? "text-zinc-400" : "text-white"}`}>
+                      {n.message}
+                    </p>
+                    {isPlanningReminder(n) && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#EC4899]/15 text-[10px] font-bold text-[#EC4899]">
+                        <CalendarClock className="w-3 h-3" /> J-1
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-zinc-600 mt-1">
                     {new Date(n.createdAt).toLocaleString("fr-FR")}
                   </p>
+                  {isPlanningReminder(n) && n.metadata && (
+                    <Link
+                      href={`/editor?imageId=${getThumbId(n.metadata)}`}
+                      className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" /> Voir la miniature à publier
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}

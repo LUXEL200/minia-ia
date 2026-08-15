@@ -232,6 +232,7 @@ export const notifications = mysqlTable("notifications", {
   message: text("message"),
   type: mysqlEnum("type", ["generation", "credit", "team", "system"]).default("system").notNull(),
   isRead: mysqlEnum("isRead", ["read", "unread"]).default("unread").notNull(),
+  metadata: text("metadata"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index("notif_user_idx").on(table.userId),

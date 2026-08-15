@@ -86,6 +86,7 @@ import {
   revokeApiKey,
   getNotificationsByUserId,
   getUnreadCountByUserId,
+  getRecentUnreadNotifications,
   createNotification,
   markNotificationRead,
   markAllNotificationsRead,
@@ -124,6 +125,8 @@ import {
   globalSearch,
   createPublishedSchedule,
   deletePublishedSchedule,
+  getScheduleByIdWithCheck,
+  updatePublishedSchedule as updatePublishedScheduleDb,
   getUpcomingSchedules,
   getSchedulesByMonth,
   getRemindersToFire,
@@ -790,6 +793,11 @@ export const notificationsRouter = router({
     await markAllNotificationsRead(ctx.user.id);
     return { success: true } as const;
   }),
+
+  /** Pour le dropdown cloche global : 3 notifications non lues récentes */
+  recent: protectedProcedure.query(async ({ ctx }) => {
+    return getRecentUnreadNotifications(ctx.user.id, 3);
+  }),
 });
 
 // === Admin Router ===
@@ -1360,6 +1368,25 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         return getSchedulesByMonth(ctx.user.id, input.year, input.month);
       }),
+    /** Édition depuis le calendrier : titre et/ou date (ownership vérifié) */
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        youtubeTitle: z.string().min(1).max(200).optional(),
+        scheduledAt: z.string().datetime().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const existing = await getScheduleByIdWithCheck(input.id, ctx.user.id);
+        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Planification introuvable" });
+        if (input.scheduledAt && new Date(input.scheduledAt).getTime() < Date.now()) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "La date doit être dans le futur" });
+        }
+        await updatePublishedScheduleDb(input.id, ctx.user.id, {
+          ...(input.youtubeTitle !== undefined ? { youtubeTitle: input.youtubeTitle } : {}),
+          ...(input.scheduledAt !== undefined ? { scheduledAt: new Date(input.scheduledAt) } : {}),
+        });
+        return { success: true } as const;
+      }),
   }),
   // === Planning reminders (cron J-1) ===
   reminders: router({
@@ -1378,6 +1405,7 @@ export const appRouter = router({
               title: "Rappel de planification",
               message: `« ${s.youtubeTitle} » est programmé pour demain. Prépare ta vidéo et publie la miniature à temps !`,
               type: "system",
+              metadata: JSON.stringify({ thumbnailId: s.thumbnailId, scheduleId: s.id, kind: "planning-reminder" }),
             });
             await markScheduleReminded(s.id);
             fired.push({ scheduleId: s.id, userId: s.userId, title: s.youtubeTitle });

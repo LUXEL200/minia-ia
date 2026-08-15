@@ -22,6 +22,12 @@ export function ThemeProvider({
   switchable = false,
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
+    // Le paramètre URL ?theme=light|dark prime sur le localStorage (utile pour
+    // prévisualiser/forcer un thème) ; sinon le thème persisté ou le défaut.
+    if (typeof window !== "undefined") {
+      const forced = new URLSearchParams(window.location.search).get("theme");
+      if (forced === "light" || forced === "dark") return forced;
+    }
     if (switchable) {
       const stored = localStorage.getItem("theme");
       return (stored as Theme) || defaultTheme;

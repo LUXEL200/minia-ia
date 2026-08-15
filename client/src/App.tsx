@@ -101,7 +101,10 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark" switchable={true}>
+      <ThemeProvider
+        defaultTheme={(typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("theme") === "light" ? "light" : "dark")) as "light" | "dark"}
+        switchable={true}
+      >
         <TooltipProvider>
           <Toaster />
           <Router />
