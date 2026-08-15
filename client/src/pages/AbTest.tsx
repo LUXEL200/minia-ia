@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
+import { TestContributionsPanel } from "@/components/TestContributionsPanel";
 import {
   Plus, Trash2, TrendingUp, Award, X, Zap, Share2,
 } from "lucide-react";
@@ -25,12 +26,33 @@ export default function AbTest() {
   const createTest = trpc.abTests.create.useMutation();
   const updateStats = trpc.abTests.updateStats.useMutation();
   const deleteTest = trpc.abTests.delete.useMutation();
+
+  // v8 : stats collaboratives — les membres d'équipe ajoutent leurs vues/clics sans toucher aux variantes
+  const { data: contributionsByTest, refetch: refetchContributions } = trpc.abTests.contributions.list.useQuery(
+    { abTestId: -1 },
+    { enabled: false }
+  );
+  const addContribution = trpc.abTests.contributions.add.useMutation({
+    onSuccess: () => { utils.abTests.getAggregated.invalidate(); utils.abTests.contributions.list.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const deleteContribution = trpc.abTests.contributions.delete.useMutation({
+    onSuccess: () => { utils.abTests.getAggregated.invalidate(); utils.abTests.contributions.list.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
   const shareTest = trpc.abTests.share.useMutation({
     onError: (err) => toast.error(err.message),
   });
   const utils = trpc.useUtils();
 
   const [shareMenuId, setShareMenuId] = useState<number | null>(null);
+
+  // v8 : state contribution par test
+  const [contribOpenId, setContribOpenId] = useState<number | null>(null);
+  const [contribVariant, setContribVariant] = useState<"a" | "b">("a");
+  const [contribViews, setContribViews] = useState(0);
+  const [contribClicks, setContribClicks] = useState(0);
+  const [contribChannel, setContribChannel] = useState("");
 
   const handleShare = async (test: any, enabled: boolean) => {
     const res = await shareTest.mutateAsync({ id: test.id, enabled });
@@ -257,6 +279,44 @@ export default function AbTest() {
                       <Zap size={12} /> La différence de CTR est statistiquement significative (test z à deux proportions, α = 0,05) — Minia IA a déclaré automatiquement la gagnante.
                     </div>
                   )}
+
+                  {/* v8 : Contributions d'équipe + CTR agrégé */}
+                  <TestContributionsPanel
+                    testId={test.id}
+                    open={contribOpenId === test.id}
+                    onToggle={() => setContribOpenId(contribOpenId === test.id ? null : test.id)}
+                    variant={contribVariant}
+                    setVariant={setContribVariant}
+                    views={contribViews}
+                    setViews={setContribViews}
+                    clicks={contribClicks}
+                    setClicks={setContribClicks}
+                    channel={contribChannel}
+                    setChannel={setContribChannel}
+                    onAdd={() => {
+                      if (contribViews <= 0 && contribClicks <= 0) { toast.error("Entre au moins des vues ou des clics"); return; }
+                      if (contribClicks > contribViews) { toast.error("Les clics ne peuvent pas dépasser les vues"); return; }
+                      addContribution.mutate(
+                        {
+                          abTestId: test.id,
+                          variant: contribVariant,
+                          views: Math.max(0, contribViews),
+                          clicks: Math.max(0, contribClicks),
+                          channelName: contribChannel.trim() || undefined,
+                        },
+                        {
+                          onSuccess: () => {
+                            toast.success("Contribution ajoutée ! Le CTR agrégé a été mis à jour.");
+                            setContribViews(0);
+                            setContribClicks(0);
+                            setContribChannel("");
+                          },
+                        }
+                      );
+                    }}
+                    adding={addContribution.isPending}
+                    onDelete={(contributionId) => deleteContribution.mutate({ contributionId })}
+                  />
                 </div>
               );
             })}

@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lte, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 
@@ -940,4 +940,127 @@ export async function cancelSentInvitation(id: number, orgOwner: number) {
   if (!org || invite.orgId !== org.id) return false;
   await db.update(teamInvitations).set({ status: "declined" }).where(eq(teamInvitations.id, id));
   return true;
+}
+
+// === A/B test collaborative contributions ===
+
+export async function addAbTestContribution(data: { abTestId: number; userId: number; orgId?: number; variant: "a" | "b"; views: number; clicks: number; channelName?: string; note?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const [result] = await db.insert(abTestContributions).values({
+    abTestId: data.abTestId,
+    userId: data.userId,
+    orgId: data.orgId ?? null,
+    variant: data.variant,
+    views: Math.max(0, data.views),
+    clicks: Math.max(0, data.clicks),
+    channelName: data.channelName ?? null,
+    note: data.note ?? null,
+  });
+  return { id: result.insertId };
+}
+
+export async function getAbTestContributions(abTestId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(abTestContributions)
+    .where(eq(abTestContributions.abTestId, abTestId))
+    .orderBy(desc(abTestContributions.createdAt));
+  const enriched = [];
+  for (const c of rows) {
+    const u = (await db.select().from(users).where(eq(users.id, c.userId)).limit(1))[0];
+    enriched.push({ ...c, contributorName: u?.name || u?.email || "Contributeur", contributorEmail: u?.email });
+  }
+  return enriched;
+}
+
+export async function deleteAbTestContribution(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(abTestContributions).where(and(eq(abTestContributions.id, id), eq(abTestContributions.userId, userId)));
+  return true;
+}
+
+// === Global search (multi-page) ===
+
+export async function globalSearch(userId: number, query: string, params: { limit?: number } = {}) {
+  const db = await getDb();
+  if (!db) return { thumbnails: [], favorites: [], gallery: [], trash: [] };
+  const q = `%${query.trim()}%`;
+  const limit = params.limit ?? 25;
+
+  // User history: prompt + youtubeTitle
+  const thumbs = await db.select().from(thumbnails)
+    .where(and(eq(thumbnails.userId, userId), or(like(thumbnails.prompt, q), like(thumbnails.youtubeTitle, q)) ?? like(thumbnails.prompt, q)))
+    .orderBy(desc(thumbnails.createdAt))
+    .limit(limit);
+
+  // Favorites (filter client-side on prompt / youtubeTitle)
+  const favs = await db.select().from(favorites).where(eq(favorites.userId, userId)).limit(200);
+  const matchText = (text: string | null) =>
+    text ? text.toLowerCase().includes(query.trim().toLowerCase()) : false;
+  const favThumbs = [];
+  for (const f of favs) {
+    const t = await getThumbnailById(f.thumbnailId);
+    if (t && (matchText(t.prompt) || matchText(t.youtubeTitle))) {
+      favThumbs.push({ ...t, favoritedAt: f.createdAt });
+    }
+  }
+
+  // Public gallery
+  const gallery = await db.select().from(thumbnails)
+    .where(and(eq(thumbnails.status, "completed"), or(like(thumbnails.prompt, q), like(thumbnails.youtubeTitle, q)) ?? like(thumbnails.prompt, q)))
+    .orderBy(desc(thumbnails.createdAt))
+    .limit(limit);
+
+  // Trash
+  const trash = await db.select().from(trashedThumbnails)
+    .where(and(eq(trashedThumbnails.userId, userId), like(trashedThumbnails.prompt, q)))
+    .limit(limit);
+
+  return { thumbnails: thumbs, favorites: favThumbs, gallery, trash };
+}
+
+// === Published schedules (planning reminders) ===
+
+export async function createPublishedSchedule(data: { userId: number; thumbnailId: number; youtubeTitle: string; scheduledAt: Date }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const [result] = await db.insert(publishedSchedules).values({
+    userId: data.userId,
+    thumbnailId: data.thumbnailId,
+    youtubeTitle: data.youtubeTitle,
+    scheduledAt: data.scheduledAt,
+  });
+  return { id: result.insertId };
+}
+
+export async function deletePublishedSchedule(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(publishedSchedules).where(and(eq(publishedSchedules.id, id), eq(publishedSchedules.userId, userId)));
+  return true;
+}
+
+export async function getUpcomingSchedules(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(publishedSchedules)
+    .where(and(eq(publishedSchedules.userId, userId), gte(publishedSchedules.scheduledAt, new Date())))
+    .orderBy(publishedSchedules.scheduledAt)
+    .limit(10);
+  // Attach thumbnail image
+  const enriched = [];
+  for (const s of rows) {
+    const t = await getThumbnailById(s.thumbnailId);
+    if (t) enriched.push({ ...s, imageUrl: t.imageUrl, style: t.style });
+  }
+  return enriched;
+}
+
+export async function getThumbnailByIdWithCheck(id: number, userId?: number) {
+  const t = await getThumbnailById(id);
+  if (!t) return undefined;
+  if (userId !== undefined && t.userId !== userId) return undefined;
+  return t;
 }

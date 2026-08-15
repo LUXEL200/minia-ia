@@ -7,10 +7,11 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
 import {
   LayoutDashboard, Image, UserRound, Grid3X3, Plus, XCircle,
-  ChevronRight, Zap,   Sun, Moon, Key, TrendingUp, Settings, Bell, LogOut, Users, ImagePlus,
-  Type, Shield, CreditCard, Eye, RectangleHorizontal, Star, Trash,
+  ChevronRight, Zap, Sun, Moon, Key, TrendingUp, Settings, Bell, LogOut, Users, ImagePlus,
+  Type, Shield, CreditCard, Eye, RectangleHorizontal, Star, Trash, Search,
   Building2, Mail,
 } from "lucide-react";
+import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 
 /**
  * AppSidebar — menu hamburger complet (tous les sous-menus de gauche) réutilisable
@@ -45,6 +46,7 @@ export function AppSidebar({
   const { theme, toggleTheme } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAccountsDialog, setShowAccountsDialog] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   const { data: credits } = trpc.thumbnail.credits.useQuery(undefined, {
     enabled: false, // never auto-fetch in the shared sidebar: pages fetch it themselves when authenticated
@@ -157,28 +159,14 @@ export function AppSidebar({
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <LayoutDashboard className="w-4 h-4" /> Tableau de bord
             </Link>
-            <a
-              href="/dashboard#miniatures"
-              onClick={() => {
-                onClose();
-                navigate("/dashboard");
-                setTimeout(() => window.location.hash = "miniatures", 150);
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-            >
+            <Link href="/miniatures" onClick={onClose}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <Image className="w-4 h-4" /> Miniatures
-            </a>
-            <a
-              href="/dashboard#equipe"
-              onClick={() => {
-                onClose();
-                navigate("/dashboard");
-                setTimeout(() => window.location.hash = "equipe", 150);
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-            >
+            </Link>
+            <Link href="/personnes" onClick={onClose}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <Users className="w-4 h-4" /> Personnes
-            </a>
+            </Link>
             <Link href="/templates" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <Grid3X3 className="w-4 h-4" /> Modèles
@@ -218,6 +206,13 @@ export function AppSidebar({
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <Trash className="w-4 h-4" /> Poubelle
             </Link>
+            <button
+              type="button"
+              onClick={() => setShowSearch(true)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+            >
+              <Search className="w-4 h-4" /> Recherche globale <span className="ml-auto text-[9px] text-zinc-600 border border-white/10 rounded px-1">⌘K</span>
+            </button>
           </nav>
         </div>
 
@@ -235,6 +230,8 @@ export function AppSidebar({
             </Link>
           </nav>
         </div>
+
+        <GlobalSearchDialog open={showSearch} onClose={() => setShowSearch(false)} />
 
         {/* Upgrade CTA */}
         <div className="mt-auto px-4 pt-4">

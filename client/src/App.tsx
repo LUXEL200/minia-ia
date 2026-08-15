@@ -8,6 +8,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 // Pages
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import Miniatures from "./pages/Miniatures";
+import Personnes from "./pages/Personnes";
 import Gallery from "./pages/Gallery";
 import Features from "./pages/Features";
 import Pricing from "./pages/Pricing";
@@ -70,6 +72,8 @@ function Router() {
       <Route path={"/cgv"} component={Cgv} />
       {/* Auth */}
       <Route path={"/dashboard"} component={Dashboard} />
+      <Route path={"/miniatures"} component={Miniatures} />
+      <Route path={"/personnes"} component={Personnes} />
       <Route path={"/gallery"} component={Gallery} />
       <Route path={"/avatars"} component={Avatars} />
       <Route path={"/endcards"} component={EndCards} />

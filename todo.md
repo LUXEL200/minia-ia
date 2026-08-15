@@ -156,3 +156,15 @@
 - [x] Frontend : page /invitations (invitations reçues / envoyées + formulaire Inviter par e-mail)
 - [x] Frontend : page Clés API (bouton créer plein rouge, tableau Nom/Créé/Expire/Actes, état vide fidèle Youthumb)
 - [x] Tests vitest (20/20) + vérifications responsive (collision header mobile corrigée via hidden sm:flex)
+
+## Vague v8 (demande utilisateur — 15/08)
+
+- [x] Backend : stats collaboratives A/B — table abTestContributions (membre/organisation, vues, clics, note) sans modifier les variantes ; agrégation côté serveur
+- [x] Backend : recherche globale multi-pages (historique, favoris, galerie publique, poubelle) — procédure tRPC search.global
+- [x] Frontend : interface « Miniatures » distincte du Dashboard (page /miniatures dédiée : grille complète, filtres, stats de sa bibliothèque)
+- [x] Frontend : interface « Personnes » distincte (page /personnes dédiée : membres, invitations reçues/envoyées, rôle, statuts)
+- [x] Frontend : Dashboard reste le hub central (stats, récentes, modèles, planifiées) — liens distincts Tableau de bord / Miniatures / Personnes dans la sidebar
+- [x] Frontend : notifications de planification sur le Dashboard — panneau rappels avec compte à rebours jusqu'à la publication (badge countdown)
+- [x] Frontend : panel « Stats collaboratives » dans la page A/B Test (membres ajoutent vues/clics, agrégat affiché)
+- [x] Frontend : champ de recherche globale accessible depuis le menu hamburger (dialog recherche multi-pages)
+- [x] Tests vitest (36/36) + tsc + vérifications responsive + checkpoint

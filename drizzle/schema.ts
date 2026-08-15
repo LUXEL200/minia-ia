@@ -354,3 +354,45 @@ export const abTests = mysqlTable("abTests", {
 
 export type AbTest = typeof abTests.$inferSelect;
 export type InsertAbTest = typeof abTests.$inferInsert;
+
+/**
+ * A/B test collaborative contributions — team members add their own
+ * YouTube views/clicks without modifying the original variant stats
+ */
+export const abTestContributions = mysqlTable("abTestContributions", {
+  id: int("id").autoincrement().primaryKey(),
+  abTestId: int("abTestId").notNull(),
+  userId: int("userId").notNull(),
+  orgId: int("orgId"),
+  /** Contributor reports which variant these stats belong to */
+  variant: mysqlEnum("variant", ["a", "b"]).notNull(),
+  views: int("views").default(0).notNull(),
+  clicks: int("clicks").default(0).notNull(),
+  channelName: varchar("channelName", { length: 255 }),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  abTestIdx: index("contrib_abtest_idx").on(table.abTestId),
+  userIdx: index("contrib_user_idx").on(table.userId),
+}));
+
+export type AbTestContribution = typeof abTestContributions.$inferSelect;
+export type InsertAbTestContribution = typeof abTestContributions.$inferInsert;
+
+/**
+ * Planned schedules — publication reminders with countdown
+ */
+export const publishedSchedules = mysqlTable("publishedSchedules", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  thumbnailId: int("thumbnailId").notNull(),
+  youtubeTitle: text("youtubeTitle").notNull(),
+  scheduledAt: timestamp("scheduledAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("sched_user_idx").on(table.userId),
+  thumbIdx: index("sched_thumb_idx").on(table.thumbnailId),
+}));
+
+export type PublishedSchedule = typeof publishedSchedules.$inferSelect;
+export type InsertPublishedSchedule = typeof publishedSchedules.$inferInsert;

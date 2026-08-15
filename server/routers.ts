@@ -117,6 +117,14 @@ import {
   getReceivedInvitations,
   acceptInvitation,
   declineInvitation,
+  addAbTestContribution,
+  getAbTestContributions,
+  deleteAbTestContribution,
+  globalSearch,
+  createPublishedSchedule,
+  deletePublishedSchedule,
+  getUpcomingSchedules,
+  getThumbnailByIdWithCheck,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
 
@@ -430,6 +438,67 @@ export const abTestsRouter = router({
         variantB: { imageUrl: variantB.imageUrl, prompt: variantB.prompt, style: variantB.style },
         ctrA: Math.round(ctrA * 10) / 10,
         ctrB: Math.round(ctrB * 10) / 10,
+      };
+    }),
+
+  // === Collaborative stats: team members add their own views/clicks ===
+  contributions: router({
+    list: protectedProcedure
+      .input(z.object({ abTestId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const test = await getAbTestById(input.abTestId);
+        if (!test || test.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test A/B introuvable" });
+        }
+        return getAbTestContributions(input.abTestId);
+      }),
+
+    add: protectedProcedure
+      .input(z.object({
+        abTestId: z.number(),
+        variant: z.enum(["a", "b"]),
+        views: z.number().min(0).max(10_000_000),
+        clicks: z.number().min(0).max(10_000_000),
+        channelName: z.string().max(255).optional(),
+        note: z.string().max(1000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const test = await getAbTestById(input.abTestId);
+        if (!test || test.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test A/B introuvable" });
+        }
+        return addAbTestContribution({ ...input, userId: ctx.user.id });
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ contributionId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteAbTestContribution(input.contributionId, ctx.user.id);
+        return { success: true } as const;
+      }),
+  }),
+
+  // Aggregated totals (base stats + all contributions)
+  getAggregated: protectedProcedure
+    .input(z.object({ abTestId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const test = await getAbTestById(input.abTestId);
+      if (!test || test.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Test A/B introuvable" });
+      }
+      const contributions = await getAbTestContributions(input.abTestId);
+      const contribA = contributions.filter(c => c.variant === "a");
+      const contribB = contributions.filter(c => c.variant === "b");
+      const viewsA = test.viewsA + contribA.reduce((s, c) => s + c.views, 0);
+      const clicksA = test.clicksA + contribA.reduce((s, c) => s + c.clicks, 0);
+      const viewsB = test.viewsB + contribB.reduce((s, c) => s + c.views, 0);
+      const clicksB = test.clicksB + contribB.reduce((s, c) => s + c.clicks, 0);
+      const ctrA = viewsA > 0 ? Math.round((clicksA / viewsA) * 1000) / 10 : 0;
+      const ctrB = viewsB > 0 ? Math.round((clicksB / viewsB) * 1000) / 10 : 0;
+      return {
+        viewsA, clicksA, viewsB, clicksB,
+        ctrA, ctrB,
+        contributionCount: contributions.length,
       };
     }),
 });
@@ -1242,6 +1311,46 @@ export const appRouter = router({
 
   // === Notifications ===
   notifications: notificationsRouter,
+
+  // === Global search (multi-page) ===
+  search: router({
+    global: protectedProcedure
+      .input(z.object({ query: z.string().min(1).max(200) }))
+      .query(async ({ ctx, input }) => {
+        return globalSearch(ctx.user.id, input.query);
+      }),
+  }),
+
+  // === Planning reminders (countdown to publication) ===
+  schedules: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getUpcomingSchedules(ctx.user.id);
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        thumbnailId: z.number(),
+        youtubeTitle: z.string().min(1).max(200),
+        scheduledAt: z.string().datetime(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const t = await getThumbnailByIdWithCheck(input.thumbnailId, ctx.user.id);
+        if (!t) throw new TRPCError({ code: "NOT_FOUND", message: "Miniature introuvable" });
+        return createPublishedSchedule({
+          userId: ctx.user.id,
+          thumbnailId: input.thumbnailId,
+          youtubeTitle: input.youtubeTitle,
+          scheduledAt: new Date(input.scheduledAt),
+        });
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await deletePublishedSchedule(input.id, ctx.user.id);
+        return { success: true } as const;
+      }),
+  }),
 
   // === Organization ===
   org: orgRouter,
