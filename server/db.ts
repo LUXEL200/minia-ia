@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, lte, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, InsertTemplateCustomization, InsertImageVersion, InsertAbTest } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -722,4 +722,68 @@ export async function deleteAbTest(id: number, userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
   await db.delete(abTests).where(and(eq(abTests.id, id), eq(abTests.userId, userId)));
+}
+
+export async function getAbTestById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(abTests).where(eq(abTests.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getAbTestByShareToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(abTests).where(eq(abTests.shareToken, token)).limit(1);
+  return result[0];
+}
+
+export async function setAbTestShareToken(id: number, userId: number, token: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(abTests).set({ shareToken: token }).where(and(eq(abTests.id, id), eq(abTests.userId, userId)));
+}
+
+// === YouTube scheduling ===
+
+export async function getThumbnailsByUserIdFiltered(params: {
+  userId: number;
+  query?: string;
+  style?: string;
+  youtubeStatus?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [eq(thumbnails.userId, params.userId)];
+  if (params.query && params.query.trim().length > 0) {
+    const q = `%${params.query.trim()}%`;
+    conditions.push(
+      or(like(thumbnails.prompt, q), like(thumbnails.youtubeTitle, q)) ?? like(thumbnails.prompt, q),
+    );
+  }
+  if (params.style && params.style !== "all") {
+    conditions.push(eq(thumbnails.style, params.style));
+  }
+  if (params.youtubeStatus && params.youtubeStatus !== "all") {
+    conditions.push(eq(thumbnails.youtubeStatus, params.youtubeStatus as "unplanned" | "planned"));
+  }
+  if (params.dateFrom) conditions.push(gte(thumbnails.createdAt, params.dateFrom));
+  if (params.dateTo) conditions.push(lte(thumbnails.createdAt, params.dateTo));
+
+  return db.select().from(thumbnails)
+    .where(and(...conditions))
+    .orderBy(desc(thumbnails.createdAt))
+    .limit(params.limit ?? 100)
+    .offset(params.offset ?? 0);
+}
+
+export async function setThumbnailYoutube(id: number, userId: number, data: { youtubeTitle?: string | null; youtubeStatus?: "unplanned" | "planned" }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(thumbnails).set(data).where(and(eq(thumbnails.id, id), eq(thumbnails.userId, userId)));
 }

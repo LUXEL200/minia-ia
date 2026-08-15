@@ -38,6 +38,7 @@ import ThumbnailPreview from "./pages/ThumbnailPreview";
 import Editor from "./pages/Editor";
 import TemplateEditor from "./pages/TemplateEditor";
 import AbTest from "./pages/AbTest";
+import ShareAbTest from "./pages/ShareAbTest";
 import Admin from "./pages/Admin";
 import FloatingMenu from "./components/FloatingMenu";
 
@@ -81,6 +82,7 @@ function Router() {
       <Route path={"/editor"} component={Editor} />
       <Route path={"/template-editor"} component={TemplateEditor} />
       <Route path={"/ab-test"} component={AbTest} />
+      <Route path={"/share-ab/:token"} component={ShareAbTest} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

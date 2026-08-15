@@ -102,6 +102,11 @@ import {
   createAbTest,
   updateAbTest,
   deleteAbTest,
+  getAbTestById,
+  getAbTestByShareToken,
+  setAbTestShareToken,
+  getThumbnailsByUserIdFiltered,
+  setThumbnailYoutube,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
 
@@ -385,6 +390,38 @@ export const abTestsRouter = router({
       await deleteAbTest(input.id, ctx.user.id);
       return { success: true } as const;
     }),
+
+  share: protectedProcedure
+    .input(z.object({ id: z.number(), enabled: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const test = await getAbTestById(input.id);
+      if (!test || test.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Test A/B introuvable" });
+      }
+      const token = input.enabled ? crypto.randomUUID().replace(/-/g, "").slice(0, 32) : null;
+      await setAbTestShareToken(input.id, ctx.user.id, token);
+      return { token } as const;
+    }),
+
+  getByShareToken: publicProcedure
+    .input(z.object({ token: z.string().min(16).max(64) }))
+    .query(async ({ input }) => {
+      const test = await getAbTestByShareToken(input.token);
+      if (!test) throw new TRPCError({ code: "NOT_FOUND", message: "Lien de partage invalide ou expiré" });
+      const variantA = await getThumbnailById(test.variantAId);
+      const variantB = await getThumbnailById(test.variantBId);
+      if (!variantA || !variantB) throw new TRPCError({ code: "NOT_FOUND", message: "Variantes introuvables" });
+      const ctrA = test.viewsA > 0 ? (test.clicksA / test.viewsA) * 100 : 0;
+      const ctrB = test.viewsB > 0 ? (test.clicksB / test.viewsB) * 100 : 0;
+      return {
+        ...test,
+        userId: undefined,
+        variantA: { imageUrl: variantA.imageUrl, prompt: variantA.prompt, style: variantA.style },
+        variantB: { imageUrl: variantB.imageUrl, prompt: variantB.prompt, style: variantB.style },
+        ctrA: Math.round(ctrA * 10) / 10,
+        ctrB: Math.round(ctrB * 10) / 10,
+      };
+    }),
 });
 
 export const avatarsRouter = router({
@@ -652,6 +689,54 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return getThumbnailsByUserId(ctx.user.id);
     }),
+
+    /** List with search & filters (keywords, style, period, youtube status) */
+    listFiltered: protectedProcedure
+      .input(z.object({
+        query: z.string().max(200).optional(),
+        style: z.string().max(64).optional(),
+        youtubeStatus: z.string().max(32).optional(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        const p = input ?? {};
+        const dateFrom = p.dateFrom ? new Date(p.dateFrom) : undefined;
+        const dateTo = p.dateTo ? new Date(p.dateTo) : undefined;
+        return getThumbnailsByUserIdFiltered({
+          userId: ctx.user.id,
+          query: p.query,
+          style: p.style,
+          youtubeStatus: p.youtubeStatus,
+          dateFrom,
+          dateTo,
+        });
+      }),
+
+    /** Plan a thumbnail for YouTube Studio (title + mark as planned) */
+    planYoutube: protectedProcedure
+      .input(z.object({
+        thumbnailId: z.number(),
+        title: z.string().min(1).max(200),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await setThumbnailYoutube(input.thumbnailId, ctx.user.id, {
+          youtubeTitle: input.title,
+          youtubeStatus: "planned",
+        });
+        return { success: true } as const;
+      }),
+
+    /** Remove the YouTube plan for a thumbnail */
+    unplanYoutube: protectedProcedure
+      .input(z.object({ thumbnailId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await setThumbnailYoutube(input.thumbnailId, ctx.user.id, {
+          youtubeTitle: null,
+          youtubeStatus: "unplanned",
+        });
+        return { success: true } as const;
+      }),
 
     /** Save an editor/custom image (base64) as a new thumbnail in the user's gallery */
     saveFromBase64: protectedProcedure

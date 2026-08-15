@@ -5,7 +5,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import {
-  Plus, Trash2, TrendingUp, Award, X, Zap,
+  Plus, Trash2, TrendingUp, Award, X, Zap, Share2,
 } from "lucide-react";
 
 export default function AbTest() {
@@ -25,7 +25,29 @@ export default function AbTest() {
   const createTest = trpc.abTests.create.useMutation();
   const updateStats = trpc.abTests.updateStats.useMutation();
   const deleteTest = trpc.abTests.delete.useMutation();
+  const shareTest = trpc.abTests.share.useMutation({
+    onError: (err) => toast.error(err.message),
+  });
   const utils = trpc.useUtils();
+
+  const [shareMenuId, setShareMenuId] = useState<number | null>(null);
+
+  const handleShare = async (test: any, enabled: boolean) => {
+    const res = await shareTest.mutateAsync({ id: test.id, enabled });
+    if (enabled && res.token) {
+      const link = `${window.location.origin}/share-ab/${res.token}`;
+      try {
+        await navigator.clipboard.writeText(link);
+        toast.success("Lien de partage copié !");
+      } catch {
+        toast.success(`Lien : ${link}`);
+      }
+    } else {
+      toast.success("Partage désactivé");
+    }
+    setShareMenuId(null);
+    utils.abTests.list.invalidate();
+  };
 
   const handleCreate = () => {
     if (!title.trim()) { toast.error("Titre requis"); return; }
@@ -127,6 +149,33 @@ export default function AbTest() {
                       <button onClick={() => setOpenTestId(openTestId === test.id ? null : test.id)} className="text-xs text-zinc-400 hover:text-white">
                         Détails
                       </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => setShareMenuId(shareMenuId === test.id ? null : test.id)}
+                          className="text-zinc-500 hover:text-cyan-400"
+                          title="Partager (lien public lecture seule)"
+                        >
+                          <Share2 size={14} />
+                        </button>
+                        {shareMenuId === test.id && (
+                          <div className="absolute right-0 top-6 z-20 w-48 bg-zinc-950 border border-white/10 rounded-lg shadow-xl overflow-hidden">
+                            <button
+                              onClick={() => handleShare(test, true)}
+                              className="w-full px-3 py-2 text-left text-xs text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
+                            >
+                              {test.shareToken ? "Copier le lien de partage" : "Générer un lien de partage"}
+                            </button>
+                            {test.shareToken && (
+                              <button
+                                onClick={() => handleShare(test, false)}
+                                className="w-full px-3 py-2 text-left text-xs text-red-400 hover:bg-white/5 transition-colors border-t border-white/5"
+                              >
+                                Désactiver le lien
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                       <button
                         onClick={() => deleteTest.mutate({ id: test.id }, { onSuccess: () => utils.abTests.list.invalidate() })}
                         className="text-zinc-500 hover:text-red-400"

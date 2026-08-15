@@ -12,7 +12,8 @@ import {
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
   RectangleHorizontal, Star, Trash, Zap, Sun, Key, TrendingUp,
-  Settings, Bell, LogOut, Type, Shield, Upload, Share2,
+  Settings, Bell, LogOut, Type, Shield, Upload, Share2, Copy,
+  Search, CalendarRange, Youtube, CalendarClock, X,
 } from "lucide-react";
 
 const STYLES = [
@@ -25,6 +26,23 @@ const STYLES = [
 ];
 
 const STYLE_LABELS: Record<string, string> = Object.fromEntries(STYLES.map(s => [s.id, s.label]));
+
+function getDateFromPeriod(period: string): string | undefined {
+  const now = new Date();
+  if (period === "today") {
+    now.setHours(0, 0, 0, 0);
+    return now.toISOString();
+  }
+  if (period === "7days") {
+    now.setDate(now.getDate() - 7);
+    return now.toISOString();
+  }
+  if (period === "30days") {
+    now.setDate(now.getDate() - 30);
+    return now.toISOString();
+  }
+  return undefined;
+}
 
 export default function Dashboard() {
   const { user, loading: authLoading, isAuthenticated, logout } = useAuth();
@@ -52,6 +70,32 @@ export default function Dashboard() {
 
   // Auth gate
   const isAuthed = !authLoading && isAuthenticated && !!user;
+
+  // v5 : search & filters for all-generations view
+  const [filterQuery, setFilterQuery] = useState("");
+  const [filterStyle, setFilterStyle] = useState("all");
+  const [filterDate, setFilterDate] = useState("all");
+  const [filterYoutube, setFilterYoutube] = useState("all");
+  const { data: filteredThumbnails } = trpc.thumbnail.listFiltered.useQuery(
+    {
+      query: filterQuery || undefined,
+      style: filterStyle === "all" ? undefined : filterStyle,
+      youtubeStatus: filterYoutube === "all" ? undefined : filterYoutube,
+      ...(filterDate !== "all" ? { dateFrom: getDateFromPeriod(filterDate) } : {}),
+    },
+    { enabled: isAuthed && activeView === "all-generations" },
+  );
+
+  // v5 : YouTube planning dialog state
+  const [planTarget, setPlanTarget] = useState<{ id: number; imageUrl: string; prompt: string } | null>(null);
+  const [planTitle, setPlanTitle] = useState("");
+  const planMutation = trpc.thumbnail.planYoutube.useMutation({
+    onSuccess: () => { refetchThumbs(); toast.success("Miniature planifiée ! Ouvre YouTube Studio pour l'importer."); },
+    onError: (err) => toast.error(err.message || "Erreur"),
+  });
+  const unplanMutation = trpc.thumbnail.unplanYoutube.useMutation({
+    onSuccess: () => { refetchThumbs(); toast.success("Planification annulée"); },
+  });
 
   // tRPC queries
   const { data: thumbnails, isLoading: loadingThumbs, refetch: refetchThumbs } = trpc.thumbnail.list.useQuery(undefined, { enabled: isAuthed });
@@ -188,6 +232,34 @@ export default function Dashboard() {
   };
 
   const handleCreateTask = (thumbnailId: number) => createTaskMutation.mutate({ thumbnailId, status: "pending" });
+
+  const handleOpenPlan = (thumb: { id: number; imageUrl: string; prompt: string; youtubeTitle?: string | null }) => {
+    setPlanTarget({ id: thumb.id, imageUrl: thumb.imageUrl, prompt: thumb.prompt });
+    setPlanTitle(thumb.youtubeTitle?.trim() ? thumb.youtubeTitle || "" : "");
+  };
+
+  const handlePlanConfirm = async () => {
+    if (!planTarget || !planTitle.trim()) {
+      toast.error("Entre un titre pour ta vidéo YouTube");
+      return;
+    }
+    await planMutation.mutateAsync({ thumbnailId: planTarget.id, title: planTitle.trim() });
+  };
+
+  const copyShare = async (thumbnailId: number, imageUrl: string) => {
+    const url = `${window.location.origin}${imageUrl}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Lien de l'image copié !");
+    } catch {
+      // Clipboard unavailable — noop
+    }
+  };
+
+  const handlePlanCancel = () => {
+    setPlanTarget(null);
+    setPlanTitle("");
+  };
 
   const handleShare = async (thumbnailId: number, imageUrl: string, prompt: string) => {
     const shareUrl = `${window.location.origin}/gallery`;
@@ -849,12 +921,13 @@ export default function Dashboard() {
   );
 
   // ===== All Generations View =====
+  const displayThumbnails = (filteredThumbnails ?? []).filter(t => t.status === "completed");
   const renderAllGenerationsView = () => (
     <div className="max-w-2xl mx-auto px-4 pb-8">
       <div className="pt-6 pb-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-white">Toutes les générations</h1>
-          <p className="text-xs text-zinc-500 mt-1">{completedThumbnails.length} miniature(s) créée(s)</p>
+          <p className="text-xs text-zinc-500 mt-1">{displayThumbnails.length} miniature(s) affichée(s)</p>
         </div>
         <Button
           onClick={() => setActiveView("generate")}
@@ -862,6 +935,41 @@ export default function Dashboard() {
         >
           <Plus className="w-3.5 h-3.5 mr-1" /> Nouvelle
         </Button>
+      </div>
+
+      {/* v5 : search & filters */}
+      <div className="mb-4 space-y-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <input
+            value={filterQuery}
+            onChange={e => setFilterQuery(e.target.value)}
+            placeholder="Rechercher par description ou titre YouTube…"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[#181818] border border-white/5 text-white placeholder:text-zinc-600 text-sm focus:border-white/10 outline-none transition-all"
+          />
+          {filterQuery && (
+            <button onClick={() => setFilterQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <select value={filterStyle} onChange={e => setFilterStyle(e.target.value)} className="px-3 py-2 rounded-lg bg-[#181818] border border-white/5 text-xs text-zinc-300 outline-none">
+            <option value="all">Tous les styles</option>
+            {STYLES.map(s => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}
+          </select>
+          <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="px-3 py-2 rounded-lg bg-[#181818] border border-white/5 text-xs text-zinc-300 outline-none">
+            <option value="all">Toutes les dates</option>
+            <option value="today">Aujourd'hui</option>
+            <option value="7days">7 derniers jours</option>
+            <option value="30days">30 derniers jours</option>
+          </select>
+          <select value={filterYoutube} onChange={e => setFilterYoutube(e.target.value)} className="px-3 py-2 rounded-lg bg-[#181818] border border-white/5 text-xs text-zinc-300 outline-none">
+            <option value="all">Tout statut</option>
+            <option value="planned">Planifié YouTube</option>
+            <option value="unplanned">Non planifié</option>
+          </select>
+        </div>
       </div>
 
       {loadingThumbs ? (
@@ -878,11 +986,25 @@ export default function Dashboard() {
             Créer ta première miniature
           </button>
         </div>
+      ) : displayThumbnails.length === 0 ? (
+        <div className="text-center py-16">
+          <Search className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+          <p className="text-sm text-zinc-500">Aucun résultat pour ces filtres</p>
+          <button onClick={() => { setFilterQuery(""); setFilterStyle("all"); setFilterDate("all"); setFilterYoutube("all"); }} className="mt-3 text-xs text-zinc-300 hover:text-white underline">
+            Réinitialiser les filtres
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {completedThumbnails.map(thumb => (
+          {displayThumbnails.map(thumb => (
             <div key={thumb.id} className="relative aspect-video rounded-xl overflow-hidden bg-[#181818] group">
               <img src={thumb.imageUrl} alt={thumb.prompt} className="w-full h-full object-cover" />
+              {thumb.youtubeStatus === "planned" && (
+                <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-cyan-500/30">
+                  <CalendarClock className="w-3 h-3 text-cyan-400" />
+                  <span className="text-[10px] text-cyan-300 font-medium">Planifié</span>
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <p className="text-xs text-white/80 line-clamp-1">{thumb.prompt}</p>
@@ -893,6 +1015,9 @@ export default function Dashboard() {
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Télécharger">
                   <Download className="w-4 h-4 text-white" />
+                </button>
+                <button onClick={() => handleOpenPlan(thumb)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Planifier pour YouTube">
+                  <CalendarClock className={`w-4 h-4 ${thumb.youtubeStatus === "planned" ? "text-cyan-400" : "text-white"}`} />
                 </button>
                 <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
                   <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
@@ -963,6 +1088,89 @@ export default function Dashboard() {
 
       {/* Bottom spacing for floating nav */}
       <div className="h-24" />
+
+      {/* v5 : YouTube Planning Dialog */}
+      {planTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={handlePlanCancel}>
+          <div className="bg-[#181818] border border-white/5 rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <Youtube className="w-4 h-4 text-red-500" /> Planifier pour YouTube Studio
+              </h3>
+              <button onClick={handlePlanCancel} className="text-zinc-500 hover:text-white transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-[140px_1fr] gap-4 mb-4">
+              <img src={planTarget.imageUrl} alt={planTarget.prompt} className="w-full aspect-video object-cover rounded-lg border border-white/10" />
+              <div>
+                <p className="text-xs text-zinc-400 line-clamp-4">{planTarget.prompt}</p>
+                {displayThumbnails.find(t => t.id === planTarget.id)?.youtubeStatus === "planned" && (
+                  <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[10px] text-cyan-300">
+                    <CalendarClock className="w-3 h-3" /> Déjà planifiée
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-zinc-400 mb-1.5">Titre de la vidéo YouTube</label>
+                <input
+                  value={planTitle}
+                  onChange={e => setPlanTitle(e.target.value)}
+                  placeholder="Colle le titre de ta vidéo…"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#09090B] border border-white/5 text-white text-sm placeholder:text-zinc-600 focus:border-white/10 outline-none"
+                  maxLength={200}
+                  autoFocus
+                />
+              </div>
+              <p className="text-[10px] text-zinc-600">
+                Le titre et l'image PNG 1280×720 seront prêts à copier-coller dans YouTube Studio (Contenu → Importer).
+              </p>
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(planTitle.trim());
+                    toast.success("Titre copié !");
+                  } catch {
+                    // Clipboard unavailable — noop
+                  }
+                }}
+                disabled={!planTitle.trim()}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] text-zinc-300 transition-colors disabled:opacity-40"
+              >
+                <Copy className="w-3 h-3" /> Copier le titre de la vidéo
+              </button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handlePlanConfirm}
+                  disabled={!planTitle.trim() || planMutation.isPending}
+                  className="bg-white text-black hover:bg-white/90 rounded-xl flex-1 text-sm h-9"
+                >
+                  {planMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CalendarClock className="w-4 h-4 mr-1.5" />}
+                  Planifier
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => copyShare(planTarget.id, planTarget.imageUrl)}
+                  className="border-white/5 text-zinc-300 rounded-xl text-sm h-9 px-3"
+                >
+                  Copier l'image
+                </Button>
+                {displayThumbnails.find(t => t.id === planTarget.id)?.youtubeStatus === "planned" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => { unplanMutation.mutate({ thumbnailId: planTarget.id }); handlePlanCancel(); }}
+                    className="border-white/5 text-zinc-300 hover:text-red-400 rounded-xl text-sm h-9 px-3"
+                  >
+                    Annuler le plan
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Invite Modal */}
       {showInviteModal && (

@@ -193,3 +193,46 @@ Reste frontend :
 - NOTE : l'image de la galerie charge bien (picsum pas utilisé en gallery). Le paramètre image avec /manus-storage/ URL fonctionne déjà (validé v3). Le test picsum est juste un artefact de test — pas un bug à corriger.
 - Vérifié navigateur (15/08 09:33) : image /manus-storage s'affiche bien en fond du canevas, dialog "Aperçu smartphone" s'ouvre avec la miniature à l'échelle. OK.
 - Reste : checkpoint final + message de livraison utilisateur.
+
+## Vague v5 (15/08, en cours)
+Demande utilisateur : (1) bouton "Planifier" (titre YouTube + PNG prêt à copier-coller), (2) historique avec recherche/filtres (date, style, mots-clés) dans la vue "Afficher tout" du Dashboard, (3) partage public de test A/B en lecture seule (lien collaborateur).
+
+### Schema (fait)
+- `thumbnails` : colonnes ajoutées `youtubeTitle` (text, nullable), `youtubeStatus` ENUM('unplanned','planned') NOT NULL DEFAULT 'unplanned' — appliquées SQL direct (mysql2 ne crée pas d'enum via ALTER auto).
+- `abTests` : `shareToken` varchar(64) — appliqué via drizzle-kit migration 0005 + SQL.
+- drizzle/schema.ts mis à jour (youtubeTitle/youtubeStatus dans thumbnails, shareToken dans abTests).
+
+### db.ts (FAIT)
+Helpers ajoutés en fin de db.ts : getThumbnailsByUserIdFiltered, setThumbnailYoutube, getAbTestById, getAbTestByShareToken, setAbTestShareToken.
+
+### routers.ts (FAIT)
+- thumbnail.listFiltered (protected, query/style/youtubeStatus/dateFrom/dateTo)
+- thumbnail.planYoutube + unplanYoutube (ownership OK)
+- abTests.share({id, enabled}) → token 32 chars ou null
+- abTests.getByShareToken({token}) publicProcedure, userId undefined, CTR arrondis
+- tsc 0 erreur après ces edits.
+
+### Dashboard.tsx (FAIT partiel)
+- getDateFromPeriod() helper module-level (today/7days/30days)
+- État filtres filterQuery/filterStyle/filterDate/filterYoutube + trpc.thumbnail.listFiltered.useQuery (après isAuthed, enabled par vue)
+- Barre recherche + 3 selects dans renderAllGenerationsView ; displayThumbnails = filtrés+completed ; empty state "Aucun résultat" + reset
+- Badge "Planifié" (CalendarClock cyan) top-left des cartes planned
+- Bouton CalendarClock overlay hover → handleOpenPlan(thumb)
+- handleOpenPlan/handlePlanConfirm/copyShare + planMutation/unplanMutation définis
+- Plan dialog : handleOpenPlan stocke planTarget, input pré-rempli planTitle, bouton Confirmer → planMutation. RESTE : Dialog JSX à ajouter dans render (modal "Planifier pour YouTube Studio" : image, input titre, boutons Annuler/Confirmer ; après confirmation → toast + dialog ferme). Afficher aussi bouton "Copier le lien image" + bouton "Annuler la planification" si déjà planned.
+- handleShare / unplanMutation OK. Attention : planTitle state à reset quand planTarget→null (faire handlePlanCancel qui set null + "")
+
+### Reste à faire (MISE À JOUR — tout le frontend est fait)
+1. [FAIT] Dashboard Dialog planifier + handlePlanCancel.
+2. [FAIT] ShareAbTest.tsx créé + route /share-ab/:token dans App.tsx.
+3. [FAIT] AbTest.tsx : bouton Partager (dropdown Générer/Copier/Désactiver lien) dans header carte.
+4. [FAIT] Vitest : nouveaux tests dans features.v2.test.ts (share token 32 chars, disable null, ownership, getByShareToken anonymisé, rejet token invalide, listFiltered, planYoutube, unplan, rejet unauth).
+5. Reste : pnpm test + screenshots + checkpoint + livraison.
+6. tsc OK après tous les edits frontend.
+
+### État tests v5 (15/08 09:45)
+- Tests 20/20 verts, tsc 0 erreur.
+- Share page vérifiée avec token seed réel (demotoken000000000000000000000000 → rendu parfait : 2 variantes, CTR 10%/2,5%, vues/clics). Token invalide → écran "Test introuvable".
+- À FAIRE avant checkpoint : DELETE FROM abTests WHERE shareToken='demotoken...' (seed démo) pour ne pas polluer la BDD prod.
+- Copy title button ajouté au Plan dialog (Dashboard).
+- Dernier checkpoint v4 : f3b2f8e8. Prochain checkpoint v5 à créer après cleanup + todo.md.

@@ -122,3 +122,15 @@
 - [x] Filigrane Minia IA sur les générations du plan gratuit — applyWatermark gravé à l'export PNG (badge « Filigrane » affiché pour le plan gratuit)
 - [x] Éditeur de templates : bouton "Ajouter à mes miniatures" (export direct vers le dashboard) — saveFromBase64 via storagePut
 - [x] A/B Test : clôture automatique — déclarer gagnant quand l'écart de CTR est statistiquement significatif — test z deux proportions (|z| ≥ 1,96), flag autoClosed en BDD + badge « Clôturé automatiquement » + message de significativité
+
+## Vague v5 (demande utilisateur — 15/08)
+
+- [x] Backend : recherche + filtres (date, style, mots-clés) sur l'historique des miniatures (thumbnail.listFiltered, tRPC + SQL)
+- [x] Backend : mutations de publication YouTube (thumbnail.planYoutube / unplanYoutube) — statut planned + youtubeTitle (colonne youtubeStatus ENUM)
+- [x] Backend : partage public de test A/B — abTests.share (token 32 chars) + abTests.getByShareToken (publicProcedure, lecture seule, anonymisé)
+- [x] Frontend : barre de recherche + filtres dans la vue « Afficher tout » du Dashboard (texte, style, période, état YouTube)
+- [x] Frontend : bouton « Planifier » sur les cartes (icône calendrier) — Dialog « Planifier pour YouTube Studio » avec titre, copier l'image, annuler le plan
+- [x] Frontend : badge « Planifié » (CalendarClock cyan) top-left des cartes planifiées
+- [x] Frontend : page /share-ab/:token lecture seule (variantes côte à côte, CTR, vues, clics, badges gagnant/clôture auto, copier les miniatures) + dropdown « Partager » dans la page AbTest (générer/copier/désactiver le lien)
+- [x] Tests vitest pour les nouvelles procédures (20/20 passent)
+- [x] Vérification screenshots (dashboard, /share-ab valide/invalide) + checkpoint final

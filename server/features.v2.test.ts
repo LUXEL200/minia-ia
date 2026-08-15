@@ -14,26 +14,18 @@ vi.mock("./db", () => ({
   deleteImageVersion: vi.fn(),
   getAbTestsByUserId: vi.fn(),
   getAbTestById: vi.fn(),
+  getAbTestByShareToken: vi.fn(),
+  setAbTestShareToken: vi.fn(),
   createAbTest: vi.fn(),
   updateAbTest: vi.fn(),
   deleteAbTest: vi.fn(),
   getThumbnailById: vi.fn(),
+  getThumbnailsByUserIdFiltered: vi.fn(),
+  setThumbnailYoutube: vi.fn(),
 }));
 
-import { getDb, createTemplateCustomization, createImageVersion, createAbTest, updateAbTest, getThumbnailById } from "./db";
-import {
-  customizationsRouter,
-  imageVersionsRouter,
-  abTestsRouter,
-} from "./routers";
-import { initTRPC } from "@trpc/server";
-
-const t = initTRPC.create();
-const appRouter = t.router({
-  customizations: customizationsRouter,
-  imageVersions: imageVersionsRouter,
-  abTests: abTestsRouter,
-});
+import { getDb, createTemplateCustomization, createImageVersion, createAbTest, updateAbTest, getAbTestById, getThumbnailById, getAbTestByShareToken, setAbTestShareToken, getThumbnailsByUserIdFiltered, setThumbnailYoutube } from "./db";
+import { appRouter } from "./routers";
 
 const limitChain = vi.fn();
 const whereChain = vi.fn();
@@ -206,5 +198,90 @@ describe("abTestsRouter", () => {
     expect(res.success).toBe(true);
     // 2.0% vs 2.1% is not significant → no auto-close update
     expect(dbMock.update).not.toHaveBeenCalled();
+  });
+
+  it("generates a 32-char share token when sharing is enabled", async () => {
+    const { caller } = createCaller();
+    (getAbTestById as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 7, userId: 1 });
+    (setAbTestShareToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+    const res = await caller.abTests.share({ id: 7, enabled: true });
+    expect(res.token).toHaveLength(32);
+    expect(setAbTestShareToken).toHaveBeenCalledWith(7, 1, res.token);
+  });
+
+  it("disables sharing by setting the token to null", async () => {
+    const { caller } = createCaller();
+    (getAbTestById as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 7, userId: 1 });
+    (setAbTestShareToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+    const res = await caller.abTests.share({ id: 7, enabled: false });
+    expect(res.token).toBeNull();
+    expect(setAbTestShareToken).toHaveBeenCalledWith(7, 1, null);
+  });
+
+  it("refuses sharing a test not owned by the user", async () => {
+    const { caller } = createCaller();
+    (getAbTestById as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 7, userId: 99 });
+    await expect(caller.abTests.share({ id: 7, enabled: true })).rejects.toThrow();
+  });
+
+  it("returns an anonymized test by share token (read-only public view)", async () => {
+    const { caller } = createCaller();
+    (getAbTestByShareToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 7, title: "Test", variantAId: 1, variantBId: 2, viewsA: 100, clicksA: 10, viewsB: 200, clicksB: 10,
+    });
+    (getThumbnailById as unknown as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ id: 1, imageUrl: "https://a.png", prompt: "A", style: "viral", userId: 1 })
+      .mockResolvedValueOnce({ id: 2, imageUrl: "https://b.png", prompt: "B", style: "viral", userId: 1 });
+
+    const res = await caller.abTests.getByShareToken({ token: "a".repeat(32) });
+    expect(res.title).toBe("Test");
+    expect(res.userId).toBeUndefined();
+    expect(res.ctrA).toBe(10);
+    expect(res.ctrB).toBe(5);
+  });
+
+  it("rejects an invalid share token", async () => {
+    const { caller } = createCaller();
+    (getAbTestByShareToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    await expect(caller.abTests.getByShareToken({ token: "invalid" })).rejects.toThrow();
+  });
+});
+
+describe("thumbnailRouter (v5: listFiltered + planYoutube)", () => {
+  it("lists filtered thumbnails with query, style and date range", async () => {
+    const { caller } = createCaller();
+    const rows = [{ id: 1, prompt: "test viral", style: "viral", status: "completed" }];
+    (getThumbnailsByUserIdFiltered as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(rows);
+
+    const res = await caller.thumbnail.listFiltered({
+      query: "viral",
+      style: "viral",
+      dateFrom: "2026-08-01T00:00:00.000Z",
+    });
+    expect(res).toEqual(rows);
+    expect(getThumbnailsByUserIdFiltered).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 1, query: "viral", style: "viral" })
+    );
+  });
+
+  it("plans a thumbnail for YouTube with ownership check", async () => {
+    const { caller } = createCaller();
+    (setThumbnailYoutube as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+    const res = await caller.thumbnail.planYoutube({ thumbnailId: 5, title: "Ma vidéo #1" });
+    expect(res.success).toBe(true);
+    expect(setThumbnailYoutube).toHaveBeenCalledWith(5, 1, { youtubeTitle: "Ma vidéo #1", youtubeStatus: "planned" });
+  });
+
+  it("rejects planning with an empty title", async () => {
+    const { caller } = createCaller();
+    await expect(caller.thumbnail.planYoutube({ thumbnailId: 5, title: "" })).rejects.toThrow();
+  });
+
+  it("rejects unauthenticated users on filtered list", async () => {
+    const caller = appRouter.createCaller({ user: null } as never);
+    await expect(caller.thumbnail.listFiltered({})).rejects.toThrow();
   });
 });

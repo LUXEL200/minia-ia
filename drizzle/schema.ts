@@ -32,6 +32,9 @@ export const thumbnails = mysqlTable("thumbnails", {
   status: mysqlEnum("status", ["generating", "completed", "failed"]).default("generating").notNull(),
   /** Number of credits used */
   creditsUsed: int("creditsUsed").default(1).notNull(),
+  /** YouTube Studio scheduling fields */
+  youtubeTitle: text("youtubeTitle"),
+  youtubeStatus: mysqlEnum("youtubeStatus", ["unplanned", "planned"]).default("unplanned").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -299,6 +302,8 @@ export const abTests = mysqlTable("abTests", {
   status: mysqlEnum("status", ["running", "finished"]).default("running").notNull(),
   /** True when the test was auto-closed by statistical significance (z-test) */
   autoClosed: int("autoClosed").default(0).notNull(),
+  /** Public read-only share token for collaborators */
+  shareToken: varchar("shareToken", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
