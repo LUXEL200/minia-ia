@@ -7,6 +7,7 @@ import CalendarView from "@/components/CalendarView";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
+import { toastRich } from "@/lib/toasts";
 import {
   Image, CreditCard, Download, Trash2, Loader2, Sparkles,
   ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
@@ -95,11 +96,26 @@ export default function Dashboard() {
   // v8 : rappels de planification (schedules)
   const { data: upcomingSchedules, refetch: refetchSchedules } = trpc.schedules.list.useQuery(undefined, { enabled: isAuthed });
   const deleteSchedule = trpc.schedules.delete.useMutation({
-    onSuccess: () => { refetchSchedules(); refetchThumbs(); toast.success("Planification annulée"); },
-    onError: () => toast.error("Erreur lors de l'annulation"),
+    onSuccess: () => {
+      refetchSchedules();
+      refetchThumbs();
+      utils.schedules.list.invalidate();
+      utils.notifications.list.invalidate();
+      utils.notifications.unreadCount.invalidate();
+      toastRich("warning", "Planification annulée", { description: "La miniature a été retirée du calendrier." });
+    },
+    onError: () => toastRich("error", "Erreur lors de l'annulation"),
   });
   const createSchedule = trpc.schedules.create.useMutation({
-    onSuccess: () => { refetchSchedules(); },
+    onSuccess: () => {
+      refetchSchedules();
+      utils.schedules.list.invalidate();
+      utils.schedules.listMonth.invalidate();
+      utils.notifications.list.invalidate();
+      utils.notifications.unreadCount.invalidate();
+      toastRich("success", "Nouvelle planification créée", { description: "Un rappel J-1 sera affiché dans la cloche." });
+    },
+    onError: (err) => toastRich("error", "Impossible de créer la planification", { description: err.message }),
   });
 
   /** Formate un compte à rebours : "dans 1j 4h 12m" ou "En retard !" */
@@ -114,11 +130,21 @@ export default function Dashboard() {
     return `dans ${m}m`;
   };
   const planMutation = trpc.thumbnail.planYoutube.useMutation({
-    onSuccess: () => { refetchThumbs(); toast.success("Miniature planifiée ! Ouvre YouTube Studio pour l'importer."); },
-    onError: (err) => toast.error(err.message || "Erreur"),
+    onSuccess: () => {
+      refetchThumbs();
+      refetchSchedules();
+      utils.schedules.list.invalidate();
+      toastRich("success", "Miniature planifiée !", { description: "Elle apparaît dans le calendrier. Ouvre YouTube Studio pour l'importer." });
+    },
+    onError: (err) => toastRich("error", "Impossible de planifier", { description: err.message || "Une erreur est survenue" }),
   });
   const unplanMutation = trpc.thumbnail.unplanYoutube.useMutation({
-    onSuccess: () => { refetchThumbs(); toast.success("Planification annulée"); },
+    onSuccess: () => {
+      refetchThumbs();
+      utils.schedules.list.invalidate();
+      toastRich("warning", "Planification annulée", { description: "La miniature a été retirée du calendrier." });
+    },
+    onError: () => toastRich("error", "Impossible d'annuler la planification"),
   });
 
   // tRPC queries
@@ -136,29 +162,60 @@ export default function Dashboard() {
     { enabled: isAuthed && completedThumbIds.length > 0 }
   );
 
+  const utils = trpc.useUtils();
+  const trashRestoreMutation = trpc.trash.restore.useMutation();
   const generateMutation = trpc.thumbnail.generate.useMutation();
   const batchMutation = trpc.batch.generate.useMutation();
   const deleteMutation = trpc.thumbnail.delete.useMutation({
-    onSuccess: () => { refetchThumbs(); refetchCredits(); toast.success("Miniature supprimée"); },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onSuccess: (_data, vars) => {
+      refetchThumbs();
+      refetchCredits();
+      toastRich("success", "Miniature supprimée", {
+        description: "Elle est dans la Poubelle et peut être restaurée.",
+        undo: {
+          onClick: async () => {
+            try {
+              const trashedList = await utils.trash.list.fetch();
+              const trashedItem = trashedList.find((t: any) => t.thumbnailId === vars.id || t.id === vars.id);
+              if (!trashedItem) throw new Error("Introuvable dans la poubelle");
+              await trashRestoreMutation.mutateAsync({ trashId: trashedItem.id });
+              refetchThumbs();
+              toastRich("success", "Miniature restaurée");
+            } catch {
+              toastRich("error", "Impossible de restaurer la miniature");
+            }
+          },
+        },
+      });
+    },
+    onError: () => toastRich("error", "Erreur lors de la suppression"),
   });
   const likeMutation = trpc.likes.toggle.useMutation({
     onSuccess: (data, vars) => {
       setLikedThumbs(prev => ({ ...prev, [vars.thumbnailId]: { count: data.count, liked: data.liked } }));
+      toastRich(data.liked ? "success" : "info", data.liked ? "Ajouté aux favoris" : "Retiré des favoris");
     },
+    onError: () => toastRich("error", "Impossible de mettre à jour le favori"),
   });
   const inviteMutation = trpc.team.invite.useMutation({
-    onSuccess: () => { refetchTeam(); setShowInviteModal(false); setInviteEmail(""); toast.success("Membre invité !"); },
-    onError: (err) => toast.error(err.message || "Erreur"),
+    onSuccess: () => { refetchTeam(); setShowInviteModal(false); setInviteEmail(""); toastRich("success", "Membre invité !", { description: "L'invitation a été envoyée par e-mail." }); },
+    onError: (err) => toastRich("error", "Invitation échouée", { description: err.message || "Une erreur est survenue" }),
   });
   const removeMutation = trpc.team.remove.useMutation({
-    onSuccess: () => { refetchTeam(); toast.success("Membre retiré"); },
+    onSuccess: () => { refetchTeam(); toastRich("success", "Membre retiré"); },
+    onError: () => toastRich("error", "Impossible de retirer le membre"),
   });
   const createTaskMutation = trpc.team.createTask.useMutation({
-    onSuccess: () => { refetchTasks(); toast.success("Tâche créée"); },
+    onSuccess: () => { refetchTasks(); toastRich("success", "Tâche de validation créée", { description: "Les membres de l'équipe peuvent maintenant la valider ou la refuser." }); },
+    onError: () => toastRich("error", "Impossible de créer la tâche"),
   });
   const updateTaskMutation = trpc.team.updateTask.useMutation({
-    onSuccess: () => { refetchTasks(); toast.success("Statut mis à jour"); },
+    onSuccess: (_d, vars) => {
+      refetchTasks();
+      const labels = { pending: "En attente", reviewing: "En revue", approved: "Validée", rejected: "Refusée", cancelled: "Annulée" } as const;
+      toastRich(vars.status === "approved" ? "success" : vars.status === "rejected" || vars.status === "cancelled" ? "warning" : "info", `Statut : ${labels[vars.status]}`);
+    },
+    onError: () => toastRich("error", "Impossible de mettre à jour le statut"),
   });
 
   // Sync likes data

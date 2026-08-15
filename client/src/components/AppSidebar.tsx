@@ -5,6 +5,8 @@ import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   LayoutDashboard, Image, UserRound, Grid3X3, Plus, XCircle,
   ChevronRight, Zap, Sun, Moon, Key, TrendingUp, Settings, Bell, LogOut, Users, ImagePlus,
@@ -43,6 +45,7 @@ export function AppSidebar({
 }) {
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
   const { theme, toggleTheme } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAccountsDialog, setShowAccountsDialog] = useState(false);
@@ -53,7 +56,26 @@ export function AppSidebar({
   const { data: unreadCount } = trpc.notifications.unreadCount.useQuery(undefined, { enabled: !!user });
   const { data: recentNotifs } = trpc.notifications.recent.useQuery(undefined, { enabled: !!user && showBellMenu });
 
-  const markReadMut = trpc.notifications.markRead.useMutation();
+  const markReadMut = trpc.notifications.markRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.unreadCount.invalidate();
+      utils.notifications.recent.invalidate();
+    },
+  });
+  const markAllReadMut = trpc.notifications.markAllRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.unreadCount.invalidate();
+      utils.notifications.recent.invalidate();
+      utils.notifications.list.invalidate();
+      toast.success("Toutes les notifications marquées comme lues");
+    },
+  });
+
+  const markAllRecentRead = () => {
+    markAllReadMut.mutate();
+    setShowBellMenu(false);
+    onClose();
+  };
 
   const { data: credits } = trpc.thumbnail.credits.useQuery(undefined, {
     enabled: false, // never auto-fetch in the shared sidebar: pages fetch it themselves when authenticated
@@ -349,10 +371,19 @@ export function AppSidebar({
                       <div className="p-2 border-b border-white/5 flex items-center justify-between">
                         <span className="text-[10px] font-semibold text-white">Rappels de planification</span>
                         <button
-                          onClick={() => { onClose(); }}
+                          onClick={() => {
+                            navigate("/notifications");
+                            onClose();
+                          }}
                           className="text-[9px] text-cyan-400 hover:text-cyan-300"
                         >
                           Ouvrir tout
+                        </button>
+                        <button
+                          onClick={markAllRecentRead}
+                          className="text-[9px] text-zinc-500 hover:text-zinc-300"
+                        >
+                          Tout marquer lu
                         </button>
                       </div>
                       <div className="max-h-64 overflow-y-auto">
@@ -367,7 +398,7 @@ export function AppSidebar({
                                 await markReadMut.mutateAsync({ id: n.id });
                                 onClose();
                               }}
-                              className="block p-2.5 hover:bg-[#181818] transition-colors border-b border-white/5 last:border-0"
+                              className="block p-2.5 hover:bg-[#181818] transition-colors border-b border-white/5 last:border-0 animate-in fade-in slide-in-from-right-1 duration-200"
                             >
                               <div className="flex items-start gap-2">
                                 {isReminder ? (
@@ -380,6 +411,9 @@ export function AppSidebar({
                                 <div>
                                   <p className="text-[11px] text-white leading-snug">{n.title}</p>
                                   <p className="text-[10px] text-zinc-400 leading-snug mt-0.5">{n.message}</p>
+                                  {n.createdAt && (
+                                    <p className="text-[9px] text-zinc-500 mt-0.5">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: fr })}</p>
+                                  )}
                                 </div>
                               </div>
                             </Link>

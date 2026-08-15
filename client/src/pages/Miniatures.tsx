@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { toastRich } from "@/lib/toasts";
 import PageHeader from "@/components/PageHeader";
 import {
   Image, Search, X, Plus, Download, Eye, Star, Share2, ListChecks,
@@ -72,15 +73,27 @@ export default function Miniatures() {
     }
   }, [likesData]);
 
+  const utils = trpc.useUtils();
   const deleteMutation = trpc.thumbnail.delete.useMutation({
-    onSuccess: () => { refetchThumbs(); toast.success("Miniature supprimée (va dans Poubelle pour la restaurer)"); },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onSuccess: (_data, vars) => {
+      refetchThumbs();
+      toastRich("success", "Miniature supprimée", { description: "Elle est dans la Poubelle et peut être restaurée." });
+    },
+    onError: () => toastRich("error", "Erreur lors de la suppression"),
   });
   const likeMutation = trpc.likes.toggle.useMutation({
-    onSuccess: (data, vars) => setLikedThumbs(prev => ({ ...prev, [vars.thumbnailId]: { count: data.count, liked: data.liked } })),
+    onSuccess: (data, vars) => {
+      setLikedThumbs(prev => ({ ...prev, [vars.thumbnailId]: { count: data.count, liked: data.liked } }));
+      toastRich(data.liked ? "success" : "info", data.liked ? "Ajouté aux favoris" : "Retiré des favoris");
+    },
+    onError: () => toastRich("error", "Impossible de mettre à jour le favori"),
   });
   const createTaskMutation = trpc.team.createTask.useMutation({
-    onSuccess: () => toast.success("Tâche créée"),
+    onSuccess: () => {
+      utils.team.tasks.invalidate();
+      toastRich("success", "Tâche de validation créée", { description: "Les membres de l'équipe peuvent maintenant la valider ou la refuser." });
+    },
+    onError: () => toastRich("error", "Impossible de créer la tâche"),
   });
 
   const displayThumbnails = (filteredThumbnails ?? []).filter(t => t.status === "completed");
@@ -116,7 +129,7 @@ export default function Miniatures() {
         await navigator.share({ title: "Miniature Minia IA", text: prompt, url: shareUrl });
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        toast.success("Lien copié dans le presse-papiers !");
+        toastRich("success", "Lien copié dans le presse-papiers !");
       }
     } catch { /* cancelled */ }
   };

@@ -200,3 +200,11 @@
 - [x] Frontend : solde crédité immédiatement après achat (utils.thumbnail.credits.invalidate)
 - [x] Guide d'utilisation du calendrier de planification (message utilisateur clair)
 - [x] Tests vitest (64/64 dont 5 tests packs) + tsc 0 erreur + vérifications visuelles + checkpoint
+
+## Vague v13 (demande utilisateur — 15/08)
+
+- [x] Audit : comportement des notifications (cloche, badge, marquage lu, rappels J-1, toasts)
+- [x] Audit : actions validation/approbation (toggle statut, feedback visuel)
+- [x] Audit : actions suppression (poubelle, toast, invalidation cache, état vide)
+- [x] Audit : chargement des pages (skeletons, états vides, rechargement cache)
+- [x] Corrections : helper toastRich (icône+titre+description+undo), cloche dropdown (Tout marquer lu, dates relatives, lien direct), Notifications.tsx (clic=marqué lu, pulsation badge), Dashboard/Miniatures/Trash (toasts enrichis, undo suppression→Poubelle, planifications avec invalidation calendrier+notifications), 72/72 vitest (dont 8 v13) + tsc 0 erreur + vérifs light/dark + checkpoint

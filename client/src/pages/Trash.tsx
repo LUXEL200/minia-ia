@@ -4,6 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import PageHeader from "@/components/PageHeader";
 import { toast } from "sonner";
+import { toastRich } from "@/lib/toasts";
 import {
   ArrowLeft,
   Trash2,
@@ -20,19 +21,26 @@ export default function TrashPage() {
       navigate("/dashboard");
     }
   }, [loading, isAuthenticated, navigate]);
+  const utils = trpc.useUtils();
   const { data: trashed, isLoading, refetch } = trpc.trash.list.useQuery();
   const restoreMutation = trpc.trash.restore.useMutation();
   const emptyMutation = trpc.trash.empty.useMutation();
+
+  const invalidateAfter = () => {
+    utils.trash.list.invalidate();
+    utils.thumbnail.list.invalidate();
+    utils.thumbnail.credits.invalidate();
+  };
 
   const handleRestore = (trashId: number) => {
     restoreMutation.mutate(
       { trashId },
       {
         onSuccess: () => {
-          toast.success("Miniature restaurée !");
-          refetch();
+          invalidateAfter();
+          toastRich("success", "Miniature restaurée !", { description: "Elle est de retour dans tes miniatures." });
         },
-        onError: (err) => toast.error(err.message),
+        onError: (err) => toastRich("error", "Impossible de restaurer", { description: err.message }),
       }
     );
   };
@@ -41,10 +49,10 @@ export default function TrashPage() {
     emptyMutation.mutate(undefined as any,
       {
         onSuccess: () => {
-          toast.success("Poubelle vidée");
-          refetch();
+          invalidateAfter();
+          toastRich("warning", "Poubelle vidée", { description: "Les miniatures ont été supprimées définitivement." });
         },
-        onError: (err) => toast.error(err.message),
+        onError: (err) => toastRich("error", "Impossible de vider la poubelle", { description: err.message }),
       }
     );
   };
