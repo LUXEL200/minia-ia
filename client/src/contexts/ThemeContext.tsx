@@ -30,12 +30,12 @@ export function ThemeProvider({
   });
 
   useEffect(() => {
+    // Appliquer les classes sur <html> (Tailwind @custom-variant dark scannait <html> mais
+    // le mode clair light doit aussi y être posé pour les overrides CSS globaux).
     const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    root.classList.toggle("dark", theme === "dark");
+    root.classList.toggle("light", theme === "light");
+    root.style.colorScheme = theme;
 
     if (switchable) {
       localStorage.setItem("theme", theme);

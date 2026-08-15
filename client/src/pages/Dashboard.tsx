@@ -71,6 +71,16 @@ export default function Dashboard() {
   // Auth gate
   const isAuthed = !authLoading && isAuthenticated && !!user;
 
+  // v6 : deep-linking via hash depuis la sidebar (Miniatures / Personnes)
+  useEffect(() => {
+    if (!isAuthed) return;
+    const hash = window.location.hash.replace("#", "").toLowerCase();
+    if (hash === "miniatures") setActiveView("all-generations");
+    else if (hash === "equipe" || hash === "team" || hash === "personnes") setActiveView("team");
+    // Effacer le hash pour éviter de re-déclencher après un refresh
+    if (hash) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, [isAuthed]);
+
   // v5 : search & filters for all-generations view
   const [filterQuery, setFilterQuery] = useState("");
   const [filterStyle, setFilterStyle] = useState("all");

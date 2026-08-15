@@ -86,6 +86,27 @@
   --sidebar-ring: oklch(0.82 0.17 190);
 }
 
+/* Mode clair complet — toutes les pages (y compris celles en couleurs dures #111/#181818) */
+:root.light, html.light {
+  --background: oklch(0.98 0.005 285);
+  --foreground: oklch(0.15 0.005 285);
+  --card: oklch(0.94 0.005 285);
+  --card-foreground: oklch(0.15 0.005 285);
+  --popover: oklch(0.97 0.005 285);
+  --popover-foreground: oklch(0.15 0.005 285);
+  --primary: oklch(0.65 0.15 190);
+  --primary-foreground: oklch(0.99 0.005 285);
+  --secondary: oklch(0.9 0.005 285);
+  --secondary-foreground: oklch(0.25 0.006 285);
+  --muted: oklch(0.92 0.005 285);
+  --muted-foreground: oklch(0.5 0.01 285);
+  --accent: oklch(0.9 0.01 285);
+  --accent-foreground: oklch(0.15 0.005 285);
+  --border: oklch(0.87 0.006 285);
+  --input: oklch(0.87 0.006 285);
+  --ring: oklch(0.65 0.15 190);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -356,4 +377,33 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Override global des fonds durs codés en dur pour le mode clair */
+html.light body,
+html.light .bg-\[\#000\],
+html.light .bg-\[\#09090B\],
+html.light .bg-\[\#0a0a0a\],
+html.light .bg-\[\#111\],
+html.light .bg-\[\#18181B\],
+html.light .bg-\[\#181818\] {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+html.light .text-zinc-300,
+html.light .text-zinc-400,
+html.light .text-zinc-500,
+html.light .text-zinc-600 {
+  color: var(--muted-foreground);
+}
+html.light .text-white {
+  color: var(--foreground);
+}
+html.light .border-white\/5,
+html.light .border-white\/10 {
+  border-color: var(--border);
+}
+html.light .bg-white\/5,
+html.light .bg-white\/10 {
+  background-color: var(--accent);
 }

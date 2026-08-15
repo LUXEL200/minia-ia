@@ -134,3 +134,11 @@
 - [x] Frontend : page /share-ab/:token lecture seule (variantes côte à côte, CTR, vues, clics, badges gagnant/clôture auto, copier les miniatures) + dropdown « Partager » dans la page AbTest (générer/copier/désactiver le lien)
 - [x] Tests vitest pour les nouvelles procédures (20/20 passent)
 - [x] Vérification screenshots (dashboard, /share-ab valide/invalide) + checkpoint final
+
+## Vague v6 (demande utilisateur — 15/08)
+
+- [x] Corriger le doublon « Créer une miniature / Miniatures / Personnes » dans le menu flottant (AppSidebar : 3 liens distincts vers /dashboard, /dashboard#miniatures, /dashboard#equipe + deep-linking hash dans Dashboard.tsx)
+- [x] Bouton « Compte » : popup multi-comptes (AccountsDialog, store localStorage minia-accounts, basculer via « Utiliser », créer via OAuth, bouton Plate-forme + item profil)
+- [x] Corriger le basculeur mode sombre/clair (thème clair complet dans index.css + override global .light sur éléments hardcodés + classe sur <html>, libellé/icône dynamiques, état persisté localStorage)
+- [ ] Mettre à jour la skill saas-replica avec les apprentissages
+- [x] Tests + vérifications (tsc OK, 20/20 vitest, mode clair testé au navigateur, dialog comptes vérifié)

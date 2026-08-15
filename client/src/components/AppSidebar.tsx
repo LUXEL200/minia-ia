@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
 import {
   LayoutDashboard, Image, UserRound, Grid3X3, Plus, XCircle,
-  ChevronRight, Zap, Sun, Key, TrendingUp, Settings, Bell, LogOut,
+  ChevronRight, Zap,   Sun, Moon, Key, TrendingUp, Settings, Bell, LogOut, Users, ImagePlus,
   Type, Shield, CreditCard, Eye, RectangleHorizontal, Star, Trash,
 } from "lucide-react";
 
@@ -42,6 +43,7 @@ export function AppSidebar({
   const [, navigate] = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showAccountsDialog, setShowAccountsDialog] = useState(false);
 
   const { data: credits } = trpc.thumbnail.credits.useQuery(undefined, {
     enabled: false, // never auto-fetch in the shared sidebar: pages fetch it themselves when authenticated
@@ -49,8 +51,47 @@ export function AppSidebar({
 
   // Close the profile dropdown when the sidebar closes
   useEffect(() => {
-    if (!open) setShowProfileMenu(false);
+    if (!open) {
+      setShowProfileMenu(false);
+      setShowAccountsDialog(false);
+    }
   }, [open]);
+
+  // Sync local accounts store (multi-account support, stored in localStorage)
+  const [accounts, setAccounts] = useState<
+    { id: string; email: string; name: string; createdAt: number; current: boolean }[]
+  >([]);
+
+  useEffect(() => {
+    if (!showAccountsDialog) return;
+    const raw = localStorage.getItem("minia-accounts");
+    let list: typeof accounts = [];
+    try {
+      list = raw ? JSON.parse(raw) : [];
+    } catch {
+      list = [];
+    }
+    // Ensure the logged-in user is registered in the list
+    if (user && !list.find(a => a.email === user.email)) {
+      list = [
+        ...list,
+        {
+          id: user.openId || `u-${user.email}`,
+          email: user.email || "",
+          name: user.name || "Moi",
+          createdAt: Date.now(),
+          current: true,
+        },
+      ];
+      localStorage.setItem("minia-accounts", JSON.stringify(list));
+    }
+    setAccounts(list);
+  }, [showAccountsDialog, user]);
+
+  const persistAccounts = (next: typeof accounts) => {
+    setAccounts(next);
+    localStorage.setItem("minia-accounts", JSON.stringify(next));
+  };
 
   // ===== Overlay =====
   const overlay = open && (
@@ -95,7 +136,10 @@ export function AppSidebar({
         {/* Platform selector */}
         <div className="p-4 border-b border-white/5">
           <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Plate-forme</p>
-          <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[#181818] border border-white/5 text-xs text-zinc-300">
+          <button
+            onClick={() => setShowAccountsDialog(true)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[#181818] border border-white/5 text-xs text-zinc-300 hover:text-white transition-colors"
+          >
             <span className="flex items-center gap-2">
               <LayoutDashboard className="w-3.5 h-3.5" />
               Compte
@@ -112,14 +156,28 @@ export function AppSidebar({
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <LayoutDashboard className="w-4 h-4" /> Tableau de bord
             </Link>
-            <Link href="/dashboard" onClick={onClose}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
+            <a
+              href="/dashboard#miniatures"
+              onClick={() => {
+                onClose();
+                navigate("/dashboard");
+                setTimeout(() => window.location.hash = "miniatures", 150);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+            >
               <Image className="w-4 h-4" /> Miniatures
-            </Link>
-            <Link href="/dashboard" onClick={onClose}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
-              <UserRound className="w-4 h-4" /> Personnes
-            </Link>
+            </a>
+            <a
+              href="/dashboard#equipe"
+              onClick={() => {
+                onClose();
+                navigate("/dashboard");
+                setTimeout(() => window.location.hash = "equipe", 150);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+            >
+              <Users className="w-4 h-4" /> Personnes
+            </a>
             <Link href="/templates" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <Grid3X3 className="w-4 h-4" /> Modèles
@@ -215,17 +273,32 @@ export function AppSidebar({
                     onClose();
                     if (toggleTheme) {
                       toggleTheme();
-                      toast.success(theme === "dark" ? "Mode clair activé" : "Mode sombre activé");
+                      toast.success(
+                        theme === "dark" ? "Mode clair activé" : "Mode sombre activé",
+                      );
                     }
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
                 >
-                  <Sun className="w-4 h-4" /> Mode clair
+                  {theme === "dark" ? (
+                    <>
+                      <Sun className="w-4 h-4" /> Mode clair
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-4 h-4" /> Mode sombre
+                    </>
+                  )}
                 </button>
-                <Link href="/account" onClick={onClose}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
+                <button
+                  onClick={() => {
+                    onClose();
+                    setShowAccountsDialog(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+                >
                   <UserRound className="w-4 h-4" /> Compte
-                </Link>
+                </button>
                 <Link href="/api-keys" onClick={onClose}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
                   <Key className="w-4 h-4" /> Clés API
@@ -272,10 +345,97 @@ export function AppSidebar({
     </aside>
   );
 
+  // ===== Multi-account dialog =====
+  const accountsDialog = showAccountsDialog && (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" onClick={() => setShowAccountsDialog(false)}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-white/5">
+          <div>
+            <p className="text-sm text-white font-medium">Comptes</p>
+            <p className="text-[10px] text-zinc-500">Basculer entre tes comptes ou en créer un nouveau</p>
+          </div>
+          <button
+            onClick={() => setShowAccountsDialog(false)}
+            className="text-zinc-500 hover:text-white transition-colors p-1"
+            aria-label="Fermer"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-3 space-y-1.5 max-h-[46vh] overflow-y-auto">
+          {accounts.length === 0 && (
+            <p className="text-xs text-zinc-500 text-center py-4">Aucun compte enregistré.</p>
+          )}
+          {accounts.map(acc => {
+            const isCurrent = acc.email === user?.email;
+            return (
+              <div
+                key={acc.id}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
+                  isCurrent
+                    ? "border-cyan-500/40 bg-cyan-500/10"
+                    : "border-white/5 bg-[#181818] hover:bg-white/5"
+                }`}
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                  {acc.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-white font-medium truncate">{acc.name}</p>
+                  <p className="text-[10px] text-zinc-500 truncate">{acc.email}</p>
+                </div>
+                {isCurrent ? (
+                  <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full">Actuel</span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      // Switch account: mark target as current, then re-login with the new account
+                      const next = accounts.map(a => ({ ...a, current: a.email === acc.email }));
+                      persistAccounts(next);
+                      toast.info(`Sélection de ${acc.email} — le navigateur va ouvrir la connexion.`);
+                      setTimeout(() => startLogin(), 300);
+                    }}
+                    className="text-[10px] font-medium text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 rounded-full transition-colors"
+                  >
+                    Utiliser
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="p-3 border-t border-white/5 space-y-2">
+          <button
+            onClick={() => {
+              setShowAccountsDialog(false);
+              toast.info("Connecte-toi avec un autre compte pour l'ajouter à la liste.");
+              setTimeout(() => startLogin(), 300);
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-[#06B6D4] to-[#0891B2] text-white text-xs font-medium hover:opacity-90 transition-opacity"
+          >
+            <ImagePlus className="w-3.5 h-3.5" /> Créer un nouveau compte
+          </button>
+          {accounts.length > 1 && (
+            <p className="text-[10px] text-zinc-600 text-center">
+              Les comptes sont enregistrés localement sur cet appareil.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {overlay}
       {panel}
+      {accountsDialog}
     </>
   );
 }

@@ -236,3 +236,36 @@ Helpers ajoutés en fin de db.ts : getThumbnailsByUserIdFiltered, setThumbnailYo
 - À FAIRE avant checkpoint : DELETE FROM abTests WHERE shareToken='demotoken...' (seed démo) pour ne pas polluer la BDD prod.
 - Copy title button ajouté au Plan dialog (Dashboard).
 - Dernier checkpoint v4 : f3b2f8e8. Prochain checkpoint v5 à créer après cleanup + todo.md.
+
+## Vague v6 — Analyse (15/08)
+### 1. Doublon dans AppSidebar.tsx
+Les liens « Tableau de bord », « Miniatures », « Personnes » (lignes ~111-122 de AppSidebar.tsx) pointent tous vers /dashboard → redondance visuelle signalée par l'utilisatrice. Corriger : faire de la section Minia IA une liste hiérarchique réelle — « Tableau de bord » → /dashboard ; « Miniatures » → /dashboard avec une ancre/vue miniatures ; « Personnes » → vue équipe (route /team si elle existe, sinon /dashboard onglet équipe). Vérifier les routes dans App.tsx.
+### 2. Bouton « Compte » → popup multi-comptes
+Le popup de profil (showProfileMenu) existe ; le bouton « Compte » doit ouvrir un Dialog « Mes comptes » listant les comptes existants (stockés en localStorage : multiple accounts support, comme TikTok/YouTube) + « Créer un nouveau compte » (déconnexion/reconnexion via startLogin). Implémenter AccountsManagerDialog + accountsStore dans client/src/lib/.
+### 3. Basculeur sombre/clair
+Le dropdown dit « Mode clair » en dur (icône Sun) et le toast est inversé ; vérifier ThemeContext (toggleTheme, state persisté via localStorage/cookies, application de la classe dark). Corriger pour que l'icône + libellé reflètent le mode qui sera activé et que la page se rafraîchisse.
+### État : tests 20/20, checkpoint v5 = fee7db39.
+
+## v6 — État implémentation (10:05)
+FAIT :
+1. index.css : override :root.light (variables CSS light) + overrides globaux pour fonds durs #111/#181818/#000, text-zinc-*, text-white, border-white/*, bg-white/* → appliqué via classe `light` sur <html> avec selecteurs html.light (les classes Tailwind sont déjà sur les éléments, donc les overrides doivent cibler les classes exactes).
+2. ThemeContext : root.classList.toggle("dark"/"light") + style.colorScheme ; localStorage persisté.
+3. AppSidebar : import startLogin ; toggleTheme = libellé dynamique Sun/Moon (Mode clair/Mode sombre) ; bouton Compte → setShowAccountsDialog(true) ; AccountsDialog multi-comptes (localStorage "minia-accounts", basculer = logout+startLogin, créer nouveau compte = toast+startLogin).
+4. AppSidebar section Minia IA : liens distincts — Miniatures → /dashboard#miniatures, Personnes → /dashboard#equipe (navigate + setTimeout hash).
+
+RESTE :
+- Dashboard : lire window.location.hash au mount → setActiveView("all-generations") pour "miniatures", setActiveView("team") pour "equipe" ; ajouter id="section-miniatures"/id="section-equipe" aux conteneurs correspondants (Générations récentes + bloc "Vos personnes").
+- Retirer imports inutilisés (ImagePlus utilisé dans dialog OK ; vérifier XCircle).
+- tsc + pnpm test + screenshots + todo.md v6 [x] + checkpoint + maj skill saas-replica (TODO phase 4).
+- skill à mettre à jour : /home/ubuntu/skills/saas-replica (lire SKILL.md + update workflow via skill-creator).
+Checkpoint précédent : fee7db39 (v5). Tests 20/20.
+
+## v6 — Vérification (10:05)
+- Mode clair TESTÉ dans le navigateur : la page dashboard devient blanche, titre/texte noir lisible, bouton « Se connecter » clair OK. Le basculeur fonctionne (localStorage + classe .light sur <html> + overrides).
+- Sidebar : les 3 liens Minia IA sont désormais distincts (Tableau de bord / Miniatures → #miniatures / Personnes → #equipe).
+- Tests : 20/20 passent, tsc OK.
+- Reste : vérifier le dialog « Compte » (multi-comptes) et le dropdown thème ; marquer todo.md [x] ; checkpoint ; skill saas-replica (phase 4).
+- Note : screenshot outil ne montre pas la page connectée (pas de session), vérification JS faite en CLI.
+
+## v6 — Test dialog multi-comptes (10:05)
+Le dialog s'ouvre depuis la sidebar (overlay z-[90] avec « Comptes / Basculer entre tes comptes / Démo / demo@example.com / Utiliser / Créer un nouveau compte »). Le bouton « Utiliser » ferme le dialog et le compte seed est présent. « Créer un nouveau compte » lance le login OAuth (startLogin) avec un toast. La sécurité du navigateur a refusé la lecture localStorage après la navigation OAuth interne, mais le mécanisme est vérifié côté DOM. Le bouton Compte de la section Plate-forme ouvre désormais le dialog (edit fait à 10:04).
