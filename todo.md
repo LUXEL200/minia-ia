@@ -85,7 +85,7 @@
 - [x] Rendre ThumbnailPreview responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
 - [x] Rendre Admin responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
 
-- [ ] Seed templates — templates pré-remplis dans la BDD (viral, minimaliste, dramatic, tech, retro, MrBeast)
+- [x] Seed templates — 16 templates pré-remplis vérifiés dans la BDD (viral, minimaliste, dramatic, tech, retro, MrBeast)
 - [x] Galerie — bouton "Modifier" sur chaque miniature qui ouvre l'éditeur Canva (image en fond du canevas via paramètre URL)
 - [x] Éditeur — export SVG incluant l'image de fond avec calque textuel par-dessus
 
