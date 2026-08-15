@@ -275,6 +275,11 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 
 ## Vague v18 (demande utilisateur — 15/08)
 
-- [ ] Retirer le lien « Super Admin » du menu déroulant sous le profil (doublon visible, badge ADMIN)
-- [ ] Refondre l'interface éditeur CANVAS : 3 panneaux style pro — sidebar gauche (templates/miniatures + formats 16:9/9:16/1:1/4:5/21:9 + couleurs), canvas central (barre d'outils pointeur/recadrer/texte/formes/pinceau/calques, undo/redo, bande de variantes en bas avec bouton +), panneau droit (sliders opacité/saturation/contraste, upload image)
-- [ ] Tests vitest + tsc + vérifs visuelles + checkpoint + publication
+- [x] Retirer le lien « Super Admin » du menu déroulant sous le profil (doublon visible, badge ADMIN)
+- [x] Refondre l'interface éditeur CANVAS : 3 panneaux style pro — sidebar gauche (formats 16:9/9:16/1:1/4:5/21:9, ajustement fond, couleurs, calques, versions, bouton Générer avec IA), topbar centrale (outils texte/calques/undo-redo/zoom/aperçu device, Exporter gradient), canvas central + bande de variantes, panneau droit de propriétés ; TemplateEditor harmonisé orange/bleu nuit
+- [x] Tests vitest + tsc + vérifs visuelles (desktop/mobile/light) + checkpoint + publication (81/81, c1c144ef)
+
+## Vague v19 (demande utilisateur — 15/08)
+
+- [x] Glisser-déposer d'images sur le canvas de l'éditeur (fond par défaut, ou calque si image déjà présente) — zone d'indication visuelle orange au survol (UploadCloud + instructions), toast de confirmation, validation PNG/JPG/WEBP max 8 Mo, formats respectés selon canvasSize, + collage presse-papier Ctrl+V d'images
+- [x] Tests vitest + tsc + vérifs visuelles (desktop/mobile, 81/81) + checkpoint + publication

@@ -9,7 +9,7 @@ import {
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
   ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
-  Smartphone, Tablet, X, Heart, Sparkles,
+  Smartphone, Tablet, X, Heart, Sparkles, UploadCloud,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -405,6 +405,100 @@ export default function Editor() {
   const selectedElement = elements.find(el => el.id === selectedId);
   const colors = ["#FFFFFF", "#000000", "#EF4444", "#F97316", "#EAB308", "#FDBA74", "#EA580C", "#3B82F6", "#8B5CF6", "#EC4899"];
   const bgUploadInputRef = useRef<HTMLInputElement>(null);
+
+  // ===== Drag & drop images onto the canvas =====
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDropImage = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Fichier non supporté — glisse une image (PNG, JPG, WEBP)");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image trop volumineuse (max 8 Mo)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result || "");
+      const img = new Image();
+      img.onload = () => {
+        const cw = canvasSize.w;
+        const ch = canvasSize.h;
+        // If there is already a background, insert as a framed layer; otherwise set as background
+        if (bgImageUrl) {
+          const scale = Math.min(cw / img.width, ch / img.height, 1);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const el: EditorImageElement = {
+            id: `img-${Date.now()}`,
+            type: "image",
+            url,
+            x: Math.round((cw - w) / 2),
+            y: Math.round((ch - h) / 2),
+            width: w,
+            height: h,
+            opacity: 1,
+            borderRadius: 0,
+          };
+          const newElements = [...elements, el];
+          setElements(newElements);
+          pushHistory(newElements);
+          setSelectedId(el.id);
+          toast.success("Image insérée comme calque — déplace-la librement");
+        } else {
+          setBgImageUrl(url);
+          toast.success("Image de fond ajoutée !");
+        }
+      };
+      img.onerror = () => toast.error("Image illisible");
+      img.src = url;
+    };
+    reader.readAsDataURL(file);
+  }, [canvasSize, bgImageUrl, elements, pushHistory]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (Array.from(e.dataTransfer.types).includes("Files")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      setDragOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    // Keep the highlight only while the pointer is over the canvas container
+    const related = e.relatedTarget as Node | null;
+    const container = canvasContainerRef.current;
+    if (!container?.contains(related)) {
+      setDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = Array.from(e.dataTransfer.files);
+    const img = files.find(f => f.type.startsWith("image/"));
+    if (!img) {
+      toast.error("Glisse une image (PNG, JPG, WEBP)");
+      return;
+    }
+    handleDropImage(img);
+  }, [handleDropImage]);
+
+  const handlePaste = useCallback((e: ClipboardEvent) => {
+    const items = Array.from(e.clipboardData?.items || []);
+    const imgItem = items.find(i => i.kind === "file" && i.type.startsWith("image/"));
+    if (imgItem) {
+      const file = imgItem.getAsFile();
+      if (file) handleDropImage(file);
+    }
+  }, [handleDropImage]);
+
+  useEffect(() => {
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, [handlePaste]);
 
   const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1136,12 +1230,25 @@ export default function Editor() {
           </div>
         )}
 
-        {/* Canvas */}
+        {/* Canvas — drag & drop images directly onto it */}
         <div
           ref={canvasContainerRef}
-          className="relative overflow-auto max-w-full max-h-[70vh] border border-border rounded-lg"
+          className="relative overflow-auto max-w-full max-h-[70vh] border border-border rounded-lg transition-colors"
           style={{ cursor: "default" }}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
+          {/* Drag-over indicator overlay */}
+          {dragOver && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+              <div className="flex flex-col items-center gap-2 border-2 border-dashed border-orange-400 bg-orange-500/10 rounded-lg w-[92%] h-[92%] backdrop-blur-sm">
+                <UploadCloud className="w-8 h-8 text-orange-400" />
+                <p className="text-sm font-medium text-orange-300">Relâche pour ajouter l'image</p>
+                <p className="text-[11px] text-muted-foreground">PNG, JPG, WEBP · max 8 Mo</p>
+              </div>
+            </div>
+          )}
           <div
             ref={canvasRef}
             data-canvas="true"
@@ -1182,7 +1289,7 @@ export default function Editor() {
             {elements.length === 0 && !bgImageUrl && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center px-6">
-                  <p className="text-muted-foreground text-sm mb-3">Canva — ajoute des éléments ou une image de fond</p>
+                  <p className="text-muted-foreground text-sm mb-3">Canva — ajoute des éléments, colle (Ctrl+V) ou glisse une image directement sur la zone</p>
                   <button
                     onClick={() => bgUploadInputRef.current?.click()}
                     className="inline-flex items-center gap-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 text-xs px-3 py-1.5 rounded-lg transition-colors"
