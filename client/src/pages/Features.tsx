@@ -19,13 +19,13 @@ const features = [
     icon: Palette,
     title: "6 styles professionnels",
     description: "Viral, MrBeast, Minimaliste, Dramatique, Tech, Retro. Chaque style est optimisé pour les algorithmes YouTube.",
-    color: "from-green-400 to-green-600",
+    color: "from-orange-400 to-orange-600",
   },
   {
     icon: Clock,
     title: "Mode Podcast",
     description: "Génère des miniatures podcast-ready avec des portraits, des noms d'invités et des citations percutantes.",
-    color: "from-emerald-400 to-emerald-600",
+    color: "from-orange-400 to-orange-500",
   },
   {
     icon: Brain,
@@ -70,7 +70,7 @@ export default function Features() {
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Tout ce qu'il faut pour{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               performer
             </span>
           </h1>

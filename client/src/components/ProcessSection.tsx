@@ -11,7 +11,7 @@ const steps = [
     icon: User,
     title: "Sélectionne ta Person",
     description: "Choisis parmi tes Persons sauvegardées. Upload une fois, réutilise pour toujours.",
-    color: "#06B6D4",
+    color: "#F97316",
   },
   {
     number: "02",
@@ -25,14 +25,14 @@ const steps = [
     icon: Download,
     title: "Génère & Télécharge",
     description: "Obtiens des variations. Choisis la gagnante. Exporte en 4K — en moins de 50s.",
-    color: "#22C55E",
+    color: "#FDBA74",
   },
 ];
 
 export default function ProcessSection() {
   return (
     <section id="process" className="py-24 lg:py-32 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#06B6D4]/2 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#F97316]/2 to-transparent" />
       
       <div className="container relative z-10">
         <motion.div
@@ -67,11 +67,11 @@ export default function ProcessSection() {
                 {/* Connector arrow */}
                 {i < 2 && (
                   <div className="hidden md:flex absolute top-8 right-0 translate-x-1/2 z-10 items-center">
-                    <div className="w-8 h-px bg-gradient-to-r from-[#27272A] to-[#06B6D4]/30" />
+                    <div className="w-8 h-px bg-gradient-to-r from-[#27272A] to-[#F97316]/30" />
                   </div>
                 )}
                 
-                <div className="relative p-6 rounded-[20px] bg-card/70 border border-border text-center transition-all duration-300 hover:border-[#06B6D4]/20">
+                <div className="relative p-6 rounded-[20px] bg-card/70 border border-border text-center transition-all duration-300 hover:border-[#F97316]/20">
                   <span className="absolute -top-3 left-5 text-3xl font-display font-bold opacity-10" style={{ color: step.color }}>
                     {step.number}
                   </span>

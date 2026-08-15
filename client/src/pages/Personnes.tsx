@@ -81,7 +81,7 @@ export default function Personnes() {
   const STATUS_STYLE: Record<string, string> = {
     pending: "bg-muted/80 text-foreground",
     reviewing: "bg-yellow-500/20 text-yellow-400",
-    approved: "bg-emerald-500/20 text-emerald-400",
+    approved: "bg-orange-500/20 text-orange-400",
     rejected: "bg-red-500/20 text-red-400",
     cancelled: "bg-zinc-700 text-muted-foreground",
   };
@@ -94,7 +94,7 @@ export default function Personnes() {
   };
   const INVITE_STATUS_STYLE: Record<string, string> = {
     pending: "bg-muted/80 text-foreground",
-    accepted: "bg-emerald-500/20 text-emerald-400",
+    accepted: "bg-orange-500/20 text-orange-400",
     declined: "bg-red-500/20 text-red-400",
   };
   const INVITE_STATUS_LABEL: Record<string, string> = {
@@ -165,7 +165,7 @@ export default function Personnes() {
               {user && (
                 <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-950 border border-border">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F97316] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
                       {user.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                     <div>
@@ -192,7 +192,7 @@ export default function Personnes() {
             {/* Inviter */}
             <div className="bg-zinc-950 border border-border rounded-xl p-4">
               <h3 className="text-xs font-medium text-white mb-3 flex items-center gap-2">
-                <Mail size={14} className="text-green-500" /> Inviter un collaborateur
+                <Mail size={14} className="text-orange-500" /> Inviter un collaborateur
               </h3>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
@@ -237,7 +237,7 @@ export default function Personnes() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => acceptInvitation.mutate({ id: inv.id })}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors"
                           >
                             <Check size={12} /> Accepter
                           </button>
@@ -327,7 +327,7 @@ export default function Personnes() {
                         <button
                           onClick={() => handleUpdateTask(task.id, "approved")}
                           disabled={updatingTask === task.id}
-                          className="px-2.5 py-1 rounded-md text-[10px] bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
+                          className="px-2.5 py-1 rounded-md text-[10px] bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors disabled:opacity-50"
                         >
                           {updatingTask === task.id ? <Loader2 className="w-3 h-3 inline animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 inline mr-1" />}
                           Approuver

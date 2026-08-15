@@ -35,7 +35,7 @@ export default function GalleryPreviewSection() {
             className="font-display text-3xl md:text-4xl font-bold mb-4"
           >
             La communauté{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               génère en continu
             </span>
           </motion.h2>

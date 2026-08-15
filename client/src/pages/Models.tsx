@@ -57,7 +57,7 @@ export default function Models() {
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Nos{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               modèles IA
             </span>
           </h1>
@@ -81,7 +81,7 @@ export default function Models() {
                   <h3 className="text-lg font-bold text-white">{model.name}</h3>
                   <p className="text-sm text-[#71717A]">{model.type}</p>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-xs text-emerald-400">
+                <span className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/20 rounded text-xs text-orange-400">
                   Actif
                 </span>
               </div>

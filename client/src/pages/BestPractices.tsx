@@ -52,7 +52,7 @@ export default function BestPractices() {
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Crée des miniatures{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               qui cliquent
             </span>
           </h1>
@@ -89,7 +89,7 @@ export default function BestPractices() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-12 p-8 bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-xl"
+          className="text-center mt-12 p-8 bg-gradient-to-r from-orange-400/10 to-orange-300/10 border border-orange-400/20 rounded-xl"
         >
           <h3 className="text-xl font-bold text-white mb-2">Mets ces règles en pratique</h3>
           <p className="text-[#A1A1AA] mb-4">Génère des miniatures optimisées en un clic avec Minia IA.</p>

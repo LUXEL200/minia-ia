@@ -155,7 +155,7 @@ export function TestContributionsPanel({
               )}
               {(contributions ?? []).map((c: any) => (
                 <div key={c.id} className="flex items-center gap-2 bg-black border border-white/5 rounded px-2.5 py-1.5">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.variant === "a" ? "border-orange-400/30 text-orange-300" : "border-green-400/30 text-pink-300"}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.variant === "a" ? "border-orange-400/30 text-orange-300" : "border-orange-400/30 text-pink-300"}`}>
                     {c.variant.toUpperCase()}
                   </span>
                   <span className="text-[10px] text-zinc-300 flex-1 min-w-0">

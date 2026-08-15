@@ -108,7 +108,7 @@ export default function TestimonialsSection() {
                       &ldquo;{t.content}&rdquo;
                     </p>
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-green-400 flex items-center justify-center text-white font-bold text-xs transition-transform duration-300 group-hover:scale-110">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-300 flex items-center justify-center text-white font-bold text-xs transition-transform duration-300 group-hover:scale-110">
                         {(t.authorName || t.authorChannel || "U").charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -188,7 +188,7 @@ export default function TestimonialsSection() {
               <button
                 type="submit"
                 disabled={createMut.isPending}
-                className="w-full py-2.5 rounded-full bg-gradient-to-r from-orange-400 to-green-400 text-black text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="w-full py-2.5 rounded-full bg-gradient-to-r from-orange-400 to-orange-300 text-black text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {createMut.isPending ? "Envoi..." : sent ? "Avis envoyé ✓" : "Envoyer mon avis"}
               </button>

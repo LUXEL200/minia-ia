@@ -27,7 +27,7 @@ const CANVAS_H = 720;
 
 const presetColors = [
   "#ffffff", "#000000", "#ff0050", "#00d4ff", "#ffe600",
-  "#7c3aed", "#22c55e", "#f97316", "#3b82f6", "#ec4899",
+  "#7c3aed", "#fdba74", "#f97316", "#3b82f6", "#ec4899",
 ];
 
 const presetEmojis = ["🔥", "⚡", "💥", "👀", "🚀", "💰", "😱", "🎯", "⭐", "✅", "❌", "🏆"];

@@ -83,7 +83,7 @@ export default function Gallery() {
         <section className="relative overflow-hidden pt-32 pb-16">
           <div className="absolute inset-0 bg-gradient-to-b from-orange-400/5 via-transparent to-transparent pointer-events-none" />
           <div className="absolute top-20 left-1/4 w-96 h-96 bg-orange-400/10 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute top-40 right-1/4 w-64 h-64 bg-green-400/8 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute top-40 right-1/4 w-64 h-64 bg-orange-400/8 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="container relative">
             <motion.div
@@ -101,7 +101,7 @@ export default function Gallery() {
 
               <h1 className="font-display text-5xl md:text-6xl font-bold tracking-tight mb-4">
                 Galerie{" "}
-                <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
                   Communautaire
                 </span>
               </h1>
@@ -150,7 +150,7 @@ export default function Gallery() {
             <button
               onClick={() => setSortBy("popular")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                sortBy === "popular" ? "bg-green-500/20 text-green-400" : "text-[#71717A] hover:text-white"
+                sortBy === "popular" ? "bg-orange-500/20 text-orange-400" : "text-[#71717A] hover:text-white"
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5" />
@@ -200,7 +200,7 @@ export default function Gallery() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={(e) => { e.stopPropagation(); handleLike(thumb.id); }}
-                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-green-400/20 transition-colors"
+                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-orange-400/20 transition-colors"
                             title="Ajouter aux favoris"
                           >
                             <Heart className="w-4 h-4 text-white" />
@@ -260,13 +260,13 @@ export default function Gallery() {
                       onClick={(e) => { e.stopPropagation(); handleLike(thumb.id); }}
                       className={`absolute top-3 right-3 p-1.5 rounded-full backdrop-blur-sm transition-all ${
                         likedThumbs[thumb.id]?.liked
-                          ? "bg-green-500/30 hover:bg-green-500/50"
+                          ? "bg-orange-500/30 hover:bg-orange-500/50"
                           : "bg-black/40 hover:bg-black/60"
                       }`}
                     >
                       <Heart className={`w-4 h-4 transition-all ${
                         likedThumbs[thumb.id]?.liked
-                          ? "text-green-500 fill-green-500 scale-110"
+                          ? "text-orange-500 fill-orange-500 scale-110"
                           : "text-white"
                       }`} />
                     </button>
@@ -275,7 +275,7 @@ export default function Gallery() {
                   {/* Like count badge */}
                   {likedThumbs[thumb.id] && likedThumbs[thumb.id].count > 0 && (
                     <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-full">
-                      <Heart className={`w-3 h-3 ${likedThumbs[thumb.id].liked ? "text-green-500 fill-green-500" : "text-white"}`} />
+                      <Heart className={`w-3 h-3 ${likedThumbs[thumb.id].liked ? "text-orange-500 fill-orange-500" : "text-white"}`} />
                       <span className="text-xs text-white">{likedThumbs[thumb.id].count}</span>
                     </div>
                   )}
@@ -313,12 +313,12 @@ export default function Gallery() {
 
         {/* CTA */}
         <section className="container pb-24">
-          <div className="relative bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-2xl p-8 md:p-12 text-center">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/5 to-green-400/5 rounded-2xl" />
+          <div className="relative bg-gradient-to-r from-orange-400/10 to-orange-300/10 border border-orange-400/20 rounded-2xl p-8 md:p-12 text-center">
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/5 to-orange-300/5 rounded-2xl" />
             <div className="relative">
               <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
                 Prêt à créer ta propre{" "}
-                <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
                   miniature virale
                 </span>
                 ?

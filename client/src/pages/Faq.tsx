@@ -65,7 +65,7 @@ export default function Faq() {
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             On répond à{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               tout
             </span>
           </h1>

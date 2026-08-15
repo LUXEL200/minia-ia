@@ -529,7 +529,7 @@ export default function Dashboard() {
         <div className="flex gap-3 overflow-x-auto pb-2">
           {/* Self */}
           <div className="flex-shrink-0 w-40 bg-muted rounded-[20px] p-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F97316] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
               {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
             </div>
             <div>
@@ -604,7 +604,7 @@ export default function Dashboard() {
                       <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Télécharger">
                         <Download className="w-4 h-4 text-white" />
                       </button>
-                      <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-muted/80 hover:bg-green-400/20 transition-colors" title="Favori">
+                      <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-muted/80 hover:bg-orange-400/20 transition-colors" title="Favori">
                         <Star className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-yellow-400 fill-yellow-400" : "text-white"}`} />
                       </button>
                       <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Partager">

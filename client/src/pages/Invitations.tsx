@@ -134,7 +134,7 @@ export default function InvitationsPage() {
                                 )
                               }
                               disabled={accept.isPending}
-                              className="flex items-center gap-1 bg-green-600 hover:bg-green-500 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
+                              className="flex items-center gap-1 bg-orange-600 hover:bg-orange-500 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
                             >
                               <Check size={11} /> Accepter
                             </button>
@@ -211,7 +211,7 @@ export default function InvitationsPage() {
                               inv.status === "pending"
                                 ? "bg-yellow-500/15 text-yellow-400"
                                 : inv.status === "accepted"
-                                ? "bg-green-500/15 text-green-400"
+                                ? "bg-orange-500/15 text-orange-400"
                                 : "bg-zinc-800 text-zinc-500"
                             }`}
                           >

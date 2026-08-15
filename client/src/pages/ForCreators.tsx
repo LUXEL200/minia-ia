@@ -58,7 +58,7 @@ export default function ForCreators() {
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Fait pour{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               chaque niche
             </span>
           </h1>
@@ -93,7 +93,7 @@ export default function ForCreators() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-16 p-8 bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-xl"
+          className="text-center mt-16 p-8 bg-gradient-to-r from-orange-400/10 to-orange-300/10 border border-orange-400/20 rounded-xl"
         >
           <h3 className="text-xl font-bold text-white mb-2">Rejoins la communauté</h3>
           <p className="text-[#A1A1AA] mb-4">Plus de 2 800 créateurs utilisent déjà Minia IA.</p>

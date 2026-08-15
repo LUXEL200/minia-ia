@@ -216,7 +216,7 @@ export default function BillingPage() {
                   <span className="flex items-center gap-2 min-w-0">
                     <span className="truncate">{p.packLabel}</span>
                     {p.status === "completed" && (
-                      <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full shrink-0">
+                      <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded-full shrink-0">
                         Payé
                       </span>
                     )}
@@ -240,7 +240,7 @@ export default function BillingPage() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="text-emerald-400" size={20} />
+                  <CheckCircle2 className="text-orange-400" size={20} />
                   Paiement simulé réussi
                 </DialogTitle>
                 <DialogDescription className="text-zinc-400">

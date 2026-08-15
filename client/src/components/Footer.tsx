@@ -7,7 +7,7 @@ import { Link } from "wouter";
 export default function Footer() {
   return (
     <footer className="relative">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#06B6D4]/30 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#F97316]/30 to-transparent" />
       
       <div className="py-16">
         <div className="container">
@@ -15,7 +15,7 @@ export default function Footer() {
             {/* Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F97316] to-[#EC4899] flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-display text-lg font-bold text-white">
@@ -76,7 +76,7 @@ export default function Footer() {
               © 2026 Minia IA. Tous droits réservés.
             </p>
             <div className="flex items-center gap-4 mt-4 sm:mt-0">
-              <select className="bg-transparent border border-border text-xs text-zinc-500 rounded px-3 py-1.5 focus:outline-none focus:border-[#06B6D4]/50">
+              <select className="bg-transparent border border-border text-xs text-zinc-500 rounded px-3 py-1.5 focus:outline-none focus:border-[#F97316]/50">
                 <option value="fr">🇫🇷 Français</option>
                 <option value="en">🇬🇧 English</option>
                 <option value="es">🇪🇸 Español</option>

@@ -219,7 +219,7 @@ export default function Editor() {
       y: 100,
       width: 200,
       height: 100,
-      color: shape === "rect" ? "#06B6D4" : shape === "circle" ? "#EC4899" : "#F59E0B",
+      color: shape === "rect" ? "#F97316" : shape === "circle" ? "#EC4899" : "#F59E0B",
       opacity: 0.8,
     };
     const newElements = [...elements, el];
@@ -388,7 +388,7 @@ export default function Editor() {
   };
 
   const selectedElement = elements.find(el => el.id === selectedId);
-  const colors = ["#FFFFFF", "#000000", "#EF4444", "#F97316", "#EAB308", "#22C55E", "#06B6D4", "#3B82F6", "#8B5CF6", "#EC4899"];
+  const colors = ["#FFFFFF", "#000000", "#EF4444", "#F97316", "#EAB308", "#FDBA74", "#EA580C", "#3B82F6", "#8B5CF6", "#EC4899"];
   const bgUploadInputRef = useRef<HTMLInputElement>(null);
 
   const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -935,7 +935,7 @@ export default function Editor() {
             color: el.color,
             width: el.width,
             cursor: cursorStyle,
-            outline: isSelected ? "2px solid #06B6D4" : "none",
+            outline: isSelected ? "2px solid #F97316" : "none",
             outlineOffset: 2,
             userSelect: "none",
             lineHeight: 1.2,
@@ -966,7 +966,7 @@ export default function Editor() {
             borderRadius: el.shape === "circle" ? "50%" : el.shape === "rect" ? 4 : 0,
             clipPath: el.shape === "triangle" ? "polygon(50% 0%, 0% 100%, 100% 100%)" : undefined,
             cursor: cursorStyle,
-            outline: isSelected ? "2px solid #06B6D4" : "none",
+            outline: isSelected ? "2px solid #F97316" : "none",
             outlineOffset: 2,
             userSelect: "none",
           }}
@@ -993,7 +993,7 @@ export default function Editor() {
             borderRadius: el.borderRadius,
             transform: (el as EditorImageElement).rotation ? `rotate(${(el as EditorImageElement).rotation}deg)` : undefined,
             cursor: cursorStyle,
-            outline: isSelected ? "2px solid #06B6D4" : "none",
+            outline: isSelected ? "2px solid #F97316" : "none",
             outlineOffset: 2,
             userSelect: "none",
           }}

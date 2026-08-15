@@ -13,12 +13,12 @@ export default function ParallelSection() {
         {/* Section heading */}
         <AnimatedSection animation="fade-up">
           <div className="text-center mb-16">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#F97316] mb-4 block">
               / Génération Parallèle
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
               N'attendez plus.{" "}
-              <span className="text-[#06B6D4]">Générez en parallèle.</span>
+              <span className="text-[#F97316]">Générez en parallèle.</span>
             </h2>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
               Les autres outils génèrent les miniatures une par une. Minia IA les lance toutes simultanément — 4 miniatures en le temps qu'il faut aux autres pour en faire une.
@@ -71,16 +71,16 @@ export default function ParallelSection() {
 
           {/* Minia IA — fast */}
           <motion.div
-            className="p-8 rounded-xl bg-[#18181B] border border-[#06B6D4]/30 relative overflow-hidden transition-all duration-300 hover:border-[#06B6D4]/50 hover:shadow-lg hover:shadow-[#06B6D4]/10"
+            className="p-8 rounded-xl bg-[#18181B] border border-[#F97316]/30 relative overflow-hidden transition-all duration-300 hover:border-[#F97316]/50 hover:shadow-lg hover:shadow-[#F97316]/10"
             whileHover={{ y: -2 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#06B6D4]/5 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#F97316]/5 to-transparent" />
             <div className="relative">
               <div className="flex items-center gap-3 mb-8">
-                <Zap className="w-5 h-5 text-[#06B6D4]" />
-                <span className="text-sm font-medium text-[#06B6D4] uppercase tracking-wider">Minia IA</span>
+                <Zap className="w-5 h-5 text-[#F97316]" />
+                <span className="text-sm font-medium text-[#F97316] uppercase tracking-wider">Minia IA</span>
                 <motion.span
-                  className="ml-auto text-xs bg-[#22C55E]/10 text-[#22C55E] px-2 py-0.5 rounded font-bold"
+                  className="ml-auto text-xs bg-[#FDBA74]/10 text-[#FDBA74] px-2 py-0.5 rounded font-bold"
                   animate={{ opacity: [0.7, 1, 0.7] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
@@ -92,7 +92,7 @@ export default function ParallelSection() {
                   <div key={i} className="relative">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-zinc-300">Miniature {i}</span>
-                      <span className="text-sm text-[#06B6D4] font-mono font-bold">simultané</span>
+                      <span className="text-sm text-[#F97316] font-mono font-bold">simultané</span>
                     </div>
                     <div className="h-1.5 bg-[#27272A] rounded-full overflow-hidden">
                       <motion.div
@@ -100,15 +100,15 @@ export default function ParallelSection() {
                         whileInView={{ width: "100%" }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4, delay: 0.5, ease: [0.77, 0, 0.175, 1] }}
-                        className="h-full bg-[#06B6D4] rounded-full"
+                        className="h-full bg-[#F97316] rounded-full"
                       />
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-8 pt-6 border-t border-[#06B6D4]/20">
-                <p className="text-2xl font-display font-bold text-[#06B6D4]">
-                  ~30<span className="text-sm text-[#06B6D4]/60 ml-1">secondes</span>
+              <div className="mt-8 pt-6 border-t border-[#F97316]/20">
+                <p className="text-2xl font-display font-bold text-[#F97316]">
+                  ~30<span className="text-sm text-[#F97316]/60 ml-1">secondes</span>
                 </p>
               </div>
             </div>

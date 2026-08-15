@@ -6,8 +6,8 @@ import { motion } from "framer-motion";
 import { TrendingUp, Users, Clock, Star } from "lucide-react";
 
 const stats = [
-  { icon: TrendingUp, value: "+38%", label: "CTR moyen", color: "#06B6D4" },
-  { icon: Users, value: "14,589+", label: "Créateurs actifs", color: "#06B6D4" },
+  { icon: TrendingUp, value: "+38%", label: "CTR moyen", color: "#F97316" },
+  { icon: Users, value: "14,589+", label: "Créateurs actifs", color: "#F97316" },
   { icon: Clock, value: "<30s", label: "Génération", color: "#EC4899" },
   { icon: Star, value: "4.9/5", label: "Note moyenne", color: "#FBBF24" },
 ];

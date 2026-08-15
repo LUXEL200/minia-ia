@@ -222,21 +222,21 @@
 
 ## Vague v15 (demande utilisateur — 15/08)
 
-- [ ] Palette : bleu de nuit (base), orange léger (accent), vert léger, opacité 6 % sur effets subtils — tokens index.css (dark + light)
-- [ ] Palette : recalibrer classes v14 (gradient-text, glow-btn, badge-pulse, feature-edge) vers la nouvelle palette
-- [ ] Palette : vérifier la lisibilité light/dark sur toutes les pages critiques
-- [ ] Onboarding : tutoriel pas à pas Dashboard (steps : créer miniature, planifier, calendrier, favoris/poubelle, recherche, menu) — overlay + highlight + Next/Skip/terminé
-- [ ] Onboarding : marque de complétion (localStorage) pour ne rejouer qu'à la première connexion, bouton « Rejouer la visite » accessible
-- [ ] Backend : table `testimonials` (nom, email optionnel, texte, note, statut pending/approved, createdAt) + procédures submit/approve/list
-- [ ] Frontend : formulaire de témoignage (page compte ? + modal dashboard) + section témoignages avec statut approuvé uniquement
-- [ ] Frontend : aucun faux témoignage seed (conformité) — section vide state propre si 0 avis
-- [ ] Tests vitest + tsc + vérifs light/dark + checkpoint
+- [x] Palette : bleu de nuit (base), orange léger (accent), vert léger, opacité 6 % sur effets subtils — tokens index.css (dark + light) [V15 livré]
+- [x] Palette : recalibrer classes v14 (gradient-text, glow-btn, badge-pulse, feature-edge) vers la nouvelle palette [V15 livré]
+- [x] Palette : vérifier la lisibilité light/dark sur toutes les pages critiques [V15 livré]
+- [x] Onboarding : tutoriel pas à pas Dashboard — overlay + highlight + Next/Skip/terminé [V15 livré]
+- [x] Onboarding : marque de complétion (localStorage) + bouton « Rejouer la visite » [V15 livré]
+- [x] Backend : table `testimonials` + procédures submit/approve/list [V15 livré]
+- [x] Frontend : formulaire de témoignage + section témoignages avec statut approuvé uniquement [V15 livré]
+- [x] Frontend : aucun faux témoignage seed — état vide propre [V15 livré]
+- [x] Tests vitest + tsc + vérifs light/dark + checkpoint [V15 livré]
 
 ## État V15 (sauvegarde contexte — 15/08 13:19)
 - [x] Palette bleu de nuit/orange/vert APPLIQUÉE : tokens dark (background oklch 0.14 0.028 262, primary orange 0.75 0.13 60) + light (background pâle teinté, primary 0.7 0.14 60) + classes v14 recalibrées (gradient-text orange→vert, glow 6 %) + tous cyan/violet/pink/purple remplacés en orange-400/500 + green-400/500/600 dans components/*.tsx + pages/*.tsx. tsc 0 erreur. Vérifs visuelles dark/light OK (landing + dashboard light confirmés).
-- [ ] Onboarding : composant OnboardingTour.tsx CRÉÉ (7 steps avec data-tour selectors : stats, create, calendar, recent, search, hamburger). RESTE : ajouter data-tour attributs dans Dashboard.tsx + AppSidebar.tsx, monter <OnboardingTour /> dans Dashboard, bouton "Rejouer la visite", vérif visuelle.
-- [ ] Testimonials : backend (table testimonials + router) + frontend (formulaire dans Notifications? ou dashboard + section landing) — PAS ENCORE FAIT.
-- [ ] Tests vitest + vérifs + checkpoint final.
+- [x] OnboardingTour.tsx monté dans Dashboard avec data-tour (stats, create, calendar, recent, search, hamburger) + bouton "Rejouer la visite" [V15 livré]
+- [x] Testimonials : backend + frontend (formulaire + section landing + modération admin) [V15 livré]
+- [x] Tests vitest + vérifs + checkpoint final [V15 livré]
 NOTE : localStorage key = "minia-onboarding-done-v1". Palette : orange accent, green success, fond bleu nuit.
 
 ## Avancement V15 (13:22)
@@ -263,3 +263,12 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Accès super admin conditionnel : uniquement si l'utilisateur est le compte propriétaire autorisé (OWNER_OPEN_ID) — flag isAdminOwner injecté au contexte tRPC, adminProcedure, guards frontend, badges, endpoints
 - [x] Tests vitest mis à jour et verts (81/81, makeCaller avec isAdminOwner)
 - [x] Vérification visuelle + checkpoint + publication
+
+## Vague v17 (demande utilisateur — 15/08)
+
+- [x] Retirer la couleur verte de toute la palette du SaaS : bleu de nuit + orange uniquement (tokens CSS dark+light, success/emerald/green remplacés par orange ou bleu, glows 190/335→60/55, gradient-text orange→orange profond)
+- [x] Vidéo de démonstration : vérifier la section vidéo démo sur la landing (embed YouTube/TikTok) et la rendre visible/fonctionnelle
+- [x] Tests vitest + tsc + vérifs visuelles dark+light + checkpoint + publication
+
+- [x] Landing refonte vidéo : analyser youthumb.ai/en (section vidéo démo, design, animations) et transposer sur la landing Minia IA (hero 2 colonnes + badge compteur animé + maquette produit animée style mock UI + section démo produit scroll-triggered, style bleu nuit/orange)
+- [x] Finaliser : tests vitest + tsc + vérifs visuelles dark+light + checkpoint + publication

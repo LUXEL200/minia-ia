@@ -11,7 +11,7 @@ const features = [
     icon: User,
     title: "Ton visage. Enregistré.",
     description: "Configure une fois. Utilise pour toujours.",
-    color: "#06B6D4",
+    color: "#F97316",
   },
   {
     icon: Link,
@@ -23,20 +23,20 @@ const features = [
     icon: BarChart3,
     title: "A/B testing.",
     description: "Génère, compare, choisis.",
-    color: "#22C55E",
+    color: "#FDBA74",
   },
   {
     icon: Zap,
     title: "De jours à secondes.",
     description: "48h → 30s avec Minia IA.",
-    color: "#06B6D4",
+    color: "#F97316",
   },
 ];
 
 export default function SolutionSection() {
   return (
     <section className="py-24 lg:py-32 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#06B6D4]/3 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#F97316]/3 to-transparent pointer-events-none" />
       
       <div className="container relative z-10">
         {/* Section heading */}
@@ -68,15 +68,15 @@ export default function SolutionSection() {
         >
           <div className="relative group">
             <motion.div
-              className="absolute -inset-1 bg-gradient-to-r from-[#06B6D4]/20 to-[#EC4899]/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-80 transition-opacity duration-500"
+              className="absolute -inset-1 bg-gradient-to-r from-[#F97316]/20 to-[#EC4899]/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-80 transition-opacity duration-500"
               animate={{ opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <div className="relative rounded-[20px] overflow-hidden border border-[#06B6D4]/20 bg-card/70 transition-all duration-500 group-hover:border-[#06B6D4]/40 group-hover:shadow-xl group-hover:shadow-[#06B6D4]/10">
+            <div className="relative rounded-[20px] overflow-hidden border border-[#F97316]/20 bg-card/70 transition-all duration-500 group-hover:border-[#F97316]/40 group-hover:shadow-xl group-hover:shadow-[#F97316]/10">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
                 <div className="w-3 h-3 rounded-full bg-[#EF4444]" />
                 <div className="w-3 h-3 rounded-full bg-[#FBBF24]" />
-                <div className="w-3 h-3 rounded-full bg-[#22C55E]" />
+                <div className="w-3 h-3 rounded-full bg-[#FDBA74]" />
                 <span className="ml-4 text-xs text-zinc-500 font-mono">app.minia-ia.com</span>
               </div>
               <img
@@ -94,7 +94,7 @@ export default function SolutionSection() {
             {features.map((feature, i) => (
               <StaggeredItem key={i}>
                 <motion.div
-                  className={`group p-5 rounded-[20px] border border-border bg-card/70 card-hover hover:border-[#06B6D4]/30 ${
+                  className={`group p-5 rounded-[20px] border border-border bg-card/70 card-hover hover:border-[#F97316]/30 ${
                     i % 2 === 1 ? "lg:mt-6" : ""
                   }`}
                   whileHover={{ y: -4 }}

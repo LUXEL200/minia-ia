@@ -124,7 +124,7 @@ export default function AdminPage() {
 
   const planColors: Record<string, string> = {
     free: "bg-gray-700 text-gray-300",
-    pro: "bg-green-500/30 text-green-300",
+    pro: "bg-orange-500/30 text-orange-300",
     max: "bg-cyan-600/30 text-orange-300",
   };
 
@@ -200,7 +200,7 @@ export default function AdminPage() {
                 <StatCard icon={<Users />} label="Utilisateurs" value={stats?.totalUsers ?? 0} color="cyan" />
                 <StatCard icon={<ImageIcon />} label="Miniatures" value={stats?.totalThumbnails ?? 0} color="pink" />
                 <StatCard icon={<CreditCard />} label="Crédits totaux" value={stats?.totalCredits ?? 0} color="purple" />
-                <StatCard icon={<Layers />} label="Templates" value={stats?.totalTemplates ?? 0} color="green" />
+                <StatCard icon={<Layers />} label="Templates" value={stats?.totalTemplates ?? 0} color="orange" />
                 <StatCard icon={<Globe />} label="Avatars" value={stats?.totalAvatars ?? 0} color="orange" />
                 <StatCard icon={<Settings />} label="End Cards" value={stats?.totalEndCards ?? 0} color="blue" />
                 <StatCard icon={<Key />} label="Clés API" value={stats?.totalApiKeys ?? 0} color="red" />
@@ -262,7 +262,7 @@ export default function AdminPage() {
                           sendNotifMut.mutate({ title: notifTitle, message: notifMessage || undefined });
                         }}
                         disabled={sendNotifMut.isPending}
-                        className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
+                        className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
                       >
                         {sendNotifMut.isPending ? "..." : "Envoyer"}
                       </button>
@@ -275,7 +275,7 @@ export default function AdminPage() {
               <div className="bg-muted rounded-xl border border-border p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold flex items-center gap-2">
-                    <Key size={16} className="text-green-400" /> Modèles IA disponibles
+                    <Key size={16} className="text-orange-400" /> Modèles IA disponibles
                   </h3>
                   <button onClick={() => refetchModels()} className="text-gray-400 hover:text-foreground">
                     <RefreshCw size={14} />
@@ -384,7 +384,7 @@ export default function AdminPage() {
                       });
                     }}
                     disabled={createTemplateMut.isPending}
-                    className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
+                    className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
                   >
                     {createTemplateMut.isPending ? "Création..." : "Créer le template"}
                   </button>
@@ -423,21 +423,21 @@ export default function AdminPage() {
             <div className="space-y-6">
               <div className="bg-muted rounded-xl border border-border p-5">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Key size={16} className="text-green-400" /> Modèles de génération IA
+                  <Key size={16} className="text-orange-400" /> Modèles de génération IA
                 </h3>
                 <div className="space-y-3">
                   {(models?.models || []).map((m: any, i: number) => (
                     <div key={i} className="flex items-center justify-between bg-black/40 rounded-lg p-3 border border-border">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                          <Zap size={14} className="text-green-400" />
+                        <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                          <Zap size={14} className="text-orange-400" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">{m.model || m.id || "Unknown"}</p>
                           <p className="text-xs text-gray-500">Modèle Forge</p>
                         </div>
                       </div>
-                      <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Actif</span>
+                      <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">Actif</span>
                     </div>
                   ))}
                   {(models?.models || []).length === 0 && (
@@ -508,7 +508,7 @@ export default function AdminPage() {
                       sendNotifMut.mutate({ title: notifTitle, message: notifMessage || undefined });
                     }}
                     disabled={sendNotifMut.isPending || !notifTitle.trim()}
-                    className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm px-5 py-2.5 rounded-lg font-medium transition-colors"
+                    className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm px-5 py-2.5 rounded-lg font-medium transition-colors"
                   >
                     {sendNotifMut.isPending ? "Envoi..." : "Envoyer à tous"}
                   </button>
@@ -552,7 +552,7 @@ export default function AdminPage() {
                     <p className="text-sm font-medium">Plan Pro — crédits</p>
                     <p className="text-xs text-gray-500">Crédits mensuels pour le plan Pro</p>
                   </div>
-                  <span className="text-sm text-green-400">100</span>
+                  <span className="text-sm text-orange-400">100</span>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <div>
@@ -618,7 +618,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             onClick={() => setVerifiedMut.mutate({ id: t.id, verified: "approved" })}
-                            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
+                            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors"
                           >
                             <CheckCircle2 size={12} /> Valider
                           </button>
@@ -643,12 +643,12 @@ export default function AdminPage() {
 
               {/* Approved */}
               <div>
-                <h4 className="text-sm font-medium text-green-400 flex items-center gap-2 mb-3">
+                <h4 className="text-sm font-medium text-orange-400 flex items-center gap-2 mb-3">
                   <CheckCircle2 size={14} /> Validés et affichés ({approvedTestimonials.length})
                 </h4>
                 <div className="space-y-3">
                   {(approvedTestimonials || []).map(t => (
-                    <div key={t.id} className="bg-muted border border-green-500/20 rounded-xl p-4 flex items-start justify-between gap-3">
+                    <div key={t.id} className="bg-muted border border-orange-500/20 rounded-xl p-4 flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <p className="text-sm text-white">{t.content}</p>
                         <p className="text-xs text-gray-500 mt-1">
@@ -703,9 +703,9 @@ export default function AdminPage() {
 function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
   const colorMap: Record<string, string> = {
     cyan: "border-orange-400/30",
-    pink: "border-green-400/30",
-    purple: "border-green-400/30",
-    green: "border-green-500/30",
+    pink: "border-orange-400/30",
+    purple: "border-orange-400/30",
+    teal: "border-orange-500/30",
     orange: "border-orange-500/30",
     blue: "border-blue-500/30",
     red: "border-red-500/30",
@@ -713,7 +713,7 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
   };
   const iconColorMap: Record<string, string> = {
     cyan: "text-orange-400", pink: "text-pink-400", purple: "text-purple-400",
-    green: "text-green-400", orange: "text-orange-400", blue: "text-blue-400",
+    teal: "text-orange-400", orange: "text-orange-400", blue: "text-blue-400",
     red: "text-red-400", gold: "text-yellow-400",
   };
 
@@ -742,7 +742,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
 
   return (
     <div className="flex items-center gap-3 bg-muted rounded-lg border border-border p-3">
-      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-green-500 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-300 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
         {(user.name || user.email || "?").charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">

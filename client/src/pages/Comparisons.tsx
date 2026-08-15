@@ -88,7 +88,7 @@ export default function Comparisons() {
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Minia IA vs la{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               concurrence
             </span>
           </h1>
@@ -122,7 +122,7 @@ export default function Comparisons() {
                   <td className="py-3 px-4 text-white">{row.feature}</td>
                   <td className="py-3 px-4 text-center">
                     {typeof row.minia === "boolean" ? (
-                      row.minia ? <Check className="w-4 h-4 text-emerald-400 mx-auto" /> : <X className="w-4 h-4 text-red-400 mx-auto" />
+                      row.minia ? <Check className="w-4 h-4 text-orange-400 mx-auto" /> : <X className="w-4 h-4 text-red-400 mx-auto" />
                     ) : (
                       <span className="text-orange-400 font-medium">{row.minia}</span>
                     )}
@@ -151,7 +151,7 @@ export default function Comparisons() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-12 p-8 bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-xl"
+          className="text-center mt-12 p-8 bg-gradient-to-r from-orange-400/10 to-orange-300/10 border border-orange-400/20 rounded-xl"
         >
           <h3 className="text-xl font-bold text-white mb-2">La différence est claire</h3>
           <p className="text-[#A1A1AA] mb-4">Essaie gratuitement et vois par toi-même.</p>

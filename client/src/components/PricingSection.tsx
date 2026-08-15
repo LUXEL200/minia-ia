@@ -19,7 +19,7 @@ const plans = [
     description: "Pour essayer",
     cta: "Commencer gratuitement",
     popular: false,
-    color: "#06B6D4",
+    color: "#F97316",
   },
   {
     name: "Pro",
@@ -31,7 +31,7 @@ const plans = [
     description: "Pour créateurs solo",
     cta: "Essayer Pro",
     popular: true,
-    color: "#06B6D4",
+    color: "#F97316",
   },
   {
     name: "Max",
@@ -43,7 +43,7 @@ const plans = [
     description: "Pour duos & agences",
     cta: "Essayer Max",
     popular: false,
-    color: "#06B6D4",
+    color: "#F97316",
   },
 ];
 
@@ -91,7 +91,7 @@ export default function PricingSection() {
                 <motion.span
                   initial={{ scale: 0.8 }}
                   animate={{ scale: 1 }}
-                  className="text-xs bg-[#22C55E]/10 text-[#22C55E] px-1.5 py-0.5 rounded font-bold"
+                  className="text-xs bg-[#FDBA74]/10 text-[#FDBA74] px-1.5 py-0.5 rounded font-bold"
                 >
                   -17%
                 </motion.span>
@@ -107,8 +107,8 @@ export default function PricingSection() {
                 <motion.div
                   className={`relative p-8 rounded-[20px] border transition-all duration-300 ${
                     plan.popular
-                      ? "bg-card/70 border-[#06B6D4]/40 lg:scale-105 shadow-xl shadow-[#06B6D4]/5 hover:border-[#06B6D4]/60"
-                      : "bg-card/70 border-border hover:border-[#06B6D4]/20"
+                      ? "bg-card/70 border-[#F97316]/40 lg:scale-105 shadow-xl shadow-[#F97316]/5 hover:border-[#F97316]/60"
+                      : "bg-card/70 border-border hover:border-[#F97316]/20"
                   }`}
                   whileHover={{ y: plan.popular ? -4 : -6 }}
                   transition={{ type: "spring", stiffness: 300 }}
@@ -118,7 +118,7 @@ export default function PricingSection() {
                       initial={{ scale: 0.8, opacity: 0 }}
                       whileInView={{ scale: 1, opacity: 1 }}
                       viewport={{ once: true }}
-                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded bg-[#06B6D4] text-black text-xs font-bold"
+                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded bg-[#F97316] text-black text-xs font-bold"
                     >
                       Plus Populaire
                     </motion.div>
@@ -171,7 +171,7 @@ export default function PricingSection() {
                   <Button
                     className={`w-full rounded-lg font-semibold magnetic-btn ${
                       plan.popular
-                        ? "bg-[#06B6D4] hover:bg-[#06B6D4]/90 text-black"
+                        ? "bg-[#F97316] hover:bg-[#F97316]/90 text-black"
                         : "bg-[#27272A] text-white hover:bg-[#3F3F46]"
                     }`}
                   >

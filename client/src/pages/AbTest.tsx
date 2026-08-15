@@ -158,7 +158,7 @@ export default function AbTest() {
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
                       <h3 className="text-sm font-medium">{test.title}</h3>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${test.status === "finished" ? "bg-emerald-500/20 text-emerald-400" : "bg-cyan-500/20 text-orange-400"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${test.status === "finished" ? "bg-orange-500/20 text-orange-400" : "bg-cyan-500/20 text-orange-400"}`}>
                         {test.status === "finished" ? "Terminé" : "En cours"}
                       </span>
                       {test.autoClosed ? (
@@ -216,9 +216,9 @@ export default function AbTest() {
                       const ctr = side === "A" ? test.ctrA : test.ctrB;
                       const isWin = test.winner === side.toLowerCase();
                       return (
-                        <div key={side} className={`relative rounded-lg overflow-hidden border ${isWin ? "border-emerald-400" : "border-border"}`}>
+                        <div key={side} className={`relative rounded-lg overflow-hidden border ${isWin ? "border-orange-400" : "border-border"}`}>
                           {isWin && (
-                            <span className="absolute top-1.5 left-1.5 z-10 bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <span className="absolute top-1.5 left-1.5 z-10 bg-orange-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
                               <Award size={10} /> GAGNANTE
                             </span>
                           )}
@@ -375,7 +375,7 @@ export default function AbTest() {
                     <button
                       key={t.id}
                       onClick={() => setVariantBId(t.id)}
-                      className={`relative aspect-video rounded overflow-hidden border-2 transition-colors ${variantBId === t.id ? "border-green-500" : "border-transparent"}`}
+                      className={`relative aspect-video rounded overflow-hidden border-2 transition-colors ${variantBId === t.id ? "border-orange-500" : "border-transparent"}`}
                     >
                       <img src={t.imageUrl || ""} alt="" className="w-full h-full object-cover" />
                     </button>

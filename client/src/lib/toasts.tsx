@@ -32,7 +32,7 @@ export function toastRich(
         <Icon
           className={`w-4 h-4 mt-0.5 shrink-0 ${
             variant === "success"
-              ? "text-emerald-400"
+              ? "text-orange-400"
               : variant === "error"
                 ? "text-red-400"
                 : variant === "warning"

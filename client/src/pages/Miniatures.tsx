@@ -251,7 +251,7 @@ export default function Miniatures() {
                   <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Télécharger">
                     <Download className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => likeMutation.mutate({ thumbnailId: thumb.id })} className="p-2 rounded-full bg-muted/80 hover:bg-green-400/20 transition-colors" title="Favori">
+                  <button onClick={() => likeMutation.mutate({ thumbnailId: thumb.id })} className="p-2 rounded-full bg-muted/80 hover:bg-orange-400/20 transition-colors" title="Favori">
                     <Star className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-yellow-400 fill-yellow-400" : "text-white"}`} />
                   </button>
                   <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Partager">

@@ -87,7 +87,7 @@ export default function ComparisonSection() {
                   <td className="py-4 px-4 text-sm text-zinc-300 font-medium">
                     {row.feature}
                   </td>
-                  <td className="py-4 px-4 text-center bg-[#06B6D4]/3">
+                  <td className="py-4 px-4 text-center bg-[#F97316]/3">
                     <CellContent value={row.minia} isMinia={true} />
                   </td>
                   <td className="py-4 px-4 text-center">

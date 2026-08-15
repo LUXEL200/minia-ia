@@ -21,11 +21,11 @@ export default function FounderSection() {
           
           <h2 className="text-3xl sm:text-4xl font-display font-bold text-white leading-tight mb-10">
             J'avais le même problème.{" "}
-            <span className="text-[#06B6D4]">Alors j'ai créé la solution.</span>
+            <span className="text-[#F97316]">Alors j'ai créé la solution.</span>
           </h2>
 
           <div className="flex flex-col items-center gap-6">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#06B6D4]/30">
+            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#F97316]/30">
               <img
                 src="/manus-storage/founder-avatar_acaa8037.png"
                 alt="Fondateur Minia IA"

@@ -13,7 +13,7 @@ const problems = [
     subtitle: "pour un résultat médiocre",
     description: "Tu passes plus de temps sur les visuels que sur le contenu. Tu es créateur, pas designer.",
     number: "01",
-    color: "#06B6D4",
+    color: "#F97316",
   },
   {
     icon: Timer,
@@ -29,7 +29,7 @@ const problems = [
     subtitle: "ça s'accumule vite",
     description: "Une miniature par semaine = 100€+/mois minimum. Et ce n'est pas toujours au niveau des grosses chaînes.",
     number: "03",
-    color: "#06B6D4",
+    color: "#F97316",
   },
 ];
 

@@ -7,10 +7,10 @@ import { Palette } from "lucide-react";
 
 const styles = [
   { name: "MrBeast Style", color: "#EF4444" },
-  { name: "Tech Review", color: "#06B6D4" },
+  { name: "Tech Review", color: "#F97316" },
   { name: "Dramatique", color: "#8B5CF6" },
   { name: "Lifestyle", color: "#F97316" },
-  { name: "Gaming", color: "#22C55E" },
+  { name: "Gaming", color: "#FDBA74" },
   { name: "Business", color: "#3B82F6" },
 ];
 

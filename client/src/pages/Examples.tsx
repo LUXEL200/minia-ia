@@ -58,7 +58,7 @@ export default function Examples() {
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Les résultats{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               parlent d'eux-mêmes
             </span>
           </h1>
@@ -88,8 +88,8 @@ export default function Examples() {
                   <span className="text-xs text-red-400 font-medium mb-1 block">AVANT</span>
                   <p className="text-sm text-[#A1A1AA]">{example.before}</p>
                 </div>
-                <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-lg">
-                  <span className="text-xs text-emerald-400 font-medium mb-1 block">APRÈS MINIA IA</span>
+                <div className="p-4 bg-orange-500/5 border border-orange-500/10 rounded-lg">
+                  <span className="text-xs text-orange-400 font-medium mb-1 block">APRÈS MINIA IA</span>
                   <p className="text-sm text-[#A1A1AA]">{example.after}</p>
                 </div>
               </div>

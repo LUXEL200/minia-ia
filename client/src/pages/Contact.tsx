@@ -18,7 +18,7 @@ export default function Contact() {
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold mb-4">
             Parlons de{" "}
-            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
               ton projet
             </span>
           </h1>
@@ -106,7 +106,7 @@ export default function Contact() {
               <p className="text-xs text-[#52525B]">Échange avec d'autres créateurs et obtiens de l'aide rapide.</p>
             </div>
 
-            <div className="bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-xl p-6">
+            <div className="bg-gradient-to-r from-orange-400/10 to-orange-300/10 border border-orange-400/20 rounded-xl p-6">
               <h3 className="text-lg font-bold text-white mb-1">FAQ rapide</h3>
               <p className="text-sm text-[#A1A1AA] mb-3">Ta question a peut-être déjà une réponse.</p>
               <a href="/faq" className="text-sm text-orange-400 hover:underline">Voir la FAQ →</a>

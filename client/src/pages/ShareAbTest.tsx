@@ -85,7 +85,7 @@ export default function ShareAbTest() {
                 {test.status === "finished" && (
                   <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium ${
                     test.winner && test.winner !== "undecided" && test.winner !== "tie"
-                      ? "bg-green-500/15 text-green-400 border border-green-500/30"
+                      ? "bg-orange-500/15 text-orange-400 border border-orange-500/30"
                       : "bg-muted/80 text-foreground border border-border"
                   }`}>
                     {test.winner === "a" || test.winner === "b" ? <Trophy className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
@@ -115,11 +115,11 @@ export default function ShareAbTest() {
                 const ctr = variant === "a" ? test.ctrA : test.ctrB;
                 const isWinner = test.winner === variant;
                 return (
-                  <div key={variant} className={`rounded-[20px] border overflow-hidden ${isWinner ? "border-green-500/40 bg-green-500/5" : "border-border bg-muted"}`}>
+                  <div key={variant} className={`rounded-[20px] border overflow-hidden ${isWinner ? "border-orange-500/40 bg-orange-500/5" : "border-border bg-muted"}`}>
                     <div className="relative">
                       <img src={v.imageUrl} alt={`Variante ${variant.toUpperCase()}`} className="w-full aspect-video object-cover" />
                       {isWinner && (
-                        <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/90 text-white text-[10px] font-semibold">
+                        <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/90 text-white text-[10px] font-semibold">
                           <Trophy className="w-3 h-3" /> Gagnante
                         </div>
                       )}

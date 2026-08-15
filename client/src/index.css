@@ -46,19 +46,19 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  /* Palette Midnight Studio : bleu de nuit (base), orange léger (accent), vert léger — effets subtils à 6 % d'opacité */
+  /* Palette Midnight Studio : bleu de nuit (base), orange léger (accent) — effets subtils à 6 % d'opacité */
   --color-midnight-blue: oklch(0.28 0.06 260);
   --color-midnight-deep: oklch(0.16 0.04 262);
   --color-light-orange: oklch(0.82 0.11 60);
-  --color-light-green: oklch(0.78 0.13 160);
+  --color-light-amber: oklch(0.85 0.09 65);
   --color-neon-cyan: oklch(0.82 0.11 60);
-  --color-neon-pink: oklch(0.78 0.13 160);
+  --color-neon-pink: oklch(0.8 0.12 60);
   --color-neon-glow: oklch(0.82 0.11 60 / 6%);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
-/* Palette Midnight Studio — bleu de nuit (base), orange léger (accent), vert léger */
+/* Palette Midnight Studio — bleu de nuit (base), orange léger (accent) */
 :root {
   --radius: 0.75rem;
   --background: oklch(0.14 0.028 262);
@@ -81,10 +81,10 @@
   --input: oklch(0.32 0.03 262);
   --ring: oklch(0.75 0.13 60);
   --chart-1: oklch(0.75 0.13 60);
-  --chart-2: oklch(0.78 0.13 160);
+  --chart-2: oklch(0.82 0.11 60);
   --chart-3: oklch(0.7 0.15 260);
   --chart-4: oklch(0.65 0.1 80);
-  --chart-5: oklch(0.7 0.12 200);
+  --chart-5: oklch(0.6 0.08 262);
   --sidebar: oklch(0.19 0.032 262);
   --sidebar-foreground: oklch(0.97 0.008 260);
   --sidebar-primary: oklch(0.75 0.13 60);
@@ -95,7 +95,7 @@
   --sidebar-ring: oklch(0.75 0.13 60);
 }
 
-/* Mode clair complet — toutes les pages : teinte bleu de nuit très pâle, accent orange léger, vert léger */
+/* Mode clair complet — toutes les pages : teinte bleu de nuit très pâle, accent orange léger */
 :root.light, html.light {
   --background: oklch(0.985 0.006 260);
   --foreground: oklch(0.18 0.03 262);
@@ -176,24 +176,24 @@
   }
 
   .neon-text {
-    background: linear-gradient(135deg, oklch(0.82 0.17 190), oklch(0.7 0.25 335));
+    background: linear-gradient(135deg, oklch(0.78 0.14 60), oklch(0.75 0.15 55));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .neon-glow {
-    box-shadow: 0 0 20px oklch(0.82 0.17 190 / 40%), 0 0 40px oklch(0.82 0.17 190 / 20%);
+    box-shadow: 0 0 20px oklch(0.78 0.14 60 / 40%), 0 0 40px oklch(0.78 0.14 60 / 20%);
   }
 
   .neon-glow-pink {
-    box-shadow: 0 0 20px oklch(0.7 0.25 335 / 40%), 0 0 40px oklch(0.7 0.25 335 / 20%);
+    box-shadow: 0 0 20px oklch(0.75 0.15 55 / 40%), 0 0 40px oklch(0.75 0.15 55 / 20%);
   }
 
   .grid-bg {
     background-image: 
-      linear-gradient(oklch(0.82 0.17 190 / 5%) 1px, transparent 1px),
-      linear-gradient(90deg, oklch(0.82 0.17 190 / 5%) 1px, transparent 1px);
+      linear-gradient(oklch(0.78 0.14 60 / 5%) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.78 0.14 60 / 5%) 1px, transparent 1px);
     background-size: 60px 60px;
   }
 
@@ -203,8 +203,8 @@
   }
   .card-hover:hover {
     transform: translateY(-4px);
-    border-color: oklch(0.82 0.17 190 / 50%);
-    box-shadow: 0 0 20px oklch(0.82 0.17 190 / 15%), 0 8px 30px oklch(0 0 0 / 30%);
+    border-color: oklch(0.78 0.14 60 / 50%);
+    box-shadow: 0 0 20px oklch(0.78 0.14 60 / 15%), 0 8px 30px oklch(0 0 0 / 30%);
   }
 
   /* Neon frame — animated border glow on hover */
@@ -219,7 +219,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, oklch(0.82 0.17 190 / 0%), oklch(0.82 0.17 190 / 0%));
+    background: linear-gradient(135deg, oklch(0.78 0.14 60 / 0%), oklch(0.78 0.14 60 / 0%));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -228,7 +228,7 @@
     pointer-events: none;
   }
   .neon-frame:hover::before {
-    background: linear-gradient(135deg, oklch(0.82 0.17 190 / 60%), oklch(0.7 0.25 335 / 40%));
+    background: linear-gradient(135deg, oklch(0.78 0.14 60 / 60%), oklch(0.75 0.15 55 / 40%));
   }
 
   /* Glitch text effect */
@@ -372,10 +372,10 @@
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 20px oklch(0.82 0.17 190 / 40%), 0 0 40px oklch(0.82 0.17 190 / 20%);
+    box-shadow: 0 0 20px oklch(0.78 0.14 60 / 40%), 0 0 40px oklch(0.78 0.14 60 / 20%);
   }
   50% {
-    box-shadow: 0 0 30px oklch(0.82 0.17 190 / 60%), 0 0 60px oklch(0.82 0.17 190 / 30%);
+    box-shadow: 0 0 30px oklch(0.78 0.14 60 / 60%), 0 0 60px oklch(0.78 0.14 60 / 30%);
   }
 }
 
@@ -397,9 +397,9 @@
 
 /* ---------- V14 « Cinematic Studio » — refonte UI ---------- */
 
-/* Texte en dégradé signature orange léger → vert léger */
+/* Texte en dégradé signature orange léger → orange profond */
 .gradient-text {
-  background: linear-gradient(120deg, oklch(0.8 0.13 60), oklch(0.72 0.14 160));
+  background: linear-gradient(120deg, oklch(0.8 0.13 60), oklch(0.72 0.16 45));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

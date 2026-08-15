@@ -13,7 +13,7 @@ const features = [
     badge: "SYSTÈME PERSON",
     title: "Configure une fois. Utilise pour toujours.",
     description: "Ajoute quelques photos, décris ton look — lunettes, barbe, casquette, tout ce qui te caractérise. L'IA enregistre ta ressemblance et l'utilise pour chaque future miniature.",
-    color: "#06B6D4",
+    color: "#F97316",
   },
   {
     icon: Link2,
@@ -27,7 +27,7 @@ const features = [
     badge: "VITESSE",
     title: "De jours à secondes.",
     description: "Génère jusqu'à 4 variations de miniatures en moins de 30 secondes. Pas de brief à écrire. Pas de boucle de feedback. Pas d'attente de 48h.",
-    color: "#06B6D4",
+    color: "#F97316",
   },
   {
     icon: Edit3,
@@ -41,7 +41,7 @@ const features = [
     badge: "FINITIONS",
     title: "Finitions intégrées.",
     description: "Ajoute un éclairage studio, du texte néon, des effets de glow — les trucs que les YouTubeurs font tout le temps. Pré-construits, en un clic.",
-    color: "#06B6D4",
+    color: "#F97316",
   },
 ];
 
@@ -72,7 +72,7 @@ export default function FeaturesSection() {
               delay={i * 0.06}
             >
               <motion.div
-                className={`group flex flex-col sm:flex-row gap-5 p-6 rounded-[20px] bg-card/70 border border-border card-hover hover:border-[#06B6D4]/20 ${
+                className={`group flex flex-col sm:flex-row gap-5 p-6 rounded-[20px] bg-card/70 border border-border card-hover hover:border-[#F97316]/20 ${
                   i % 2 === 1 ? "sm:flex-row-reverse" : ""
                 }`}
                 whileHover={{ scale: 1.005 }}

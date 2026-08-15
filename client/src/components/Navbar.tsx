@@ -91,7 +91,7 @@ export default function Navbar() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                   <Avatar className="w-8 h-8 border border-[#27272A]">
-                    <AvatarFallback className="bg-gradient-to-br from-[#06B6D4] to-[#EC4899] text-white text-xs font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-[#F97316] to-[#EC4899] text-white text-xs font-bold">
                       {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -125,7 +125,7 @@ export default function Navbar() {
               </Button>
               <Button
                 onClick={startLogin}
-                className="bg-gradient-to-r from-orange-400 to-green-400 hover:from-cyan-400 hover:to-violet-400 text-black font-semibold text-sm px-5 rounded-full glow-btn"
+                className="bg-gradient-to-r from-orange-400 to-orange-300 hover:from-cyan-400 hover:to-violet-400 text-black font-semibold text-sm px-5 rounded-full glow-btn"
               >
                 Essayer gratuitement
               </Button>
@@ -155,7 +155,7 @@ export default function Navbar() {
             ))}
             {isAuthenticated ? (
               <div className="flex flex-col gap-2 pt-4 border-t border-[#27272A]">
-                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={`font-medium py-1.5 text-sm ${isLight ? "text-[#0891B2]" : "text-[#06B6D4]"}`}>
+                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={`font-medium py-1.5 text-sm ${isLight ? "text-[#0891B2]" : "text-[#F97316]"}`}>
                   Dashboard
                 </Link>
                 <Button variant="outline" onClick={() => { logout(); setMobileOpen(false); }} className="border-[#27272A] text-zinc-400 text-sm w-full justify-start">
@@ -166,7 +166,7 @@ export default function Navbar() {
             ) : (
               <Button
                 onClick={() => { startLogin(); setMobileOpen(false); }}
-                className="w-full bg-[#06B6D4] text-black font-semibold mt-4 text-sm"
+                className="w-full bg-[#F97316] text-black font-semibold mt-4 text-sm"
               >
                 Essayer gratuitement
               </Button>
