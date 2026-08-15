@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import CalendarView from "@/components/CalendarView";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
@@ -450,6 +451,9 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* v9 : Vue Calendrier des publications planifiées */}
+      <CalendarView />
 
       {/* Vos personnes */}
       <div className="mb-8">

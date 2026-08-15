@@ -171,9 +171,9 @@
 
 ## Vague v9 (demande utilisateur — 15/08)
 
-- [ ] Audit : repérer les éléments hardcodés en mode sombre (bg-black, bg-[#0C0C0E], text-zinc-*, bg-white/5…) dans toutes les pages/composants
-- [ ] Mode clair complet : remplacer les hardcodés par des tokens CSS (bg-background, bg-card, text-foreground, border) + overrides .light cohérents
-- [ ] Polices harmonisées : une seule famille pour titres/corps/chiens/boutons dans les deux thèmes (index.css global)
-- [ ] Rappels de planification : notification in-app (J-1) pour les miniatures planifiées qui approchent (cron quotidien ou à la connexion)
-- [ ] Vue « Calendrier » : grille mensuelle des publications planifiées dans le Dashboard
-- [ ] Tests vitest + tsc + vérifications mode clair/sombre + responsive + checkpoint
+- [x] Audit : repérer les éléments hardcodés en mode sombre (bg-black, bg-[#0C0C0E], text-zinc-*, bg-white/5…) dans toutes les pages/composants
+- [x] Mode clair complet : remplacer les hardcodés par des tokens CSS (bg-background, bg-card, text-foreground, border) + overrides .light cohérents
+- [x] Polices harmonisées : une seule famille pour titres/corps/chiens/boutons dans les deux thèmes (index.css global)
+- [x] Rappels de planification : notification in-app (J-1) pour les miniatures planifiées qui approchent (cron quotidien ou à la connexion)
+- [x] Vue « Calendrier » : grille mensuelle des publications planifiées dans le Dashboard
+- [x] Tests vitest + tsc + vérifications mode clair/sombre + responsive + checkpoint

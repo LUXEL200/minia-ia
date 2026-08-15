@@ -25,3 +25,28 @@ Touchés : AppSidebar, GlobalSearchDialog, TestContributionsPanel, Navbar, PageH
 - Checkpoint v8 = e180bfd1, auto-publish actif (domaine miniagenerat-3x8qnuoe.manus.space).
 - ThemeContext : dark/light, localStorage minia-theme (vérifier nom exact dans client/src/contexts/ThemeContext.tsx).
 - Fonts actuelles : vérifier client/index.html (probablement Space Grotesk + Inter ou autre).
+
+## Cron Heartbeat créé
+- Nom : daily-planning-reminders
+- task_uid : VbrfJAhiBmczMrfR6paBHJ
+- Cron : 0 0 7 * * * (07h00 UTC = 08h00 Europe/Paris en été)
+- Path : /api/scheduled/fireReminders (handler monté dans server/_core/index.ts, app.post AVANT le tRPC)
+- tRPC : reminders.fire (publicProcedure) + schedules.listMonth (protected, year/month 1-12)
+- DB : publishedSchedules.reminded (int 0/1) + helpers getRemindersToFire/markScheduleReminded/getSchedulesByMonth
+- Checkpoint v9 partie 1 = cea00126 (auto-publié)
+
+## Reste à faire (frontend)
+1. Vue Calendrier : composant CalendarView monté dans Dashboard (onglet/vue "Calendrier" avec navigation mois + événements par jour + compte à rebours) — utiliser trpc.schedules.listMonth
+2. Tests vitest : reminders.fire (notifications créées, reminded marqué), schedules.listMonth
+3. Cocher todo v9 + checkpoint final
+
+## Structure Dashboard.tsx (pour vue Calendrier)
+- state : activeView "home"|"generate" ; upcomingSchedules = trpc.schedules.list ; countdownOf(scheduledAt) formate "dans Xj Yh Zm" ou "En retard !"; deleteSchedule/createSchedule mutations ; tick setInterval 1s.
+- Imports lucide : déjà CalendarRange, CalendarClock (ligne 16).
+- Prochaines étapes : ajouter `const [calMonth, setCalMonth]` avec query trpc.schedules.listMonth({year, month}), composant CalendarView (grille 7 colonnes, Jours FR L-D), navigation < > mois, chaque jour affiche le nombre + mini popover avec titre + image + countdownOf.
+- Ajouter bouton/onglet "Calendrier" dans la home view (près du panneau Planifiées) — chercher le rendu du panneau "Planifiées" dans renderHomeView.
+- Tests v9 : file server/features.v9.test.ts (mock pattern = features.v8.test.ts : vi.mock("../db") avec les helpers, vi.mock("./_core/trpc") pour ctx, test reminders.fire avec nowIso = date à J-1, listMonth retourne schedules du mois).
+- Pense au cron déjà créé (task_uid VbrfJAhiBmczMrfR6paBHJ, cron 0 0 7 * * *).
+
+## État final v9 (prêt checkpoint)
+Vue Calendrier intégrée dans le Dashboard (CalendarView.tsx, monté sous « À publier bientôt », navigation mois FR, grille L-D, événements cyan cliquables, état vide). Screenshots OK : calendrier affiche bien Août 2026, jour 15 surligné cyan. Tests vitest 50/50, tsc OK. Cron Heartbeat créé (daily-planning-reminders, 0 0 7 * * *). Thème clair harmonisé via overrides .light dans index.css. Reste : cocher todo.md v9 + checkpoint final + message résultat.
