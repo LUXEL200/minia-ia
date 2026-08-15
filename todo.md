@@ -168,3 +168,12 @@
 - [x] Frontend : panel « Stats collaboratives » dans la page A/B Test (membres ajoutent vues/clics, agrégat affiché)
 - [x] Frontend : champ de recherche globale accessible depuis le menu hamburger (dialog recherche multi-pages)
 - [x] Tests vitest (36/36) + tsc + vérifications responsive + checkpoint
+
+## Vague v9 (demande utilisateur — 15/08)
+
+- [ ] Audit : repérer les éléments hardcodés en mode sombre (bg-black, bg-[#0C0C0E], text-zinc-*, bg-white/5…) dans toutes les pages/composants
+- [ ] Mode clair complet : remplacer les hardcodés par des tokens CSS (bg-background, bg-card, text-foreground, border) + overrides .light cohérents
+- [ ] Polices harmonisées : une seule famille pour titres/corps/chiens/boutons dans les deux thèmes (index.css global)
+- [ ] Rappels de planification : notification in-app (J-1) pour les miniatures planifiées qui approchent (cron quotidien ou à la connexion)
+- [ ] Vue « Calendrier » : grille mensuelle des publications planifiées dans le Dashboard
+- [ ] Tests vitest + tsc + vérifications mode clair/sombre + responsive + checkpoint

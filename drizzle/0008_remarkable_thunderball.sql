@@ -1,0 +1,1 @@
+ALTER TABLE `publishedSchedules` ADD `reminded` int DEFAULT 0 NOT NULL;

@@ -388,6 +388,7 @@ export const publishedSchedules = mysqlTable("publishedSchedules", {
   thumbnailId: int("thumbnailId").notNull(),
   youtubeTitle: text("youtubeTitle").notNull(),
   scheduledAt: timestamp("scheduledAt").notNull(),
+  reminded: int("reminded").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index("sched_user_idx").on(table.userId),

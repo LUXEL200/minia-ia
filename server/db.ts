@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, like, or } from "drizzle-orm";
+import { and, desc, eq, gte, lt, lte, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -1054,6 +1054,40 @@ export async function getUpcomingSchedules(userId: number) {
   for (const s of rows) {
     const t = await getThumbnailById(s.thumbnailId);
     if (t) enriched.push({ ...s, imageUrl: t.imageUrl, style: t.style });
+  }
+  return enriched;
+}
+
+// === Planning reminders (J-1 notifications) ===
+
+export async function getRemindersToFire(before: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  // Schedules whose publication time is within 24h (future <= before) and not yet reminded
+  return db.select().from(publishedSchedules)
+    .where(and(gte(publishedSchedules.scheduledAt, new Date()), lte(publishedSchedules.scheduledAt, before), eq(publishedSchedules.reminded, 0)))
+    .orderBy(publishedSchedules.scheduledAt);
+}
+
+export async function markScheduleReminded(id: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(publishedSchedules).set({ reminded: 1 }).where(eq(publishedSchedules.id, id));
+  return true;
+}
+
+export async function getSchedulesByMonth(userId: number, year: number, month: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const start = new Date(Date.UTC(year, month - 1, 1));
+  const end = new Date(Date.UTC(year, month, 1));
+  const rows = await db.select().from(publishedSchedules)
+    .where(and(eq(publishedSchedules.userId, userId), gte(publishedSchedules.scheduledAt, start), lt(publishedSchedules.scheduledAt, end)))
+    .orderBy(publishedSchedules.scheduledAt);
+  const enriched = [];
+  for (const s of rows) {
+    const t = await getThumbnailById(s.thumbnailId);
+    enriched.push({ ...s, imageUrl: t?.imageUrl ?? null });
   }
   return enriched;
 }

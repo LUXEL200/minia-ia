@@ -86,6 +86,7 @@ import {
   revokeApiKey,
   getNotificationsByUserId,
   getUnreadCountByUserId,
+  createNotification,
   markNotificationRead,
   markAllNotificationsRead,
   getAdminStats,
@@ -124,6 +125,9 @@ import {
   createPublishedSchedule,
   deletePublishedSchedule,
   getUpcomingSchedules,
+  getSchedulesByMonth,
+  getRemindersToFire,
+  markScheduleReminded,
   getThumbnailByIdWithCheck,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
@@ -1344,14 +1348,46 @@ export const appRouter = router({
         });
       }),
 
-    delete: protectedProcedure
+        delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         await deletePublishedSchedule(input.id, ctx.user.id);
         return { success: true } as const;
       }),
+    /** Vue Calendrier : schedules d'un mois donné (année, mois 1-12) */
+    listMonth: protectedProcedure
+      .input(z.object({ year: z.number().int().min(2000).max(2100), month: z.number().int().min(1).max(12) }))
+      .query(async ({ ctx, input }) => {
+        return getSchedulesByMonth(ctx.user.id, input.year, input.month);
+      }),
   }),
-
+  // === Planning reminders (cron J-1) ===
+  reminders: router({
+    /** Handler déclenché par le cron Heartbeat quotidien — crée les notifications J-1 */
+    fire: publicProcedure
+      .input(z.object({ nowIso: z.string().datetime().optional() }).optional())
+      .mutation(async ({ input }) => {
+        const now = input?.nowIso ? new Date(input.nowIso) : new Date();
+        const window = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const due = await getRemindersToFire(window);
+        const fired: { scheduleId: number; userId: number; title: string }[] = [];
+        for (const s of due) {
+          try {
+            await createNotification({
+              userId: s.userId,
+              title: "Rappel de planification",
+              message: `« ${s.youtubeTitle} » est programmé pour demain. Prépare ta vidéo et publie la miniature à temps !`,
+              type: "system",
+            });
+            await markScheduleReminded(s.id);
+            fired.push({ scheduleId: s.id, userId: s.userId, title: s.youtubeTitle });
+          } catch {
+            // Continuer sur les autres schedules même si un échoue (idempotent au global)
+          }
+        }
+        return { fired } as const;
+      }),
+  }),
   // === Organization ===
   org: orgRouter,
 
