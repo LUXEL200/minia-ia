@@ -41,12 +41,12 @@ export default function ProcessSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
+          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
             / Processus
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
             3 étapes. Le même processus que tu{" "}
-            <span className="text-[#06B6D4]">connais</span>.
+            <span className="text-cyan-400">connais</span>.
           </h2>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
             Tu donnes des inspirations à ton minia maker ? C'est exactement pareil. Sans l'attente.
@@ -71,7 +71,7 @@ export default function ProcessSection() {
                   </div>
                 )}
                 
-                <div className="relative p-6 rounded-xl bg-[#18181B] border border-[#27272A] text-center transition-all duration-300 hover:border-[#06B6D4]/20">
+                <div className="relative p-6 rounded-[20px] bg-card/70 border border-border text-center transition-all duration-300 hover:border-[#06B6D4]/20">
                   <span className="absolute -top-3 left-5 text-3xl font-display font-bold opacity-10" style={{ color: step.color }}>
                     {step.number}
                   </span>

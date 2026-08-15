@@ -61,7 +61,7 @@ export default function Blog() {
             <PenLine className="w-4 h-4 text-cyan-400" />
             <span className="text-sm text-[#A1A1AA]">Blog & Ressources</span>
           </div>
-          <h1 className="font-[Space_Grotesk] text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Apprends à{" "}
             <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
               performer

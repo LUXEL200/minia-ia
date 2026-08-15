@@ -112,7 +112,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <div className="border-b border-white/10 px-6 py-4">
+      <div className="border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
@@ -126,7 +126,7 @@ export default function AdminPage() {
             </span>
             <button
               onClick={logout}
-              className="text-xs text-gray-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
+              className="text-xs text-gray-400 hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted"
             >
               Déconnexion
             </button>
@@ -136,7 +136,7 @@ export default function AdminPage() {
 
       <div className="flex">
         {/* Sidebar — hidden on mobile, shown as drawer via Sheet */}
-        <div className="hidden md:block w-56 border-r border-white/10 min-h-[calc(100vh-73px)] p-3">
+        <div className="hidden md:block w-56 border-r border-border min-h-[calc(100vh-73px)] p-3">
           <nav className="space-y-1">
             {tabs.map(tab => (
               <button
@@ -144,8 +144,8 @@ export default function AdminPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   activeTab === tab.id
-                    ? "bg-white/10 text-white font-medium"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    ? "bg-muted/80 text-white font-medium"
+                    : "text-gray-400 hover:text-foreground hover:bg-muted"
                 }`}
               >
                 {tab.icon}
@@ -156,7 +156,7 @@ export default function AdminPage() {
         </div>
 
         {/* Mobile tab selector */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur border-t border-white/10">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur border-t border-border">
           <div className="flex overflow-x-auto">
             {tabs.map(tab => (
               <button
@@ -190,18 +190,18 @@ export default function AdminPage() {
               </div>
 
               {/* Quick Actions */}
-              <div className="bg-white/5 rounded-xl border border-white/10 p-5">
+              <div className="bg-muted rounded-xl border border-border p-5">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Zap size={16} className="text-yellow-400" /> Actions rapides
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-black/40 rounded-lg p-4 border border-white/5">
+                  <div className="bg-black/40 rounded-lg p-4 border border-border">
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Attribuer des crédits (bulk)</h4>
                     <div className="flex gap-2">
                       <select
                         value={bulkPlan}
                         onChange={e => setBulkPlan(e.target.value as any)}
-                        className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm flex-1"
+                        className="bg-black/50 border border-border rounded-lg px-3 py-2 text-sm flex-1"
                       >
                         <option value="all">Tous les plans</option>
                         <option value="free">Free uniquement</option>
@@ -212,7 +212,7 @@ export default function AdminPage() {
                         type="number"
                         value={bulkAmount}
                         onChange={e => setBulkAmount(e.target.value)}
-                        className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm w-24"
+                        className="bg-black/50 border border-border rounded-lg px-3 py-2 text-sm w-24"
                         placeholder="Qté"
                       />
                       <button
@@ -228,7 +228,7 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="bg-black/40 rounded-lg p-4 border border-white/5">
+                  <div className="bg-black/40 rounded-lg p-4 border border-border">
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Notification globale</h4>
                     <div className="flex gap-2">
                       <input
@@ -236,7 +236,7 @@ export default function AdminPage() {
                         value={notifTitle}
                         onChange={e => setNotifTitle(e.target.value)}
                         placeholder="Titre"
-                        className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm flex-1"
+                        className="bg-black/50 border border-border rounded-lg px-3 py-2 text-sm flex-1"
                       />
                       <button
                         onClick={() => {
@@ -254,18 +254,18 @@ export default function AdminPage() {
               </div>
 
               {/* API Models */}
-              <div className="bg-white/5 rounded-xl border border-white/10 p-5">
+              <div className="bg-muted rounded-xl border border-border p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold flex items-center gap-2">
                     <Key size={16} className="text-green-400" /> Modèles IA disponibles
                   </h3>
-                  <button onClick={() => refetchModels()} className="text-gray-400 hover:text-white">
+                  <button onClick={() => refetchModels()} className="text-gray-400 hover:text-foreground">
                     <RefreshCw size={14} />
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {(models?.models || []).map((m: any, i: number) => (
-                    <span key={i} className="bg-white/10 text-gray-300 text-xs px-3 py-1.5 rounded-full">
+                    <span key={i} className="bg-muted/80 text-gray-300 text-xs px-3 py-1.5 rounded-full">
                       {m.model || m.id || "unknown"}
                     </span>
                   ))}
@@ -288,7 +288,7 @@ export default function AdminPage() {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Rechercher un utilisateur..."
-                    className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2.5 text-sm"
+                    className="w-full bg-muted border border-border rounded-lg pl-9 pr-4 py-2.5 text-sm"
                   />
                 </div>
               </div>
@@ -325,25 +325,25 @@ export default function AdminPage() {
               </div>
 
               {showNewTemplateForm && (
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+                <div className="bg-muted border border-border rounded-xl p-4 space-y-3">
                   <input
                     type="text"
                     value={newTemplateTitle}
                     onChange={e => setNewTemplateTitle(e.target.value)}
                     placeholder="Titre du template"
-                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-black/50 border border-border rounded-lg px-3 py-2 text-sm"
                   />
                   <input
                     type="url"
                     value={newTemplateImageUrl}
                     onChange={e => setNewTemplateImageUrl(e.target.value)}
                     placeholder="URL de l'image (Unsplash/Pexels/autre)"
-                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-black/50 border border-border rounded-lg px-3 py-2 text-sm"
                   />
                   <select
                     value={newTemplateCategory}
                     onChange={e => setNewTemplateCategory(e.target.value)}
-                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-black/50 border border-border rounded-lg px-3 py-2 text-sm"
                   >
                     <option value="viral">Viral</option>
                     <option value="mrbeast">MrBeast</option>
@@ -375,7 +375,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {(allTemplates || []).map(t => (
-                  <div key={t.id} className="relative group bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+                  <div key={t.id} className="relative group bg-muted border border-border rounded-lg overflow-hidden">
                     <img src={t.imageUrl} alt={t.title} className="w-full aspect-video object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2">
                       <p className="text-xs font-medium truncate">{t.title}</p>
@@ -403,13 +403,13 @@ export default function AdminPage() {
           {/* API Tab */}
           {activeTab === "api" && (
             <div className="space-y-6">
-              <div className="bg-white/5 rounded-xl border border-white/10 p-5">
+              <div className="bg-muted rounded-xl border border-border p-5">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Key size={16} className="text-green-400" /> Modèles de génération IA
                 </h3>
                 <div className="space-y-3">
                   {(models?.models || []).map((m: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between bg-black/40 rounded-lg p-3 border border-white/5">
+                    <div key={i} className="flex items-center justify-between bg-black/40 rounded-lg p-3 border border-border">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
                           <Zap size={14} className="text-green-400" />
@@ -431,7 +431,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-xl border border-white/10 p-5">
+              <div className="bg-muted rounded-xl border border-border p-5">
                 <h3 className="font-semibold mb-4">Configuration actuelle</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="bg-black/40 rounded-lg p-3">
@@ -459,7 +459,7 @@ export default function AdminPage() {
           {activeTab === "notifications" && (
             <div className="space-y-4">
               <h3 className="font-semibold">Notification globale</h3>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-4">
+              <div className="bg-muted border border-border rounded-xl p-5 space-y-4">
                 <div>
                   <label className="text-sm text-gray-400 mb-1.5 block">Titre</label>
                   <input
@@ -467,7 +467,7 @@ export default function AdminPage() {
                     value={notifTitle}
                     onChange={e => setNotifTitle(e.target.value)}
                     placeholder="Ex: Nouvelle fonctionnalité disponible !"
-                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-sm"
+                    className="w-full bg-black/50 border border-border rounded-lg px-4 py-2.5 text-sm"
                   />
                 </div>
                 <div>
@@ -477,7 +477,7 @@ export default function AdminPage() {
                     onChange={e => setNotifMessage(e.target.value)}
                     placeholder="Détails de la notification..."
                     rows={3}
-                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-sm resize-none"
+                    className="w-full bg-black/50 border border-border rounded-lg px-4 py-2.5 text-sm resize-none"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -497,7 +497,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+              <div className="bg-muted border border-border rounded-xl p-5">
                 <h4 className="text-sm font-medium text-gray-300 mb-3">Types de notifications disponibles</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {["system", "credit", "generation", "team"].map(type => (
@@ -514,22 +514,22 @@ export default function AdminPage() {
           {activeTab === "settings" && (
             <div className="space-y-6">
               <h3 className="font-semibold">Paramètres Super Admin</h3>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-white/5">
+              <div className="bg-muted border border-border rounded-xl p-5 space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-border">
                   <div>
                     <p className="text-sm font-medium">Crédits par défaut (nouvel utilisateur)</p>
                     <p className="text-xs text-gray-500">Nombre de crédits attribués à l'inscription</p>
                   </div>
                   <span className="text-sm text-cyan-400">10</span>
                 </div>
-                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                <div className="flex items-center justify-between py-3 border-b border-border">
                   <div>
                     <p className="text-sm font-medium">Plan gratuit — crédits</p>
                     <p className="text-xs text-gray-500">Crédits mensuels pour le plan Free</p>
                   </div>
                   <span className="text-sm text-gray-400">10</span>
                 </div>
-                <div className="flex items-center justify-between py-3 border-b border-white/5">
+                <div className="flex items-center justify-between py-3 border-b border-border">
                   <div>
                     <p className="text-sm font-medium">Plan Pro — crédits</p>
                     <p className="text-xs text-gray-500">Crédits mensuels pour le plan Pro</p>
@@ -545,7 +545,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+              <div className="bg-muted border border-border rounded-xl p-5">
                 <h4 className="text-sm font-medium text-gray-300 mb-3">Informations système</h4>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className="bg-black/40 rounded-lg p-3">
@@ -594,7 +594,7 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
   };
 
   return (
-    <div className={`bg-white/5 rounded-xl border ${colorMap[color]} p-4`}>
+    <div className={`bg-muted rounded-xl border ${colorMap[color]} p-4`}>
       <div className={`mb-2 ${iconColorMap[color]}`}>{icon}</div>
       <p className="text-2xl font-bold">{value}</p>
       <p className="text-xs text-gray-500 mt-0.5">{label}</p>
@@ -617,7 +617,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
   useEffect(() => { setCreditsValue(userCredits.toString()); }, [userCredits]);
 
   return (
-    <div className="flex items-center gap-3 bg-white/5 rounded-lg border border-white/10 p-3">
+    <div className="flex items-center gap-3 bg-muted rounded-lg border border-border p-3">
       <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
         {(user.name || user.email || "?").charAt(0).toUpperCase()}
       </div>
@@ -645,7 +645,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
             </button>
             <button
               onClick={() => setEditCredits(false)}
-              className="text-xs bg-white/10 text-gray-400 px-2 py-1 rounded"
+              className="text-xs bg-muted/80 text-gray-400 px-2 py-1 rounded"
             >
               ✕
             </button>
@@ -661,7 +661,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
         <div className="flex gap-1">
           <button
             onClick={() => onUpdatePlan(userPlan === "free" ? "pro" : userPlan === "pro" ? "max" : "free")}
-            className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors"
+            className="text-xs bg-muted/80 hover:bg-white/20 px-2 py-1 rounded transition-colors"
             title="Changer le plan"
           >
             <Crown size={12} />
@@ -669,7 +669,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
           <button
             onClick={() => onUpdateRole(user.role === "admin" ? "user" : "admin")}
             className={`text-xs px-2 py-1 rounded transition-colors ${
-              user.role === "admin" ? "bg-red-500/20 text-red-400" : "bg-white/10 hover:bg-white/20 text-gray-300"
+              user.role === "admin" ? "bg-red-500/20 text-red-400" : "bg-muted/80 hover:bg-white/20 text-gray-300"
             }`}
             title={user.role === "admin" ? "Retirer admin" : "Donner admin"}
           >

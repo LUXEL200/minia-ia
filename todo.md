@@ -208,3 +208,14 @@
 - [x] Audit : actions suppression (poubelle, toast, invalidation cache, état vide)
 - [x] Audit : chargement des pages (skeletons, états vides, rechargement cache)
 - [x] Corrections : helper toastRich (icône+titre+description+undo), cloche dropdown (Tout marquer lu, dates relatives, lien direct), Notifications.tsx (clic=marqué lu, pulsation badge), Dashboard/Miniatures/Trash (toasts enrichis, undo suppression→Poubelle, planifications avec invalidation calendrier+notifications), 72/72 vitest (dont 8 v13) + tsc 0 erreur + vérifs light/dark + checkpoint
+
+## Vague v14 (refonte UI complète — demande utilisateur — 15/08)
+
+- [x] Audit design actuel : landing page (Home, HeroSection, sections), dashboard, composants partagés
+- [x] Consulter références : Elementor web-design-inspiration, Pinterest board, Dribbble notifications, 21st.dev (+ tendances SaaS UI 2026)
+- [x] Nouveau design system v2 « Cinematic Studio » : police Sora (display), palette cyan→violet, tokens index.css light/dark, classes glass/grid-dots/lift/glow/pill/badge-pulse/gradient-text
+- [x] Landing page : hero retravaillé (grid-dots, badge pill, typo gradient), sections lift-card glass, micro-animations
+- [x] Dashboard : cartes stats bg-muted rounded-[20px], header glass, chip crédits gradient, badge cloche badge-pulse
+- [x] Pages internes : harmonisation tokens (AppSidebar/AppHeader/Navbar, Miniatures, Personnes, Editor, AbTest, Admin, ShareAbTest)
+- [x] Logo : nouveau logo Minia IA (style miniature/play) généré + favicon
+- [x] Tests vitest 72/72 + tsc 0 erreur + vérifs light/dark + checkpoint

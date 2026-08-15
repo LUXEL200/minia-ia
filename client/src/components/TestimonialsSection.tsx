@@ -36,11 +36,11 @@ export default function TestimonialsSection() {
       <div className="container">
         <AnimatedSection animation="fade-up">
           <div className="text-center mb-16">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
               / Témoignages
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
-              Ils ont <span className="text-[#06B6D4]">arrêté d'attendre</span>.
+              Ils ont <span className="text-cyan-400">arrêté d'attendre</span>.
             </h2>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
               Ce que les créateurs disent après leur premier mois sur Minia IA.
@@ -53,7 +53,7 @@ export default function TestimonialsSection() {
             {testimonials.map((testimonial, i) => (
               <StaggeredItem key={i}>
                 <motion.div
-                  className="relative p-6 rounded-xl bg-[#18181B] border border-[#27272A] transition-all duration-300 hover:border-[#06B6D4]/20"
+                  className="relative p-6 rounded-[20px] bg-card/70 border border-border transition-all duration-300 hover:border-[#06B6D4]/20"
                   whileHover={{ y: -4, scale: 1.01 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >

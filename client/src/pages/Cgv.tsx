@@ -16,7 +16,7 @@ export default function Cgv() {
             <FileText className="w-4 h-4 text-cyan-400" />
             <span className="text-sm text-[#A1A1AA]">CGV</span>
           </div>
-          <h1 className="font-[Space_Grotesk] text-3xl md:text-4xl font-bold">
+          <h1 className="font-display text-3xl md:text-4xl font-bold">
             Conditions Générales de Vente
           </h1>
         </motion.div>

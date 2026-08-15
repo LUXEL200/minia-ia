@@ -490,62 +490,62 @@ export default function Editor() {
   };
 
   const renderToolbar = () => (
-    <div className="fixed left-0 top-0 h-full w-16 bg-[#111] border-r border-white/5 flex flex-col items-center py-4 gap-2 z-40">
+    <div className="fixed left-0 top-0 h-full w-16 bg-[#111] border-r border-border flex flex-col items-center py-4 gap-2 z-40">
       <button
         onClick={() => navigate("/dashboard")}
-        className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         title="Retour"
       >
         <ArrowLeft className="w-5 h-5" />
       </button>
 
-      <div className="w-8 h-px bg-white/10 my-2" />
+      <div className="w-8 h-px bg-muted/80 my-2" />
 
       {/* Add menu */}
       <div className="relative">
         <button
           onClick={() => setShowAddMenu(!showAddMenu)}
-          className={`p-2 rounded-lg transition-colors ${showAddMenu ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-400 hover:text-white hover:bg-white/5"}`}
+          className={`p-2 rounded-lg transition-colors ${showAddMenu ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
           title="Ajouter"
         >
           <Plus className="w-5 h-5" />
         </button>
         {showAddMenu && (
-          <div className="absolute left-full ml-2 top-0 bg-[#1a1a1a] border border-white/10 rounded-xl p-3 shadow-2xl z-50 w-48">
-            <p className="text-[10px] text-zinc-500 uppercase mb-2">Ajouter</p>
-            <button onClick={addTextElement} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left">
+          <div className="absolute left-full ml-2 top-0 bg-[#1a1a1a] border border-border rounded-xl p-3 shadow-2xl z-50 w-48">
+            <p className="text-[10px] text-muted-foreground uppercase mb-2">Ajouter</p>
+            <button onClick={addTextElement} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
               <Type className="w-3.5 h-3.5" /> Texte
             </button>
-            <button onClick={() => addShapeElement("rect")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left">
+            <button onClick={() => addShapeElement("rect")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
               <Layers className="w-3.5 h-3.5" /> Rectangle
             </button>
-            <button onClick={() => addShapeElement("circle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left">
+            <button onClick={() => addShapeElement("circle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
               <Layers className="w-3.5 h-3.5" /> Cercle
             </button>
-            <button onClick={() => addShapeElement("triangle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left">
+            <button onClick={() => addShapeElement("triangle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
               <Layers className="w-3.5 h-3.5" /> Triangle
             </button>
-            <button onClick={addBackground} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left">
+            <button onClick={addBackground} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
               <Palette className="w-3.5 h-3.5" /> Couleur d'arrière-plan
             </button>
-            <div className="w-full h-px bg-white/5 my-1" />
-            <p className="text-[10px] text-zinc-500 px-1 pt-1">Image de fond</p>
+            <div className="w-full h-px bg-muted my-1" />
+            <p className="text-[10px] text-muted-foreground px-1 pt-1">Image de fond</p>
             <button
               onClick={insertImageAsLayer}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-cyan-400 hover:bg-white/5 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-cyan-400 hover:bg-muted transition-colors text-left"
             >
               <Move className="w-3.5 h-3.5" /> Insérer comme calque (modifiable)
             </button>
             <button
               onClick={() => bgUploadInputRef.current?.click()}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left"
             >
               <Layers className="w-3.5 h-3.5" /> Importer une image
             </button>
             {bgImageUrl && (
               <button
                 onClick={clearBgImage}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400 hover:bg-white/5 transition-colors text-left"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400 hover:bg-muted transition-colors text-left"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Retirer l'image de fond
               </button>
@@ -555,46 +555,46 @@ export default function Editor() {
       </div>
 
       {/* Undo/Redo */}
-      <button onClick={handleUndo} className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors" title="Annuler">
+      <button onClick={handleUndo} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Annuler">
         <Undo2 className="w-5 h-5" />
       </button>
-      <button onClick={handleRedo} className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors" title="Refaire">
+      <button onClick={handleRedo} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Refaire">
         <Redo2 className="w-5 h-5" />
       </button>
 
-      <div className="w-8 h-px bg-white/10 my-2" />
+      <div className="w-8 h-px bg-muted/80 my-2" />
 
       {/* Background fit */}
       <button
         onClick={() => setBgFit(f => f === "cover" ? "contain" : "cover")}
-        className={`p-2 rounded-lg transition-colors ${bgFit === "contain" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-400 hover:text-white hover:bg-white/5"}`}
+        className={`p-2 rounded-lg transition-colors ${bgFit === "contain" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         title={bgFit === "cover" ? "Recadrage : Couvrir (cover)" : "Recadrage : Contenir (contain)"}
       >
         <LayoutTemplate className="w-5 h-5" />
       </button>
 
-      <div className="w-8 h-px bg-white/10 my-2" />
+      <div className="w-8 h-px bg-muted/80 my-2" />
 
       {/* Zoom */}
-      <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors" title="Zoom +">
+      <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Zoom +">
         <ZoomIn className="w-5 h-5" />
       </button>
-      <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors" title="Zoom -">
+      <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Zoom -">
         <ZoomOut className="w-5 h-5" />
       </button>
 
-      <div className="w-8 h-px bg-white/10 my-2" />
+      <div className="w-8 h-px bg-muted/80 my-2" />
 
       {/* Color picker */}
       <button
         onClick={() => setShowColorPicker(!showColorPicker)}
-        className={`p-2 rounded-lg transition-colors ${showColorPicker ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-400 hover:text-white hover:bg-white/5"}`}
+        className={`p-2 rounded-lg transition-colors ${showColorPicker ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         title="Couleur"
       >
         <Palette className="w-5 h-5" />
       </button>
       {showColorPicker && (
-        <div className="absolute left-18 ml-2 bg-[#1a1a1a] border border-white/10 rounded-xl p-2 shadow-2xl z-50 flex flex-wrap gap-1.5 max-w-36">
+        <div className="absolute left-18 ml-2 bg-[#1a1a1a] border border-border rounded-xl p-2 shadow-2xl z-50 flex flex-wrap gap-1.5 max-w-36">
           {colors.map(c => (
             <button
               key={c}
@@ -612,7 +612,7 @@ export default function Editor() {
                   setBgTransparent(false);
                 }
               }}
-              className="w-6 h-6 rounded-full border border-white/10 hover:scale-110 transition-transform"
+              className="w-6 h-6 rounded-full border border-border hover:scale-110 transition-transform"
               style={{ backgroundColor: c }}
             />
           ))}
@@ -622,7 +622,7 @@ export default function Editor() {
       {/* Versions */}
       <button
         onClick={() => setShowVersions(!showVersions)}
-        className={`p-2 rounded-lg transition-colors relative ${showVersions ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-400 hover:text-white hover:bg-white/5"}`}
+        className={`p-2 rounded-lg transition-colors relative ${showVersions ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         title="Versions"
       >
         <History className="w-5 h-5" />
@@ -633,17 +633,17 @@ export default function Editor() {
         )}
       </button>
       {showVersions && (
-        <div className="absolute left-16 bottom-0 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 w-72 p-3">
-          <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Versions d'image</p>
+        <div className="absolute left-16 bottom-0 bg-[#1a1a1a] border border-border rounded-xl shadow-2xl z-50 w-72 p-3">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Versions d'image</p>
           {thumbnailId <= 0 && (
-            <p className="text-xs text-zinc-500 mb-2">Ouvre l'éditeur depuis une miniature de ton tableau de bord pour enregistrer des versions.</p>
+            <p className="text-xs text-muted-foreground mb-2">Ouvre l'éditeur depuis une miniature de ton tableau de bord pour enregistrer des versions.</p>
           )}
           <div className="flex gap-1.5 mb-3">
             <input
               value={versionName}
               onChange={e => setVersionName(e.target.value)}
               placeholder="Nom de la version…"
-              className="flex-1 bg-[#111] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white placeholder-zinc-600 outline-none"
+              className="flex-1 bg-[#111] border border-border rounded-lg px-2 py-1.5 text-xs text-white placeholder-zinc-600 outline-none"
             />
             <button
               onClick={handleSaveVersion}
@@ -654,15 +654,15 @@ export default function Editor() {
             </button>
           </div>
           {(!versions || versions.length === 0) ? (
-            <p className="text-xs text-zinc-500 text-center py-3">Aucune version enregistrée</p>
+            <p className="text-xs text-muted-foreground text-center py-3">Aucune version enregistrée</p>
           ) : (
             <div className="space-y-1.5 max-h-52 overflow-y-auto">
               {versions.map((v: any) => (
-                <div key={v.id} className={`flex items-center gap-2 rounded-lg border p-2 ${v.isCurrent === "yes" ? "border-cyan-500/50 bg-cyan-500/10" : "border-white/10"}`}>
+                <div key={v.id} className={`flex items-center gap-2 rounded-lg border p-2 ${v.isCurrent === "yes" ? "border-cyan-500/50 bg-cyan-500/10" : "border-border"}`}>
                   <img src={v.imageUrl} alt={v.name} className="w-16 h-9 object-cover rounded" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-white truncate">{v.name}</p>
-                    <p className="text-[10px] text-zinc-500">{new Date(v.createdAt).toLocaleString("fr-FR")}</p>
+                    <p className="text-[10px] text-muted-foreground">{new Date(v.createdAt).toLocaleString("fr-FR")}</p>
                   </div>
                   <button
                     onClick={() => handleRestoreVersion(v)}
@@ -673,7 +673,7 @@ export default function Editor() {
                   </button>
                   <button
                     onClick={() => deleteVersion.mutate({ id: v.id, thumbnailId }, { onSuccess: () => utilsVersions.imageVersions.list.invalidate({ thumbnailId }) })}
-                    className="text-zinc-500 hover:text-red-400"
+                    className="text-muted-foreground hover:text-red-400"
                     title="Supprimer"
                   >
                     <Trash2 size={14} />
@@ -690,14 +690,14 @@ export default function Editor() {
       {/* Aperçu mobile/tablette */}
       <button
         onClick={() => setDevicePreview("phone")}
-        className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         title="Aperçu smartphone"
       >
         <Smartphone className="w-5 h-5" />
       </button>
 
       {/* Delete */}
-      <button onClick={deleteSelected} className="p-2 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Supprimer">
+      <button onClick={deleteSelected} className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Supprimer">
         <Trash2 className="w-5 h-5" />
       </button>
 
@@ -712,22 +712,22 @@ export default function Editor() {
     if (!selectedElement) return null;
 
     return (
-      <div className="fixed right-0 top-0 h-full w-56 bg-[#111] border-l border-white/5 p-4 z-40 overflow-y-auto">
-        <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-3">Propriétés</p>
+      <div className="fixed right-0 top-0 h-full w-56 bg-[#111] border-l border-border p-4 z-40 overflow-y-auto">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">Propriétés</p>
 
         {selectedElement.type === "text" && (
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Texte</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Texte</label>
               <textarea
                 value={(selectedElement as EditorTextElement).text}
                 onChange={e => updateElement(selectedElement.id, { text: e.target.value })}
-                className="w-full px-2 py-1.5 rounded-lg bg-[#1a1a1a] border border-white/5 text-white text-xs outline-none"
+                className="w-full px-2 py-1.5 rounded-lg bg-[#1a1a1a] border border-border text-white text-xs outline-none"
                 rows={2}
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Taille police</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Taille police</label>
               <input
                 type="range"
                 min="12"
@@ -736,40 +736,40 @@ export default function Editor() {
                 onChange={e => updateElement(selectedElement.id, { fontSize: parseInt(e.target.value) })}
                 className="w-full accent-cyan-500"
               />
-              <span className="text-[10px] text-zinc-500">{(selectedElement as EditorTextElement).fontSize}px</span>
+              <span className="text-[10px] text-muted-foreground">{(selectedElement as EditorTextElement).fontSize}px</span>
             </div>
             <div className="flex gap-1">
               <button
                 onClick={() => updateElement(selectedElement.id, { fontWeight: (selectedElement as EditorTextElement).fontWeight === "bold" ? "normal" : "bold" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontWeight === "bold" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-500 hover:text-white"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontWeight === "bold" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Bold className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => updateElement(selectedElement.id, { fontStyle: (selectedElement as EditorTextElement).fontStyle === "italic" ? "normal" : "italic" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontStyle === "italic" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-500 hover:text-white"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontStyle === "italic" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Italic className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => updateElement(selectedElement.id, { textDecoration: (selectedElement as EditorTextElement).textDecoration === "underline" ? "none" : "underline" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).textDecoration === "underline" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-500 hover:text-white"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).textDecoration === "underline" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Underline className="w-3.5 h-3.5" />
               </button>
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Alignement</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Alignement</label>
               <div className="flex gap-1">
                 <button
                   onClick={() => updateElement(selectedElement.id, { align: "left" })}
-                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "left" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-500"}`}
+                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "left" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground"}`}
                 >
                   <AlignLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => updateElement(selectedElement.id, { align: "center" })}
-                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "center" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-500"}`}
+                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "center" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground"}`}
                 >
                   <AlignCenter className="w-3.5 h-3.5" />
                 </button>
@@ -781,7 +781,7 @@ export default function Editor() {
         {selectedElement.type === "image" && (
           <div className="space-y-4">
             <div>
-              <p className="text-[10px] text-zinc-500 mb-1.5">Encadrement (taille)</p>
+              <p className="text-[10px] text-muted-foreground mb-1.5">Encadrement (taille)</p>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => fitImageLayer("contain")}
@@ -791,14 +791,14 @@ export default function Editor() {
                 </button>
                 <button
                   onClick={() => fitImageLayer("cover")}
-                  className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                  className="flex-1 bg-muted hover:bg-muted/80 text-foreground text-[11px] rounded-lg px-2 py-1.5 transition-colors"
                 >
                   Couvrir
                 </button>
               </div>
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Largeur</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Largeur</label>
               <input
                 type="range"
                 min="40"
@@ -809,7 +809,7 @@ export default function Editor() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Hauteur</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Hauteur</label>
               <input
                 type="range"
                 min="40"
@@ -820,7 +820,7 @@ export default function Editor() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Opacité</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Opacité</label>
               <input
                 type="range"
                 min="0"
@@ -831,7 +831,7 @@ export default function Editor() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Arrondi</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Arrondi</label>
               <input
                 type="range"
                 min="0"
@@ -842,7 +842,7 @@ export default function Editor() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Rotation ({(selectedElement as EditorImageElement).rotation ?? 0}°)</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Rotation ({(selectedElement as EditorImageElement).rotation ?? 0}°)</label>
               <input
                 type="range"
                 min="-180"
@@ -853,17 +853,17 @@ export default function Editor() {
               />
             </div>
             <div>
-              <p className="text-[10px] text-zinc-500 mb-1.5">Ordre des calques</p>
+              <p className="text-[10px] text-muted-foreground mb-1.5">Ordre des calques</p>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => moveLayer(selectedElement.id, "up")}
-                  className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                  className="flex-1 bg-muted hover:bg-muted/80 text-foreground text-[11px] rounded-lg px-2 py-1.5 transition-colors"
                 >
                   Au premier plan
                 </button>
                 <button
                   onClick={() => moveLayer(selectedElement.id, "down")}
-                  className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                  className="flex-1 bg-muted hover:bg-muted/80 text-foreground text-[11px] rounded-lg px-2 py-1.5 transition-colors"
                 >
                   À l'arrière-plan
                 </button>
@@ -875,7 +875,7 @@ export default function Editor() {
         {selectedElement.type === "shape" && (
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Largeur</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Largeur</label>
               <input
                 type="range"
                 min="20"
@@ -886,7 +886,7 @@ export default function Editor() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Hauteur</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Hauteur</label>
               <input
                 type="range"
                 min="20"
@@ -897,7 +897,7 @@ export default function Editor() {
               />
             </div>
             <div>
-              <label className="text-[10px] text-zinc-500 mb-1 block">Opacité</label>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Opacité</label>
               <input
                 type="range"
                 min="0"
@@ -1015,16 +1015,16 @@ export default function Editor() {
           <div className="flex items-center gap-3">
             <h1 className="text-sm font-medium text-white">Éditeur de miniature</h1>
             <div className="flex items-center gap-1.5">
-              <Button variant="outline" size="sm" className="h-7 text-[11px] border-white/10 text-zinc-400 hover:text-white" onClick={() => setDevicePreview("tablet")}>
+              <Button variant="outline" size="sm" className="h-7 text-[11px] border-border text-muted-foreground hover:text-foreground" onClick={() => setDevicePreview("tablet")}>
                 <Tablet className="w-3.5 h-3.5 mr-1" /> Aperçu tablette
               </Button>
-              <Button variant="outline" size="sm" className="h-7 text-[11px] border-white/10 text-zinc-400 hover:text-white" onClick={() => setDevicePreview("phone")}>
+              <Button variant="outline" size="sm" className="h-7 text-[11px] border-border text-muted-foreground hover:text-foreground" onClick={() => setDevicePreview("phone")}>
                 <Smartphone className="w-3.5 h-3.5 mr-1" /> Aperçu mobile
               </Button>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-zinc-500">{Math.round(zoom * 100)}%</span>
+            <span className="text-[10px] text-muted-foreground">{Math.round(zoom * 100)}%</span>
             {isFreePlan && (
               <span className="hidden sm:inline-flex text-[10px] text-amber-400 border border-amber-400/30 rounded-full px-2 py-0.5">
                 Filigrane Minia IA à l'export
@@ -1039,7 +1039,7 @@ export default function Editor() {
         {/* Canvas */}
         <div
           ref={canvasContainerRef}
-          className="relative overflow-auto max-w-full max-h-[70vh] border border-white/5 rounded-lg"
+          className="relative overflow-auto max-w-full max-h-[70vh] border border-border rounded-lg"
           style={{ cursor: "default" }}
         >
           <div
@@ -1080,7 +1080,7 @@ export default function Editor() {
             {elements.length === 0 && !bgImageUrl && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center px-6">
-                  <p className="text-zinc-500 text-sm mb-3">Espace Canva — ajouts des éléments ou une image de fond</p>
+                  <p className="text-muted-foreground text-sm mb-3">Espace Canva — ajouts des éléments ou une image de fond</p>
                   <button
                     onClick={() => bgUploadInputRef.current?.click()}
                     className="inline-flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs px-3 py-1.5 rounded-lg transition-colors"
@@ -1098,7 +1098,7 @@ export default function Editor() {
 
       {/* Device preview dialog */}
       <Dialog open={devicePreview !== "none"} onOpenChange={open => { if (!open) setDevicePreview("none"); }}>
-        <DialogContent className="max-w-sm bg-[#141414] border-white/10">
+        <DialogContent className="max-w-sm bg-[#141414] border-border">
           <DialogHeader>
             <DialogTitle className="text-white text-sm">
               {devicePreview === "phone" ? "Aperçu smartphone" : "Aperçu tablette"}
@@ -1137,7 +1137,7 @@ export default function Editor() {
               </div>
             </div>
           </div>
-          <p className="text-[11px] text-zinc-500 text-center -mt-2">
+          <p className="text-[11px] text-muted-foreground text-center -mt-2">
             Simule l'affichage dans les suggestions YouTube ({devicePreview === "phone" ? "360×640" : "900×600"})
           </p>
         </DialogContent>

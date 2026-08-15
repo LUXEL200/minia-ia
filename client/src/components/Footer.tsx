@@ -19,7 +19,7 @@ export default function Footer() {
                   <Zap className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-display text-lg font-bold text-white">
-                  Minia<span className="text-[#06B6D4]">IA</span>
+                  Minia<span className="text-cyan-400">IA</span>
                 </span>
               </div>
               <p className="text-sm text-zinc-500">
@@ -71,12 +71,12 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-[#27272A]">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-border">
             <p className="text-xs text-zinc-600">
               © 2026 Minia IA. Tous droits réservés.
             </p>
             <div className="flex items-center gap-4 mt-4 sm:mt-0">
-              <select className="bg-transparent border border-[#27272A] text-xs text-zinc-500 rounded px-3 py-1.5 focus:outline-none focus:border-[#06B6D4]/50">
+              <select className="bg-transparent border border-border text-xs text-zinc-500 rounded px-3 py-1.5 focus:outline-none focus:border-[#06B6D4]/50">
                 <option value="fr">🇫🇷 Français</option>
                 <option value="en">🇬🇧 English</option>
                 <option value="es">🇪🇸 Español</option>

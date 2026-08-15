@@ -99,7 +99,7 @@ export default function Gallery() {
                 </span>
               </div>
 
-              <h1 className="font-[Space_Grotesk] text-5xl md:text-6xl font-bold tracking-tight mb-4">
+              <h1 className="font-display text-5xl md:text-6xl font-bold tracking-tight mb-4">
                 Galerie{" "}
                 <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
                   Communautaire
@@ -316,7 +316,7 @@ export default function Gallery() {
           <div className="relative bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-2xl p-8 md:p-12 text-center">
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 rounded-2xl" />
             <div className="relative">
-              <h2 className="font-[Space_Grotesk] text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
                 Prêt à créer ta propre{" "}
                 <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
                   miniature virale

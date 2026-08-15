@@ -24,12 +24,12 @@ export default function StylesSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
+          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
             / Tous les Styles
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
             Choisis et génère n'importe quel{" "}
-            <span className="text-[#06B6D4]">style de miniature</span>
+            <span className="text-cyan-400">style de miniature</span>
           </h2>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
             De MrBeast aux vidéos tech, en passant par le lifestyle et le gaming — notre IA maîtrise tous les styles qui convertissent.
@@ -42,7 +42,7 @@ export default function StylesSection() {
           viewport={{ once: true }}
           className="max-w-5xl mx-auto"
         >
-          <div className="rounded-xl overflow-hidden border border-[#27272A] mb-8">
+          <div className="rounded-[20px] overflow-hidden border border-border mb-8">
             <img
               src="/manus-storage/styles-gallery_c41ef858.png"
               alt="Galerie de styles Minia IA"

@@ -64,7 +64,7 @@ export default function Personnes() {
       <div className="min-h-screen bg-black flex items-center justify-center p-8 text-center">
         <div className="max-w-sm">
           <h1 className="text-2xl font-semibold text-white mb-2">Personnes</h1>
-          <p className="text-zinc-500 text-sm mb-6">Connecte-toi pour gérer ton équipe et tes collaborations.</p>
+          <p className="text-muted-foreground text-sm mb-6">Connecte-toi pour gérer ton équipe et tes collaborations.</p>
           <Button onClick={() => startLogin()} className="w-full py-5 text-base font-medium bg-white text-black hover:bg-white/90 rounded-xl">
             Se connecter
           </Button>
@@ -79,11 +79,11 @@ export default function Personnes() {
   const allTasks = (tasks ?? []) as any[];
 
   const STATUS_STYLE: Record<string, string> = {
-    pending: "bg-white/10 text-zinc-300",
+    pending: "bg-muted/80 text-foreground",
     reviewing: "bg-yellow-500/20 text-yellow-400",
     approved: "bg-emerald-500/20 text-emerald-400",
     rejected: "bg-red-500/20 text-red-400",
-    cancelled: "bg-zinc-700 text-zinc-400",
+    cancelled: "bg-zinc-700 text-muted-foreground",
   };
   const STATUS_LABEL: Record<string, string> = {
     pending: "En attente",
@@ -93,7 +93,7 @@ export default function Personnes() {
     cancelled: "Annulé",
   };
   const INVITE_STATUS_STYLE: Record<string, string> = {
-    pending: "bg-white/10 text-zinc-300",
+    pending: "bg-muted/80 text-foreground",
     accepted: "bg-emerald-500/20 text-emerald-400",
     declined: "bg-red-500/20 text-red-400",
   };
@@ -141,13 +141,13 @@ export default function Personnes() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
-                tab === t.key ? "bg-white text-black" : "bg-zinc-950 border border-white/10 text-zinc-400 hover:text-white"
+                tab === t.key ? "bg-white text-black" : "bg-zinc-950 border border-border text-muted-foreground hover:text-foreground"
               }`}
             >
               {t.key === "membres" ? <Users size={14} /> : t.key === "invitations" ? <Mail size={14} /> : <ListChecks size={14} />}
               {t.label}
               {typeof t.count === "number" && (
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${tab === t.key ? "bg-black/10 text-black" : "bg-white/5 text-zinc-500"}`}>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${tab === t.key ? "bg-black/10 text-black" : "bg-muted text-muted-foreground"}`}>
                   {t.count}
                 </span>
               )}
@@ -158,26 +158,26 @@ export default function Personnes() {
         {/* ===== Membres ===== */}
         {tab === "membres" && (
           <div className="space-y-3">
-            <p className="text-[11px] text-zinc-500">
-              Les membres sont gérés au niveau de l'organisation. Depuis <span className="text-zinc-300">Organisation → Invitations</span> ou l'onglet Invitations ci-dessus, invite un collaborateur par e-mail.
+            <p className="text-[11px] text-muted-foreground">
+              Les membres sont gérés au niveau de l'organisation. Depuis <span className="text-foreground">Organisation → Invitations</span> ou l'onglet Invitations ci-dessus, invite un collaborateur par e-mail.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {user && (
-                <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-950 border border-white/10">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-950 border border-border">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white">
                       {user.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                     <div>
                       <p className="text-xs text-white font-medium">{user.name || "Moi"}</p>
-                      <p className="text-[10px] text-zinc-500">{user.email || ""}</p>
+                      <p className="text-[10px] text-muted-foreground">{user.email || ""}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-zinc-300">Moi · {user.role === "admin" ? "Admin" : "Membre"}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/80 text-foreground">Moi · {user.role === "admin" ? "Admin" : "Membre"}</span>
                 </div>
               )}
               {members.length === 0 && !user && (
-                <div className="text-center py-10 text-zinc-500 col-span-2">
+                <div className="text-center py-10 text-muted-foreground col-span-2">
                   <UserRound className="mx-auto mb-2" size={32} />
                   <p className="text-xs">Aucun membre pour le moment</p>
                 </div>
@@ -190,7 +190,7 @@ export default function Personnes() {
         {tab === "invitations" && (
           <div className="space-y-5">
             {/* Inviter */}
-            <div className="bg-zinc-950 border border-white/10 rounded-xl p-4">
+            <div className="bg-zinc-950 border border-border rounded-xl p-4">
               <h3 className="text-xs font-medium text-white mb-3 flex items-center gap-2">
                 <Mail size={14} className="text-pink-500" /> Inviter un collaborateur
               </h3>
@@ -199,7 +199,7 @@ export default function Personnes() {
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
                   placeholder="E-mail du collaborateur…"
-                  className="flex-1 px-3 py-2 rounded-lg bg-black border border-white/10 text-xs text-white placeholder:text-zinc-600 outline-none focus:border-white/20"
+                  className="flex-1 px-3 py-2 rounded-lg bg-black border border-border text-xs text-white placeholder:text-muted-foreground outline-none focus:border-white/20"
                 />
                 <Button
                   size="sm"
@@ -217,19 +217,19 @@ export default function Personnes() {
 
             {/* Reçues */}
             <div>
-              <h3 className="text-[11px] text-zinc-500 uppercase tracking-wider mb-2">Invitations reçues ({receivedInvites.length})</h3>
+              <h3 className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">Invitations reçues ({receivedInvites.length})</h3>
               {receivedInvites.length === 0 ? (
-                <div className="text-center py-8 bg-zinc-950 border border-white/10 rounded-xl">
-                  <AlertCircle className="mx-auto mb-2 text-zinc-700" size={28} />
-                  <p className="text-xs text-zinc-500">Aucune invitation reçue pour le moment</p>
+                <div className="text-center py-8 bg-zinc-950 border border-border rounded-xl">
+                  <AlertCircle className="mx-auto mb-2 text-muted-foreground" size={28} />
+                  <p className="text-xs text-muted-foreground">Aucune invitation reçue pour le moment</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {receivedInvites.map(inv => (
-                    <div key={inv.id} className="flex items-center justify-between p-3 bg-zinc-950 border border-white/10 rounded-xl">
+                    <div key={inv.id} className="flex items-center justify-between p-3 bg-zinc-950 border border-border rounded-xl">
                       <div>
                         <p className="text-xs text-white">{inv.inviterName || "Un collaborateur"}</p>
-                        <p className="text-[10px] text-zinc-500 mt-0.5">
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
                           {INVITE_STATUS_LABEL[inv.status] ?? inv.status} · {new Date(inv.createdAt).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
@@ -250,7 +250,7 @@ export default function Personnes() {
                         </div>
                       )}
                       {inv.status !== "pending" && (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${INVITE_STATUS_STYLE[inv.status] ?? "bg-white/10 text-zinc-300"}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${INVITE_STATUS_STYLE[inv.status] ?? "bg-muted/80 text-foreground"}`}>
                           {INVITE_STATUS_LABEL[inv.status] ?? inv.status}
                         </span>
                       )}
@@ -262,30 +262,30 @@ export default function Personnes() {
 
             {/* Envoyées */}
             <div>
-              <h3 className="text-[11px] text-zinc-500 uppercase tracking-wider mb-2">Invitations envoyées ({sentInvites.length})</h3>
+              <h3 className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">Invitations envoyées ({sentInvites.length})</h3>
               {sentInvites.length === 0 ? (
-                <div className="text-center py-8 bg-zinc-950 border border-white/10 rounded-xl">
-                  <AlertCircle className="mx-auto mb-2 text-zinc-700" size={28} />
-                  <p className="text-xs text-zinc-500">Aucune invitation envoyée</p>
+                <div className="text-center py-8 bg-zinc-950 border border-border rounded-xl">
+                  <AlertCircle className="mx-auto mb-2 text-muted-foreground" size={28} />
+                  <p className="text-xs text-muted-foreground">Aucune invitation envoyée</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {sentInvites.map(inv => (
-                    <div key={inv.id} className="flex items-center justify-between p-3 bg-zinc-950 border border-white/10 rounded-xl">
+                    <div key={inv.id} className="flex items-center justify-between p-3 bg-zinc-950 border border-border rounded-xl">
                       <div>
                         <p className="text-xs text-white">{inv.email}</p>
-                        <p className="text-[10px] text-zinc-500 mt-0.5">
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
                           {INVITE_STATUS_LABEL[inv.status] ?? inv.status} · {new Date(inv.createdAt).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${INVITE_STATUS_STYLE[inv.status] ?? "bg-white/10 text-zinc-300"}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${INVITE_STATUS_STYLE[inv.status] ?? "bg-muted/80 text-foreground"}`}>
                           {INVITE_STATUS_LABEL[inv.status] ?? inv.status}
                         </span>
                         {inv.status === "pending" && (
                           <button
                             onClick={() => cancelSent.mutate({ id: inv.id })}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] bg-white/5 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] bg-muted text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
                           >
                             <XIcon size={12} /> Annuler
                           </button>
@@ -302,25 +302,25 @@ export default function Personnes() {
         {/* ===== Tâches ===== */}
         {tab === "taches" && (
           <div>
-            <p className="text-[11px] text-zinc-500 mb-3">
-              Clique sur <span className="text-zinc-300">✓</span> depuis une miniature (Miniatures → valider) pour créer une tâche, puis suis son cycle de validation.
+            <p className="text-[11px] text-muted-foreground mb-3">
+              Clique sur <span className="text-foreground">✓</span> depuis une miniature (Miniatures → valider) pour créer une tâche, puis suis son cycle de validation.
             </p>
             {allTasks.length === 0 ? (
-              <div className="text-center py-10 bg-zinc-950 border border-white/10 rounded-xl">
-                <ListChecks className="mx-auto mb-2 text-zinc-700" size={32} />
-                <p className="text-xs text-zinc-500">Aucune tâche en cours</p>
+              <div className="text-center py-10 bg-zinc-950 border border-border rounded-xl">
+                <ListChecks className="mx-auto mb-2 text-muted-foreground" size={32} />
+                <p className="text-xs text-muted-foreground">Aucune tâche en cours</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {allTasks.map(task => (
-                  <div key={task.id} className="p-3 rounded-xl bg-zinc-950 border border-white/10">
+                  <div key={task.id} className="p-3 rounded-xl bg-zinc-950 border border-border">
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_STYLE[task.status] ?? "bg-white/10 text-zinc-300"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_STYLE[task.status] ?? "bg-muted/80 text-foreground"}`}>
                         {STATUS_LABEL[task.status] ?? task.status}
                       </span>
-                      <span className="text-[10px] text-zinc-600">{new Date(task.createdAt).toLocaleDateString("fr-FR")}</span>
+                      <span className="text-[10px] text-muted-foreground">{new Date(task.createdAt).toLocaleDateString("fr-FR")}</span>
                     </div>
-                    {task.comment && <p className="text-xs text-zinc-400 mb-2">{task.comment}</p>}
+                    {task.comment && <p className="text-xs text-muted-foreground mb-2">{task.comment}</p>}
                     {task.thumbnailId > 0 && <TaskThumb thumbnailId={task.thumbnailId} />}
                     <div className="flex gap-1.5 flex-wrap">
                       {task.status !== "approved" && task.status !== "cancelled" && (
@@ -356,7 +356,7 @@ export default function Personnes() {
                         <button
                           onClick={() => handleUpdateTask(task.id, "pending")}
                           disabled={updatingTask === task.id}
-                          className="px-2.5 py-1 rounded-md text-[10px] bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors disabled:opacity-50"
+                          className="px-2.5 py-1 rounded-md text-[10px] bg-muted text-muted-foreground hover:bg-muted/80 transition-colors disabled:opacity-50"
                         >
                           <RotateCcw className="w-3 h-3 inline mr-1" /> Reproposer
                         </button>
@@ -364,7 +364,7 @@ export default function Personnes() {
                       <button
                         onClick={() => handleUpdateTask(task.id, "cancelled")}
                         disabled={updatingTask === task.id}
-                        className="px-2.5 py-1 rounded-md text-[10px] bg-zinc-700 text-zinc-400 hover:bg-zinc-600 transition-colors disabled:opacity-50"
+                        className="px-2.5 py-1 rounded-md text-[10px] bg-zinc-700 text-muted-foreground hover:bg-zinc-600 transition-colors disabled:opacity-50"
                       >
                         Annuler
                       </button>

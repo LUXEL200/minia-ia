@@ -231,9 +231,9 @@ export default function TemplateEditor() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-white/10 shrink-0">
+      <header className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
-          <Link href="/templates" className="text-zinc-400 hover:text-white transition-colors">
+          <Link href="/templates" className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={18} />
           </Link>
           <span className="text-sm sm:text-base font-medium truncate max-w-[200px] sm:max-w-none">
@@ -242,7 +242,7 @@ export default function TemplateEditor() {
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button onClick={handleSaveCustomization} disabled={createCustomization.isPending}
-            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 disabled:opacity-50 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm transition-colors">
+            className="flex items-center gap-1.5 bg-muted/80 hover:bg-white/20 disabled:opacity-50 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm transition-colors">
             <Save size={14} /> <span className="hidden sm:inline">Enregistrer</span>
           </button>
           <button onClick={handleSaveToGallery} disabled={saveToGallery.isPending}
@@ -257,7 +257,7 @@ export default function TemplateEditor() {
       </header>
 
       {!imageLoaded && !templateLoading ? (
-        <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm">Chargement du template…</div>
+        <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Chargement du template…</div>
       ) : (
         <div className="flex-1 flex flex-col lg:flex-row min-h-0">
           {/* Canvas */}
@@ -278,12 +278,12 @@ export default function TemplateEditor() {
           </div>
 
           {/* Properties panel */}
-          <aside className="w-full lg:w-72 shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 p-3 sm:p-4 overflow-y-auto max-h-[45vh] lg:max-h-none">
+          <aside className="w-full lg:w-72 shrink-0 border-t lg:border-t-0 lg:border-l border-border p-3 sm:p-4 overflow-y-auto max-h-[45vh] lg:max-h-none">
             <div className="space-y-4">
               {/* Selected element props */}
               {selected && selected.type !== "shape" && (
                 <div>
-                  <p className="text-xs text-zinc-500 mb-1.5 flex items-center gap-1">
+                  <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
                     {selected.type === "text" ? <Type size={12} /> : <Smile size={12} />} Propriétés
                   </p>
                   {selected.type === "text" && (
@@ -294,7 +294,7 @@ export default function TemplateEditor() {
                     />
                   )}
                   <div className="flex items-center gap-2 mb-2">
-                    <label className="text-xs text-zinc-500">Taille</label>
+                    <label className="text-xs text-muted-foreground">Taille</label>
                     <input
                       type="range"
                       min={selected.type === "emoji" ? 32 : 20}
@@ -307,14 +307,14 @@ export default function TemplateEditor() {
                   {selected.type === "text" && (
                     <button
                       onClick={() => updateSelected({ bold: !selected.bold })}
-                      className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected.bold ? "bg-white/10 border-white/20" : "border-zinc-800 text-zinc-500"}`}
+                      className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected.bold ? "bg-muted/80 border-white/20" : "border-zinc-800 text-muted-foreground"}`}
                     >
                       <Bold size={12} /> Gras
                     </button>
                   )}
                   {/* Color picker */}
                   <div>
-                    <button onClick={() => setShowColors(!showColors)} className="flex items-center gap-1.5 text-xs text-zinc-400 mb-1.5">
+                    <button onClick={() => setShowColors(!showColors)} className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
                       <Palette size={12} /> Couleur
                     </button>
                     {showColors && (
@@ -339,15 +339,15 @@ export default function TemplateEditor() {
 
               {/* Add tools */}
               <div>
-                <p className="text-xs text-zinc-500 mb-2 flex items-center gap-1"><Plus size={12} /> Ajouter</p>
+                <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><Plus size={12} /> Ajouter</p>
                 <div className="grid grid-cols-3 gap-2 mb-3">
-                  <button onClick={addText} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-zinc-300">
+                  <button onClick={addText} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
                     <Type size={16} /> Texte
                   </button>
-                  <button onClick={() => addEmoji("🔥")} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-zinc-300">
+                  <button onClick={() => addEmoji("🔥")} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
                     <Smile size={16} /> Emoji
                   </button>
-                  <button onClick={() => addShape("rect", "#ff0050")} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-zinc-300">
+                  <button onClick={() => addShape("rect", "#ff0050")} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
                     <Square size={16} /> Forme
                   </button>
                 </div>
@@ -360,7 +360,7 @@ export default function TemplateEditor() {
                 {/* Shapes */}
                 <div className="grid grid-cols-3 gap-2">
                   {presetShapes.map((s) => (
-                    <button key={s.name} onClick={() => addShape(s.shape, s.color)} className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-zinc-300">
+                    <button key={s.name} onClick={() => addShape(s.shape, s.color)} className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
                       {s.name}
                     </button>
                   ))}
@@ -369,7 +369,7 @@ export default function TemplateEditor() {
 
               {/* Background */}
               <div>
-                <p className="text-xs text-zinc-500 mb-2 flex items-center gap-1"><Eraser size={12} /> Fond de l'image</p>
+                <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><Eraser size={12} /> Fond de l'image</p>
                 <div className="grid grid-cols-10 gap-1.5">
                   {presetColors.map((c) => (
                     <button key={c} onClick={() => setBackgroundColor(c)}
@@ -377,7 +377,7 @@ export default function TemplateEditor() {
                       style={{ backgroundColor: c }} />
                   ))}
                 </div>
-                <p className="text-[10px] text-zinc-600 mt-2 flex items-center gap-1"><Move size={10} /> Glisse les éléments sur le canevas pour les placer</p>
+                <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1"><Move size={10} /> Glisse les éléments sur le canevas pour les placer</p>
               </div>
             </div>
           </aside>

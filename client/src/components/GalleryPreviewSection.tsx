@@ -21,7 +21,7 @@ export default function GalleryPreviewSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-4"
+            className="inline-flex items-center gap-2 bg-card/70 border border-border rounded-full px-4 py-2 mb-4"
           >
             <Eye className="w-4 h-4 text-cyan-400" />
             <span className="text-sm text-[#A1A1AA]">Aperçu communautaire</span>
@@ -32,7 +32,7 @@ export default function GalleryPreviewSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-[Space_Grotesk] text-3xl md:text-4xl font-bold mb-4"
+            className="font-display text-3xl md:text-4xl font-bold mb-4"
           >
             La communauté{" "}
             <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
@@ -62,7 +62,7 @@ export default function GalleryPreviewSection() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="group relative aspect-video rounded-xl overflow-hidden bg-[#18181B] border border-[#27272A] hover:border-cyan-500/30 transition-all duration-300"
+                className="group relative aspect-video rounded-[20px] overflow-hidden bg-card/70 border border-border hover:border-cyan-500/30 transition-all duration-300"
               >
                 {thumb.imageUrl ? (
                   <img
@@ -87,7 +87,7 @@ export default function GalleryPreviewSection() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="relative aspect-video rounded-xl overflow-hidden bg-[#18181B] border border-[#27272A]"
+                className="relative aspect-video rounded-[20px] overflow-hidden bg-card/70 border border-border"
               >
                 <div className="w-full h-full bg-gradient-to-br from-[#18181B] to-[#27272A] flex items-center justify-center">
                   <Sparkles className="w-8 h-8 text-[#3F3F46] animate-pulse" />
@@ -105,7 +105,7 @@ export default function GalleryPreviewSection() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center"
         >
-          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-[#18181B] border border-[#27272A] rounded-lg text-white font-medium hover:border-cyan-500/30 hover:bg-[#1F1F23] transition-all duration-300 group">
+          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-card/70 border border-border rounded-lg text-white font-medium hover:border-cyan-500/30 hover:bg-[#1F1F23] transition-all duration-300 group">
             <Eye className="w-4 h-4 text-cyan-400" />
             Voir la galerie complète
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

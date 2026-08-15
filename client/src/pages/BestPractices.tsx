@@ -50,7 +50,7 @@ export default function BestPractices() {
             <Sparkles className="w-4 h-4 text-cyan-400" />
             <span className="text-sm text-[#A1A1AA]">Bonnes pratiques</span>
           </div>
-          <h1 className="font-[Space_Grotesk] text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Crée des miniatures{" "}
             <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
               qui cliquent

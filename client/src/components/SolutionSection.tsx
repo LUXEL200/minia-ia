@@ -47,11 +47,11 @@ export default function SolutionSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
+          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
             / La Solution
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
-            Ton Minia Maker IA <span className="text-[#06B6D4]">personnel</span>
+            Ton Minia Maker IA <span className="text-cyan-400">personnel</span>
           </h2>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
             Moins de 3 minutes pour générer une miniature qui te ressemble.
@@ -72,8 +72,8 @@ export default function SolutionSection() {
               animate={{ opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-            <div className="relative rounded-xl overflow-hidden border border-[#06B6D4]/20 bg-[#18181B] transition-all duration-500 group-hover:border-[#06B6D4]/40 group-hover:shadow-xl group-hover:shadow-[#06B6D4]/10">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-[#27272A]">
+            <div className="relative rounded-[20px] overflow-hidden border border-[#06B6D4]/20 bg-card/70 transition-all duration-500 group-hover:border-[#06B6D4]/40 group-hover:shadow-xl group-hover:shadow-[#06B6D4]/10">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
                 <div className="w-3 h-3 rounded-full bg-[#EF4444]" />
                 <div className="w-3 h-3 rounded-full bg-[#FBBF24]" />
                 <div className="w-3 h-3 rounded-full bg-[#22C55E]" />
@@ -94,7 +94,7 @@ export default function SolutionSection() {
             {features.map((feature, i) => (
               <StaggeredItem key={i}>
                 <motion.div
-                  className={`group p-5 rounded-xl border border-[#27272A] bg-[#18181B] card-hover hover:border-[#06B6D4]/30 ${
+                  className={`group p-5 rounded-[20px] border border-border bg-card/70 card-hover hover:border-[#06B6D4]/30 ${
                     i % 2 === 1 ? "lg:mt-6" : ""
                   }`}
                   whileHover={{ y: -4 }}

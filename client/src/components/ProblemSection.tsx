@@ -46,12 +46,12 @@ export default function ProblemSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
             >
-              <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#EC4899] mb-4 block">
+              <span className="pill inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-widest text-[#EC4899] mb-4 bg-card/70 border border-border">
                 / Le Problème
               </span>
-              <h2 className="text-3xl sm:text-4xl font-display font-bold text-white leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-display font-bold text-white leading-tight tracking-tight">
                 Ta miniature ne devrait{" "}
-                <span className="text-[#06B6D4]">pas te freiner.</span>
+                <span className="gradient-text">pas te freiner.</span>
               </h2>
               <p className="mt-4 text-zinc-400 leading-relaxed">
                 Que tu paies un freelance ou que tu galères sur Canva, le résultat est le même : ta miniature te ralentit.
@@ -65,7 +65,7 @@ export default function ProblemSection() {
               {problems.map((problem, i) => (
                 <StaggeredItem key={i}>
                   <motion.div
-                    className={`group relative p-6 rounded-xl bg-[#18181B] border border-[#27272A] card-hover hover:border-[#06B6D4]/30`}
+                    className={`group relative p-6 rounded-[20px] bg-card/70 border border-border backdrop-blur-sm lift-card`}
                     style={{ marginLeft: i === 1 ? "2rem" : "0" }}
                     whileHover={{ scale: 1.01 }}
                     transition={{ type: "spring", stiffness: 300 }}

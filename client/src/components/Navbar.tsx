@@ -58,12 +58,14 @@ export default function Navbar() {
     >
       <nav className="container flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center shrink-0">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-          <span className={`font-[Space_Grotesk] text-lg font-bold tracking-tight ${isLight ? "text-zinc-900" : "text-white"}`}>
-            Minia<span className="text-[#06B6D4]">IA</span>
+        <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+          <img
+            src="/manus-storage/minia-logo_8c5c988e.png"
+            alt="Minia IA logo"
+            className="w-9 h-9 rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-105"
+          />
+          <span className={`font-display text-lg font-bold tracking-tight ${isLight ? "text-foreground" : "text-white"}`}>
+            Minia<span className="gradient-text">IA</span>
           </span>
         </Link>
 
@@ -123,7 +125,7 @@ export default function Navbar() {
               </Button>
               <Button
                 onClick={startLogin}
-                className="bg-[#06B6D4] hover:bg-[#06B6D4]/90 text-black font-semibold text-sm px-5 rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
+                className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 text-black font-semibold text-sm px-5 rounded-full glow-btn"
               >
                 Essayer gratuitement
               </Button>
@@ -131,8 +133,7 @@ export default function Navbar() {
           )}
         </div>
 
-      </nav>
-
+        </nav>
       {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (

@@ -104,11 +104,11 @@ export default function Miniatures() {
       <div className="min-h-screen bg-black flex items-center justify-center p-8 text-center">
         <div className="max-w-sm">
           <h1 className="text-2xl font-semibold text-white mb-2">Mes miniatures</h1>
-          <p className="text-zinc-500 text-sm mb-6">Connecte-toi pour retrouver toutes tes miniatures générées.</p>
+          <p className="text-muted-foreground text-sm mb-6">Connecte-toi pour retrouver toutes tes miniatures générées.</p>
           <Button onClick={() => startLogin()} className="w-full py-5 text-base font-medium bg-white text-black hover:bg-white/90 rounded-xl">
             Se connecter
           </Button>
-          <Link href="/" className="block mt-4 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">← Retour à l'accueil</Link>
+          <Link href="/" className="block mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors">← Retour à l'accueil</Link>
         </div>
       </div>
     );
@@ -154,31 +154,31 @@ export default function Miniatures() {
         {/* Filters */}
         <div className="mb-4 space-y-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Rechercher par description ou titre YouTube…"
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-950 border border-white/10 text-white placeholder:text-zinc-600 text-sm focus:border-white/20 outline-none transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-950 border border-border text-white placeholder:text-zinc-600 text-sm focus:border-white/20 outline-none transition-all"
             />
             {query && (
-              <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white">
+              <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <select value={filterStyle} onChange={e => setFilterStyle(e.target.value)} className="px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-xs text-zinc-300 outline-none">
+            <select value={filterStyle} onChange={e => setFilterStyle(e.target.value)} className="px-3 py-2 rounded-lg bg-zinc-950 border border-border text-xs text-foreground outline-none">
               <option value="all">Tous les styles</option>
               {STYLES.map(s => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}
             </select>
-            <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-xs text-zinc-300 outline-none">
+            <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="px-3 py-2 rounded-lg bg-zinc-950 border border-border text-xs text-foreground outline-none">
               <option value="all">Toutes les dates</option>
               <option value="today">Aujourd'hui</option>
               <option value="7days">7 derniers jours</option>
               <option value="30days">30 derniers jours</option>
             </select>
-            <select value={filterYoutube} onChange={e => setFilterYoutube(e.target.value)} className="px-3 py-2 rounded-lg bg-zinc-950 border border-white/10 text-xs text-zinc-300 outline-none">
+            <select value={filterYoutube} onChange={e => setFilterYoutube(e.target.value)} className="px-3 py-2 rounded-lg bg-zinc-950 border border-border text-xs text-foreground outline-none">
               <option value="all">Tout statut</option>
               <option value="planned">Planifié YouTube</option>
               <option value="unplanned">Non planifié</option>
@@ -186,7 +186,7 @@ export default function Miniatures() {
             {(query || filterStyle !== "all" || filterDate !== "all" || filterYoutube !== "all") && (
               <button
                 onClick={() => { setQuery(""); setFilterStyle("all"); setFilterDate("all"); setFilterYoutube("all"); }}
-                className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300 hover:text-white transition-colors"
+                className="px-3 py-2 rounded-lg bg-muted border border-border text-[11px] text-foreground hover:text-foreground transition-colors"
               >
                 Réinitialiser
               </button>
@@ -202,7 +202,7 @@ export default function Miniatures() {
             ))}
           </div>
         ) : displayThumbnails.length === 0 ? (
-          <div className="text-center py-16 text-zinc-500">
+          <div className="text-center py-16 text-muted-foreground">
             <Image className="mx-auto mb-3" size={48} />
             {thumbnails && thumbnails.length === 0 ? (
               <>
@@ -219,7 +219,7 @@ export default function Miniatures() {
                 <p className="text-lg mb-2">Aucun résultat pour ces filtres</p>
                 <button
                   onClick={() => { setQuery(""); setFilterStyle("all"); setFilterDate("all"); setFilterYoutube("all"); }}
-                  className="text-xs text-zinc-300 hover:text-white underline mt-3 inline-block"
+                  className="text-xs text-foreground hover:text-foreground underline mt-3 inline-block"
                 >
                   Réinitialiser les filtres
                 </button>
@@ -240,30 +240,30 @@ export default function Miniatures() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-3">
                   <p className="text-xs text-white/80 line-clamp-1">{thumb.prompt}</p>
-                  <p className="text-[10px] text-zinc-500 mt-0.5">
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
                     {STYLE_LABELS[thumb.style ?? "viral"] || thumb.style} · {new Date(thumb.createdAt).toLocaleDateString("fr-FR")}
                   </p>
                 </div>
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                  <button onClick={() => setPreviewTarget(thumb)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Aperçu">
+                  <button onClick={() => setPreviewTarget(thumb)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Aperçu">
                     <Eye className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Télécharger">
+                  <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Télécharger">
                     <Download className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => likeMutation.mutate({ thumbnailId: thumb.id })} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
+                  <button onClick={() => likeMutation.mutate({ thumbnailId: thumb.id })} className="p-2 rounded-full bg-muted/80 hover:bg-pink-500/20 transition-colors" title="Favori">
                     <Star className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-yellow-400 fill-yellow-400" : "text-white"}`} />
                   </button>
-                  <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Partager">
+                  <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Partager">
                     <Share2 className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => createTaskMutation.mutate({ thumbnailId: thumb.id, status: "pending" })} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Valider (créer une tâche)">
+                  <button onClick={() => createTaskMutation.mutate({ thumbnailId: thumb.id, status: "pending" })} className="p-2 rounded-full bg-muted/80 hover:bg-cyan-500/20 transition-colors" title="Valider (créer une tâche)">
                     <ListChecks className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Modifier (Canva)">
+                  <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-muted/80 hover:bg-cyan-500/20 transition-colors" title="Modifier (Canva)">
                     <Type className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => deleteMutation.mutate({ id: thumb.id })} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors" title="Supprimer">
+                  <button onClick={() => deleteMutation.mutate({ id: thumb.id })} className="p-2 rounded-full bg-muted/80 hover:bg-red-500/20 transition-colors" title="Supprimer">
                     <Trash2 className="w-4 h-4 text-white" />
                   </button>
                 </div>
@@ -289,19 +289,19 @@ export default function Miniatures() {
               <div className="flex items-center gap-2 mt-3">
                 <button
                   onClick={() => handleDownload(previewTarget.imageUrl)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/80 hover:bg-white/20 text-[11px] text-white transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" /> Télécharger
                 </button>
                 <button
                   onClick={() => navigate(`/editor?image=${encodeURIComponent(previewTarget.imageUrl || "")}`)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/80 hover:bg-white/20 text-[11px] text-white transition-colors"
                 >
                   <Type className="w-3.5 h-3.5" /> Modifier
                 </button>
                 <button
                   onClick={() => setPreviewTarget(null)}
-                  className="ml-auto px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-300 transition-colors"
+                  className="ml-auto px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-[11px] text-foreground transition-colors"
                 >
                   Fermer
                 </button>

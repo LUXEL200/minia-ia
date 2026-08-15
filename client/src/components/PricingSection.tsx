@@ -55,12 +55,12 @@ export default function PricingSection() {
       <div className="container">
         <AnimatedSection animation="fade-up">
           <div className="text-center mb-12">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#06B6D4] mb-4 block">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
               / Tarifs
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
               Moins cher qu'une{" "}
-              <span className="text-[#06B6D4]">miniature freelance</span>
+              <span className="text-cyan-400">miniature freelance</span>
             </h2>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4 mb-8">
               1 miniature freelance = 30€ en moyenne. Fais le calcul.
@@ -68,7 +68,7 @@ export default function PricingSection() {
 
             {/* Toggle */}
             <motion.div
-              className="inline-flex items-center gap-1 p-1 rounded-lg bg-[#18181B] border border-[#27272A]"
+              className="inline-flex items-center gap-1 p-1 rounded-lg bg-card/70 border border-border"
               layout
             >
               <motion.button
@@ -105,10 +105,10 @@ export default function PricingSection() {
             {plans.map((plan, i) => (
               <StaggeredItem key={i}>
                 <motion.div
-                  className={`relative p-8 rounded-xl border transition-all duration-300 ${
+                  className={`relative p-8 rounded-[20px] border transition-all duration-300 ${
                     plan.popular
-                      ? "bg-[#18181B] border-[#06B6D4]/40 lg:scale-105 shadow-xl shadow-[#06B6D4]/5 hover:border-[#06B6D4]/60"
-                      : "bg-[#18181B] border-[#27272A] hover:border-[#06B6D4]/20"
+                      ? "bg-card/70 border-[#06B6D4]/40 lg:scale-105 shadow-xl shadow-[#06B6D4]/5 hover:border-[#06B6D4]/60"
+                      : "bg-card/70 border-border hover:border-[#06B6D4]/20"
                   }`}
                   whileHover={{ y: plan.popular ? -4 : -6 }}
                   transition={{ type: "spring", stiffness: 300 }}
@@ -139,7 +139,7 @@ export default function PricingSection() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <span className="text-4xl font-display font-bold text-[#06B6D4]">
+                      <span className="text-4xl font-display font-bold text-cyan-400">
                         {isYearly ? plan.priceYearly : plan.priceMonthly}$
                       </span>
                       <span className="text-sm text-zinc-500">
@@ -162,7 +162,7 @@ export default function PricingSection() {
                         transition={{ delay: j * 0.1 }}
                         className="flex items-center gap-3 text-sm text-zinc-300"
                       >
-                        <Check className="w-4 h-4 flex-shrink-0 text-[#06B6D4]" />
+                        <Check className="w-4 h-4 flex-shrink-0 text-cyan-400" />
                         {item}
                       </motion.li>
                     ))}

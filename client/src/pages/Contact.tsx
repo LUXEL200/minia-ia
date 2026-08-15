@@ -16,7 +16,7 @@ export default function Contact() {
             <MessageSquare className="w-4 h-4 text-cyan-400" />
             <span className="text-sm text-[#A1A1AA]">Contact</span>
           </div>
-          <h1 className="font-[Space_Grotesk] text-3xl md:text-4xl font-bold mb-4">
+          <h1 className="font-display text-3xl md:text-4xl font-bold mb-4">
             Parlons de{" "}
             <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
               ton projet

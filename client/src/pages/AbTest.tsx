@@ -142,7 +142,7 @@ export default function AbTest() {
             ))}
           </div>
         ) : (!tests || tests.length === 0) ? (
-          <div className="text-center py-20 text-zinc-500">
+          <div className="text-center py-20 text-muted-foreground">
             <TrendingUp className="mx-auto mb-4" size={48} />
             <p className="text-lg mb-2">Aucun test A/B en cours</p>
             <p className="text-sm max-w-md mx-auto">
@@ -154,7 +154,7 @@ export default function AbTest() {
             {tests.map((test: any) => {
               const isWinner = test.winner && test.winner !== "undecided";
               return (
-                <div key={test.id} className="bg-zinc-950 border border-white/10 rounded-xl overflow-hidden">
+                <div key={test.id} className="bg-zinc-950 border border-border rounded-xl overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
                       <h3 className="text-sm font-medium">{test.title}</h3>
@@ -168,29 +168,29 @@ export default function AbTest() {
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => setOpenTestId(openTestId === test.id ? null : test.id)} className="text-xs text-zinc-400 hover:text-white">
+                      <button onClick={() => setOpenTestId(openTestId === test.id ? null : test.id)} className="text-xs text-muted-foreground hover:text-foreground">
                         Détails
                       </button>
                       <div className="relative">
                         <button
                           onClick={() => setShareMenuId(shareMenuId === test.id ? null : test.id)}
-                          className="text-zinc-500 hover:text-cyan-400"
+                          className="text-muted-foreground hover:text-cyan-400"
                           title="Partager (lien public lecture seule)"
                         >
                           <Share2 size={14} />
                         </button>
                         {shareMenuId === test.id && (
-                          <div className="absolute right-0 top-6 z-20 w-48 bg-zinc-950 border border-white/10 rounded-lg shadow-xl overflow-hidden">
+                          <div className="absolute right-0 top-6 z-20 w-48 bg-zinc-950 border border-border rounded-lg shadow-xl overflow-hidden">
                             <button
                               onClick={() => handleShare(test, true)}
-                              className="w-full px-3 py-2 text-left text-xs text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
+                              className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-muted hover:text-foreground transition-colors"
                             >
                               {test.shareToken ? "Copier le lien de partage" : "Générer un lien de partage"}
                             </button>
                             {test.shareToken && (
                               <button
                                 onClick={() => handleShare(test, false)}
-                                className="w-full px-3 py-2 text-left text-xs text-red-400 hover:bg-white/5 transition-colors border-t border-white/5"
+                                className="w-full px-3 py-2 text-left text-xs text-red-400 hover:bg-muted transition-colors border-t border-border"
                               >
                                 Désactiver le lien
                               </button>
@@ -200,7 +200,7 @@ export default function AbTest() {
                       </div>
                       <button
                         onClick={() => deleteTest.mutate({ id: test.id }, { onSuccess: () => utils.abTests.list.invalidate() })}
-                        className="text-zinc-500 hover:text-red-400"
+                        className="text-muted-foreground hover:text-red-400"
                         title="Supprimer le test"
                       >
                         <Trash2 size={14} />
@@ -208,7 +208,7 @@ export default function AbTest() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-t border-white/5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-t border-border">
                     {(["A", "B"] as const).map((side) => {
                       const variant = side === "A" ? test.variantA : test.variantB;
                       const views = side === "A" ? test.viewsA : test.viewsB;
@@ -216,7 +216,7 @@ export default function AbTest() {
                       const ctr = side === "A" ? test.ctrA : test.ctrB;
                       const isWin = test.winner === side.toLowerCase();
                       return (
-                        <div key={side} className={`relative rounded-lg overflow-hidden border ${isWin ? "border-emerald-400" : "border-white/10"}`}>
+                        <div key={side} className={`relative rounded-lg overflow-hidden border ${isWin ? "border-emerald-400" : "border-border"}`}>
                           {isWin && (
                             <span className="absolute top-1.5 left-1.5 z-10 bg-emerald-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
                               <Award size={10} /> GAGNANTE
@@ -224,36 +224,36 @@ export default function AbTest() {
                           )}
                           <img src={variant?.imageUrl || ""} alt={`Variante ${side}`} className="w-full aspect-video object-cover" />
                           <div className="p-2.5 bg-zinc-900 space-y-2">
-                            <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
+                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                               <span className="font-bold text-white text-xs">V{side}</span> Variante {side}
                               <span className="ml-auto text-cyan-400 font-medium">CTR {ctr}%</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="text-[10px] text-zinc-500">Vues</label>
+                                <label className="text-[10px] text-muted-foreground">Vues</label>
                                 <input
                                   type="number"
                                   min={0}
                                   value={views ?? 0}
                                   onChange={(e) => updateStat(test, side === "A" ? "viewsA" : "viewsB", Number(e.target.value))}
-                                  className="w-full bg-black border border-white/10 rounded px-2 py-1 text-xs text-white outline-none"
+                                  className="w-full bg-black border border-border rounded px-2 py-1 text-xs text-white outline-none"
                                 />
                               </div>
                               <div>
-                                <label className="text-[10px] text-zinc-500">Clics</label>
+                                <label className="text-[10px] text-muted-foreground">Clics</label>
                                 <input
                                   type="number"
                                   min={0}
                                   value={clicks ?? 0}
                                   onChange={(e) => updateStat(test, side === "A" ? "clicksA" : "clicksB", Number(e.target.value))}
-                                  className="w-full bg-black border border-white/10 rounded px-2 py-1 text-xs text-white outline-none"
+                                  className="w-full bg-black border border-border rounded px-2 py-1 text-xs text-white outline-none"
                                 />
                               </div>
                             </div>
                             {test.status !== "finished" && (
                               <button
                                 onClick={() => declareWinner(test, side === "A" ? "a" : "b")}
-                                className="w-full text-[10px] bg-white/5 hover:bg-white/10 border border-white/10 rounded py-1 text-zinc-300 transition-colors"
+                                className="w-full text-[10px] bg-muted hover:bg-muted/80 border border-border rounded py-1 text-foreground transition-colors"
                               >
                                 Déclarer gagnante
                               </button>
@@ -268,7 +268,7 @@ export default function AbTest() {
                     <div className="px-4 pb-3">
                       <button
                         onClick={() => declareWinner(test, "tie")}
-                        className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
+                        className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Match nul
                       </button>
@@ -330,14 +330,14 @@ export default function AbTest() {
           <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Nouveau test A/B</h2>
-              <button onClick={() => setShowCreate(false)} className="text-zinc-400 hover:text-white">
+              <button onClick={() => setShowCreate(false)} className="text-muted-foreground hover:text-foreground">
                 <X size={20} />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Titre du test</label>
+                <label className="block text-sm text-muted-foreground mb-1">Titre du test</label>
                 <input
                   type="text"
                   value={title}
@@ -348,12 +348,12 @@ export default function AbTest() {
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Variante A</label>
+                <label className="block text-sm text-muted-foreground mb-2">Variante A</label>
                 <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
                   {thumbsLoading ? (
-                    <div className="col-span-4 text-xs text-zinc-500">Chargement…</div>
+                    <div className="col-span-4 text-xs text-muted-foreground">Chargement…</div>
                   ) : thumbs.length === 0 ? (
-                    <div className="col-span-4 text-xs text-zinc-500">Génère d'abord des miniatures</div>
+                    <div className="col-span-4 text-xs text-muted-foreground">Génère d'abord des miniatures</div>
                   ) : (
                     thumbs.map((t: any) => (
                       <button
@@ -369,7 +369,7 @@ export default function AbTest() {
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Variante B</label>
+                <label className="block text-sm text-muted-foreground mb-2">Variante B</label>
                 <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
                   {thumbs.map((t: any) => (
                     <button

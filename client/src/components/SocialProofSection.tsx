@@ -20,7 +20,8 @@ export default function SocialProofSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-0 border border-[#27272A] rounded-xl overflow-hidden bg-[#18181B]"
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
         >
           {stats.map((stat, i) => (
             <motion.div
@@ -28,14 +29,11 @@ export default function SocialProofSection() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`p-6 lg:p-8 text-center ${
-                i < 3 ? "lg:border-r border-b lg:border-b-0 border-[#27272A]" : "border-b-0"
-              } ${i % 2 === 0 ? "border-b border-[#27272A] lg:border-b-0" : ""}`}
-              style={i < 3 ? { borderRight: "1px solid oklch(0.28 0.006 285)" } : {}}
+              transition={{ delay: i * 0.07, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+              className="lift-card p-6 lg:p-8 text-center glass feature-edge"
             >
               <stat.icon className="w-4 h-4 mx-auto mb-3" style={{ color: stat.color }} />
-              <p className="text-2xl sm:text-3xl font-display font-bold mb-1" style={{ color: stat.color }}>
+              <p className="text-2xl sm:text-3xl font-display font-bold mb-1 font-mono" style={{ color: stat.color }}>
                 {stat.value}
               </p>
               <p className="text-xs text-zinc-400 uppercase tracking-wider">

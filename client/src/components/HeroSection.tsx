@@ -50,11 +50,11 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center pt-24 overflow-hidden">
-      {/* Background grid with parallax feel */}
+      {/* Background dots — Cinematic Studio */}
       <motion.div
-        className="absolute inset-0 grid-bg opacity-20"
+        className="absolute inset-0 grid-dots opacity-60"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.2 }}
+        animate={{ opacity: 0.6 }}
         transition={{ duration: 1.5 }}
       />
       
@@ -79,7 +79,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#27272A] bg-[#18181B]/80 backdrop-blur-sm mb-10 hover:border-[#06B6D4]/30 transition-all duration-300"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-card/70 backdrop-blur-sm mb-10 hover:border-primary/30 transition-all duration-300 shadow-sm"
             >
               <div className="flex -space-x-2">
                 {[1,2,3,4].map((i) => (
@@ -102,14 +102,14 @@ export default function HeroSection() {
 
             {/* Brutal headline */}
             <AnimatedSection animation="fade-up" delay={0.1}>
-              <h1 className="text-4xl sm:text-5xl lg:text-[4.5rem] font-display font-bold leading-[0.95] tracking-tight mb-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-[4.5rem] font-display font-extrabold leading-[1.02] tracking-[-0.02em] mb-6">
                 <span className="text-white">Ton designer</span>
                 <br />
                 <span className="text-white">prend des jours.</span>
                 <br />
-                <span className="bg-gradient-to-r from-[#06B6D4] to-[#06B6D4] bg-clip-text text-transparent">Tes miniatures</span>
+                <span className="gradient-text">Tes miniatures</span>
                 <br />
-                <span className="bg-gradient-to-r from-[#06B6D4] via-[#EC4899] to-[#EC4899] bg-clip-text text-transparent">prennent 30s.</span>
+                <span className="gradient-text">prennent 30s.</span>
               </h1>
             </AnimatedSection>
 
@@ -127,7 +127,7 @@ export default function HeroSection() {
                 <Button
                   size="lg"
                   onClick={handleCTAClick}
-                  className="bg-[#06B6D4] hover:bg-[#06B6D4]/90 text-black font-bold text-base px-8 py-6 rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.97] shadow-lg shadow-[#06B6D4]/25 magnetic-btn group"
+                  className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 text-black font-bold text-base px-8 py-6 rounded-full glow-btn group"
                 >
                   Essayer gratuitement
                   <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -136,7 +136,7 @@ export default function HeroSection() {
                   size="lg"
                   variant="outline"
                   onClick={handleExamplesClick}
-                  className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-white/5 text-base px-8 py-6 rounded-lg magnetic-btn"
+                  className="glass text-zinc-200 hover:text-white text-base px-8 py-6 rounded-full magnetic-btn"
                 >
                   <Play className="mr-2 w-5 h-5" />
                   Voir des exemples
@@ -167,7 +167,7 @@ export default function HeroSection() {
             <div className="hidden lg:col-span-5 lg:flex relative">
               <div className="relative w-full">
                 {/* Main thumbnail */}
-                <div className="relative rounded-xl overflow-hidden border-2 border-[#06B6D4]/30 shadow-2xl shadow-[#06B6D4]/10 z-10 hover-tilt">
+                <div className="relative rounded-[20px] overflow-hidden border-2 border-primary/25 shadow-2xl shadow-cyan-500/10 z-10 hover-tilt feature-edge">
                   <img
                     src="/manus-storage/thumbnail-mrbeast_fc8fbcd3.png"
                     alt="Miniature virale"
