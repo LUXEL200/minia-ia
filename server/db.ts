@@ -1106,6 +1106,42 @@ export async function markScheduleReminded(id: number) {
   return true;
 }
 
+// === Planning reminders J-5 (notifications 5 jours avant publication) ===
+
+export async function getJ5RemindersToFire() {
+  const db = await getDb();
+  if (!db) return [];
+  // Schedules whose publication time is within 4–5 days (4d..6d from now) and not yet reminded
+  const from = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
+  const before = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
+  return db.select().from(publishedSchedules)
+    .where(and(gte(publishedSchedules.scheduledAt, from), lt(publishedSchedules.scheduledAt, before), eq(publishedSchedules.remindedJ5, 0)))
+    .orderBy(publishedSchedules.scheduledAt);
+}
+
+export async function markScheduleJ5Reminded(id: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(publishedSchedules).set({ remindedJ5: 1 }).where(eq(publishedSchedules.id, id));
+  return true;
+}
+
+// === Low credit alerts (email-style in-app when balance <= 5) ===
+
+export async function getUsersWithLowCredits(threshold = 5) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(userCredits)
+    .where(and(lte(userCredits.credits, threshold), eq(userCredits.notifiedLowCredit, 0)));
+}
+
+export async function markLowCreditNotified(userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(userCredits).set({ notifiedLowCredit: 1 }).where(eq(userCredits.userId, userId));
+  return true;
+}
+
 export async function getSchedulesByMonth(userId: number, year: number, month: number) {
   const db = await getDb();
   if (!db) return [];

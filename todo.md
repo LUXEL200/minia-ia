@@ -283,3 +283,11 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 
 - [x] Glisser-déposer d'images sur le canvas de l'éditeur (fond par défaut, ou calque si image déjà présente) — zone d'indication visuelle orange au survol (UploadCloud + instructions), toast de confirmation, validation PNG/JPG/WEBP max 8 Mo, formats respectés selon canvasSize, + collage presse-papier Ctrl+V d'images
 - [x] Tests vitest + tsc + vérifs visuelles (desktop/mobile, 81/81) + checkpoint + publication
+
+## Vague v20 (demande utilisateur — 15/08)
+
+- [x] Redimensionnement par poignées sur le canvas : 8 poignées orange (coins + côtés ; e/w pour texte), glisser avec min 20px, ratio maintenable (Shift), mise à jour du panneau propriétés en temps réel
+- [x] Prévisualisation miniature YouTube en temps réel dans l'éditeur : bouton YouTube dans la topbar + dialog aperçu vignette YouTube (miniature + titre fictif + chaîne + vues) live-mis-à-jour à chaque modification
+- [x] Backend notifications : rappels J-5 (colonne remindedJ5 + getJ5RemindersToFire/markScheduleJ5Reminded + handler /api/scheduled/fireJ5Reminders) et alerte crédits bas (seuil 5, notifiedLowCredit pour ne pas spammer + handler /api/scheduled/fireLowCreditAlerts) — migration drizzle/0012_same_morlocks.sql
+- [x] Heartbeat : 2 crons créés — weekly-j5-reminders (0 0 8 * * *, task_uid=RjLMQdmJsLmptpQZpXkhrw) et daily-low-credit-alerts (0 0 9 * * *, task_uid=Wtg7s82VKHWuuCM9LJKwLg)
+- [x] Tests vitest 81/81 + tsc OK + vérifs visuelles + checkpoint + publication

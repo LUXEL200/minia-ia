@@ -9,7 +9,7 @@ import {
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
   ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
-  Smartphone, Tablet, X, Heart, Sparkles, UploadCloud,
+  Smartphone, Tablet, Youtube, X, Heart, Sparkles, UploadCloud,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -84,7 +84,7 @@ export default function Editor() {
   const [bgTransparent, setBgTransparent] = useState(true);
   const [bgFit, setBgFit] = useState<"cover" | "contain">("cover");
   const [isDragging, setIsDragging] = useState(false);
-  const [devicePreview, setDevicePreview] = useState<"none" | "phone" | "tablet">("none");
+  const [devicePreview, setDevicePreview] = useState<"none" | "phone" | "tablet" | "youtube">("none");
 
   // === Format du canevas (dynamique selon le panneau gauche) ===
   const [canvasSize, setCanvasSize] = useState({ w: 640, h: 360 });
@@ -278,7 +278,84 @@ export default function Editor() {
     }
   };
 
+  // ===== Resize handles (drag corners/edges directly on the canvas) =====
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [resizeStart, setResizeStart] = useState<{ clientX: number; clientY: number; x: number; y: number; w: number; h: number } | null>(null);
+
+  type ResizeDir =
+    | "nw" | "n" | "ne"
+    | "w" | "e"
+    | "sw" | "s" | "se";
+
+  const handleResizeMouseDown = (e: React.MouseEvent, dir: ResizeDir) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!selectedId) return;
+    const el = elements.find(x => x.id === selectedId);
+    if (!el) return;
+    setResizeHandle(dir);
+    const h = (el.type === "text" ? Math.max(40, el.fontSize ?? 32) : (el.height ?? 0));
+    setResizeStart({ clientX: e.clientX, clientY: e.clientY, x: el.x, y: el.y, w: el.width, h });
+  };
+
+  const RESIZE_DIRS: ResizeDir[] = ["nw", "n", "ne", "w", "e", "sw", "s", "se"];
+
+  const renderResizeHandles = () => {
+    if (!selectedId) return null;
+    const el = elements.find(x => x.id === selectedId);
+    if (!el) return null;
+    // Text elements only resize width (height is content-driven)
+    const isText = el.type === "text";
+    return (
+      <div
+        className="absolute pointer-events-none z-10"
+        style={{ left: el.x, top: el.y, width: isText ? el.width : el.width, height: isText ? Math.max(40, el.fontSize ?? 32) : el.height ?? 0 }}
+      >
+        {RESIZE_DIRS.map(dir => {
+          if (isText && dir !== "e" && dir !== "w") return null;
+          const pos: Record<ResizeDir, React.CSSProperties> = {
+            nw: { left: -5, top: -5 },
+            n: { left: "50%", top: -5, transform: "translateX(-50%)" },
+            ne: { right: -5, top: -5 },
+            w: { left: -5, top: "50%", transform: "translateY(-50%)" },
+            e: { right: -5, top: "50%", transform: "translateY(-50%)" },
+            sw: { left: -5, bottom: -5 },
+            s: { left: "50%", bottom: -5, transform: "translateX(-50%)" },
+            se: { right: -5, bottom: -5 },
+          };
+          const cursor: Record<ResizeDir, string> = {
+            nw: "nwse-resize", n: "ns-resize", ne: "nesw-resize",
+            w: "ew-resize", e: "ew-resize",
+            sw: "nesw-resize", s: "ns-resize", se: "nwse-resize",
+          };
+          return (
+            <div
+              key={dir}
+              className="pointer-events-auto"
+              onMouseDown={e => handleResizeMouseDown(e, dir)}
+              style={{
+                position: "absolute",
+                ...pos[dir],
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                backgroundColor: "#F97316",
+                border: "2px solid #fff",
+                boxShadow: "0 0 0 1px rgba(0,0,0,0.4)",
+                cursor: cursor[dir],
+                zIndex: 20,
+              }}
+              title="Redimensionner"
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
   const handleElementMouseDown = (e: React.MouseEvent, elId: string) => {
+    // Ignore drags that start on a resize handle (pointer-events-auto divs)
+    if ((e.target as HTMLElement).dataset.resize) return;
     e.stopPropagation();
     setSelectedId(elId);
     setIsDragging(true);
@@ -289,7 +366,54 @@ export default function Editor() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !selectedId) return;
+      if (!selectedId) return;
+      // --- Resize in progress
+      if (resizeHandle && resizeStart) {
+        const dx = (e.clientX - resizeStart.clientX) / zoom;
+        const dy = (e.clientY - resizeStart.clientY) / zoom;
+        const el = elements.find(x => x.id === selectedId);
+        if (!el) return;
+        const MIN = 20;
+        const elW = el.width ?? 0;
+        const elH = el.type === "text" ? Math.max(40, el.fontSize ?? 32) : (el.height ?? 0);
+        const keepRatio = e.shiftKey;
+        let newW = resizeStart.w;
+        let newH = resizeStart.h;
+        let newX = resizeStart.x;
+        let newY = resizeStart.y;
+        const dir = resizeHandle;
+        const aspect = elW && elH ? elW / elH : 0;
+        if (dir.includes("e")) newW = Math.max(MIN, resizeStart.w + dx);
+        if (dir.includes("w")) { newW = Math.max(MIN, resizeStart.w - dx); newX = resizeStart.x + (resizeStart.w - newW); }
+        if (dir.includes("s")) newH = Math.max(MIN, resizeStart.h + dy);
+        if (dir.includes("n")) { newH = Math.max(MIN, resizeStart.h - dy); newY = resizeStart.y + (resizeStart.h - newH); }
+        if (keepRatio && aspect) {
+          if (dir === "n" || dir === "s") {
+            newW = newH * aspect;
+            if (dir === "n") newX = resizeStart.x + (resizeStart.w - newW);
+          } else if (dir === "e" || dir === "w") {
+            newH = newW / aspect;
+            if (dir === "w") newY = resizeStart.y + (resizeStart.h - newH);
+          } else {
+            // Corners: derive both from the diagonal-most delta, keep aspect
+            const maxW = resizeStart.w + (dir.includes("e") ? dx : -dx);
+            const maxH = resizeStart.h + (dir.includes("s") ? dy : -dy);
+            newW = Math.max(MIN, maxW);
+            newH = Math.max(MIN, newW / aspect);
+            if (maxH > newH && aspect) {
+              newH = Math.max(MIN, maxH);
+              newW = Math.max(MIN, newH * aspect);
+            }
+            if (dir === "nw") { newX = resizeStart.x + (resizeStart.w - newW); newY = resizeStart.y + (resizeStart.h - newH); }
+            else if (dir === "ne") { newY = resizeStart.y + (resizeStart.h - newH); }
+            else if (dir === "sw") { newX = resizeStart.x + (resizeStart.w - newW); }
+          }
+        }
+        updateElement(selectedId, { width: Math.round(newW), height: Math.round(newH), x: Math.round(newX), y: Math.round(newY) });
+        return;
+      }
+      // --- Drag in progress
+      if (!isDragging) return;
       const dx = (e.clientX - dragStart.x) / zoom;
       const dy = (e.clientY - dragStart.y) / zoom;
       updateElement(selectedId, {
@@ -299,10 +423,12 @@ export default function Editor() {
     };
 
     const handleMouseUp = () => {
-      if (isDragging && selectedId) {
+      if ((isDragging || resizeHandle) && selectedId) {
         pushHistory(elements);
       }
       setIsDragging(false);
+      setResizeHandle(null);
+      setResizeStart(null);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -311,7 +437,7 @@ export default function Editor() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, selectedId, dragStart, dragElStart, zoom, elements, pushHistory]);
+  }, [isDragging, selectedId, dragStart, dragElStart, zoom, elements, pushHistory, resizeHandle, resizeStart]);
 
   const exportCanvas = async () => {
     if (!canvasRef.current) return;
@@ -1171,6 +1297,14 @@ export default function Editor() {
             >
               <Tablet className="w-4 h-4" />
             </button>
+            <div className="w-px h-5 bg-border mx-1" />
+            <button
+              onClick={() => setDevicePreview("youtube")}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Aperçu YouTube (miniature dans les suggestions)"
+            >
+              <Youtube className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Droite : zoom, filigrane, export */}
@@ -1284,6 +1418,8 @@ export default function Editor() {
             )}
             {elements.map(renderElement)}
 
+            {renderResizeHandles()}
+
             {renderVersionsPanel()}
 
             {elements.length === 0 && !bgImageUrl && (
@@ -1310,9 +1446,59 @@ export default function Editor() {
         <DialogContent className="max-w-sm bg-[#141414] border-border">
           <DialogHeader>
             <DialogTitle className="text-white text-sm">
-              {devicePreview === "phone" ? "Aperçu smartphone" : "Aperçu tablette"}
+              {devicePreview === "phone" ? "Aperçu smartphone" : devicePreview === "youtube" ? "Aperçu YouTube" : "Aperçu tablette"}
             </DialogTitle>
           </DialogHeader>
+
+          {/* Aperçu YouTube : vignette dans le contexte réel des suggestions YouTube */}
+          {devicePreview === "youtube" && (
+            <div className="pb-2">
+              <p className="text-[11px] text-muted-foreground text-center mb-3">Ta miniature vue dans les suggestions et résultats YouTube</p>
+              <div className="bg-[#0f0f0f] rounded-xl p-4 flex justify-center">
+                <div style={{ width: 320 }}>
+                  {/* Vignette */}
+                  <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: `${canvasSize.w} / ${canvasSize.h}` }}>
+                    <div
+                      ref={previewCanvasRef}
+                      style={{
+                        position: "absolute",
+                        left: "50%",
+                        top: "50%",
+                        width: canvasSize.w,
+                        height: canvasSize.h,
+                        transform: "translate(-50%, -50%)",
+                        pointerEvents: "none",
+                        backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
+                        backgroundImage: bgImageUrl ? `url("${bgImageUrl}")` : undefined,
+                        backgroundSize: bgFit,
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                      }}
+                      className="relative"
+                    >
+                      {elements.map(renderElement)}
+                    </div>
+                  </div>
+                  {/* Métadonnées fictives (style réel YouTube) */}
+                  <div className="flex gap-3 mt-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      C
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-[13px] font-medium leading-snug line-clamp-2">
+                        Ma vidéo incroyable qui va cartonner 🚀
+                      </p>
+                      <p className="text-zinc-400 text-[12px] mt-0.5">Créateur Minia</p>
+                      <p className="text-zinc-400 text-[12px]">1,2 M de vues · il y a 2 jours</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center -mt-1">
+                L'aperçu se met à jour en temps réel pendant que tu modifies la miniature
+              </p>
+            </div>
+          )}
           <div className="flex justify-center py-2">
             <div
               className="relative border-2 border-white/20 rounded-2xl overflow-hidden shadow-2xl"

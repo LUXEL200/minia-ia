@@ -52,6 +52,7 @@ export const userCredits = mysqlTable("userCredits", {
   userId: int("userId").notNull().unique(),
   credits: int("credits").default(10).notNull(),
   planType: mysqlEnum("planType", ["free", "pro", "max"]).default("free").notNull(),
+  notifiedLowCredit: int("notifiedLowCredit").default(0).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
   userIdIdx: index("user_credits_user_id_idx").on(table.userId),
@@ -390,6 +391,7 @@ export const publishedSchedules = mysqlTable("publishedSchedules", {
   youtubeTitle: text("youtubeTitle").notNull(),
   scheduledAt: timestamp("scheduledAt").notNull(),
   reminded: int("reminded").default(0).notNull(),
+  remindedJ5: int("remindedJ5").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index("sched_user_idx").on(table.userId),

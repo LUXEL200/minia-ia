@@ -8,7 +8,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { sdk } from "./sdk";
-import { getRemindersToFire, markScheduleReminded, createNotification } from "../db";
+import { getRemindersToFire, markScheduleReminded, getJ5RemindersToFire, markScheduleJ5Reminded, getUsersWithLowCredits, markLowCreditNotified, createNotification } from "../db";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -60,6 +60,64 @@ async function startServer() {
           fired.push({ scheduleId: s.id, userId: s.userId, title: s.youtubeTitle });
         } catch {
           // Continuer sur les autres schedules même si un échoue (idempotent au global)
+        }
+      }
+      res.json({ ok: true, fired });
+    } catch (err) {
+      res.status(500).json(JSON.parse(JSON.stringify({ error: String(err), context: { url: req.originalUrl }, timestamp: new Date().toISOString() })));
+    }
+  });
+
+  // Cron Heartbeat — planning reminders (J-5 notifications)
+  app.post("/api/scheduled/fireJ5Reminders", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid) {
+        return res.status(403).json({ error: "cron-only" });
+      }
+      const due = await getJ5RemindersToFire();
+      const fired: { scheduleId: number; userId: number; title: string }[] = [];
+      for (const s of due) {
+        try {
+          await createNotification({
+            userId: s.userId,
+            title: "Rappel J-5 : planification à venir",
+            message: `« ${s.youtubeTitle} » est programmé dans environ 5 jours. Anticipe la préparation de ta vidéo et reste en avance !`,
+            type: "system",
+          });
+          await markScheduleJ5Reminded(s.id);
+          fired.push({ scheduleId: s.id, userId: s.userId, title: s.youtubeTitle });
+        } catch {
+          // Continuer sur les autres schedules même si un échoue (idempotent au global)
+        }
+      }
+      res.json({ ok: true, fired });
+    } catch (err) {
+      res.status(500).json(JSON.parse(JSON.stringify({ error: String(err), context: { url: req.originalUrl }, timestamp: new Date().toISOString() })));
+    }
+  });
+
+  // Cron Heartbeat — alertes de crédits bas (solde <= 5)
+  app.post("/api/scheduled/fireLowCreditAlerts", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid) {
+        return res.status(403).json({ error: "cron-only" });
+      }
+      const low = await getUsersWithLowCredits(5);
+      const fired: { userId: number; credits: number }[] = [];
+      for (const c of low) {
+        try {
+          await createNotification({
+            userId: c.userId,
+            title: "Crédits bientôt épuisés",
+            message: `Il te reste ${c.credits} crédit(s). Recharge tes packs de crédits dans Facturation pour ne pas interrompre tes générations.`,
+            type: "system",
+          });
+          await markLowCreditNotified(c.userId);
+          fired.push({ userId: c.userId, credits: c.credits });
+        } catch {
+          // Continuer sur les autres users même si un échoue (idempotent au global)
         }
       }
       res.json({ ok: true, fired });
