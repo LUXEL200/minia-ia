@@ -5,10 +5,10 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Type, Smile, Square, Eraser, Palette, Bold, Plus, Menu,
+  ArrowLeft, Type, Smile, Square, Eraser, Palette, Bold, Plus,
   Save, Download, Trash2, Move,
 } from "lucide-react";
-import { useAppSidebar, AppSidebar } from "@/components/AppSidebar";
+
 
 type EditorElement = {
   id: string;
@@ -52,7 +52,16 @@ export default function TemplateEditor() {
   const currentTemplate = template?.find((t: any) => t.id === templateId);
 
   const createCustomization = trpc.customizations.create.useMutation();
+  const saveToGallery = trpc.thumbnail.saveFromBase64.useMutation();
   const utils = trpc.useUtils();
+
+  // No template → go back to the templates library
+  useEffect(() => {
+    if (!loading && !templateLoading && template && !currentTemplate) {
+      toast("Template introuvable — retour à la bibliothèque");
+      navigate("/templates");
+    }
+  }, [loading, templateLoading, template, currentTemplate, navigate]);
 
   const [elements, setElements] = useState<EditorElement[]>([]);
   const [backgroundColor, setBackgroundColor] = useState("#000000");
@@ -61,7 +70,7 @@ export default function TemplateEditor() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{ id: string; startX: number; startY: number; elX: number; elY: number } | null>(null);
   const [showColors, setShowColors] = useState(false);
-  const sidebar = useAppSidebar();
+
 
   // Load saved customization via query param ?customId
   const customId = Number(new URLSearchParams(search).get("customId") || "0");
@@ -202,6 +211,19 @@ export default function TemplateEditor() {
     }
   };
 
+  const handleSaveToGallery = async () => {
+    if (!canvasRef.current) return;
+    try {
+      const dataUrl = await toPng(canvasRef.current, { width: CANVAS_W, height: CANVAS_H, pixelRatio: 1, backgroundColor: backgroundColor, cacheBust: true });
+      const b64 = dataUrl.split(",")[1];
+      await saveToGallery.mutateAsync({ b64, mime: "image/png", title: currentTemplate?.title ? `Template — ${currentTemplate.title}` : "Ma miniature personnalisée" });
+      toast.success("Ajoutée à vos miniatures !");
+      navigate("/dashboard");
+    } catch {
+      toast.error("Échec de l'enregistrement");
+    }
+  };
+
   if (loading) return null;
   if (!isAuthenticated) return null;
 
@@ -209,12 +231,8 @@ export default function TemplateEditor() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <AppSidebar open={sidebar.showSidebar} onClose={() => sidebar.setShowSidebar(false)} pageLabel="Éditeur de template" />
       <header className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2">
-          <button onClick={sidebar.openSidebar} className="text-zinc-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5" aria-label="Menu">
-            <Menu size={18} />
-          </button>
           <Link href="/templates" className="text-zinc-400 hover:text-white transition-colors">
             <ArrowLeft size={18} />
           </Link>
@@ -222,10 +240,14 @@ export default function TemplateEditor() {
             Éditeur de template {currentTemplate ? `— ${currentTemplate.title}` : ""}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button onClick={handleSaveCustomization} disabled={createCustomization.isPending}
             className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 disabled:opacity-50 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm transition-colors">
             <Save size={14} /> <span className="hidden sm:inline">Enregistrer</span>
+          </button>
+          <button onClick={handleSaveToGallery} disabled={saveToGallery.isPending}
+            className="flex items-center gap-1.5 bg-[#00d4ff] text-black hover:bg-[#00bfe6] disabled:opacity-50 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
+            <Plus size={14} /> <span className="hidden sm:inline">Ajouter à mes miniatures</span>
           </button>
           <button onClick={exportPng}
             className="flex items-center gap-1.5 bg-[#ff0050] hover:bg-[#e60048] px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
@@ -235,7 +257,7 @@ export default function TemplateEditor() {
       </header>
 
       {!imageLoaded && !templateLoading ? (
-        <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm">Template introuvable.</div>
+        <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm">Chargement du template…</div>
       ) : (
         <div className="flex-1 flex flex-col lg:flex-row min-h-0">
           {/* Canvas */}

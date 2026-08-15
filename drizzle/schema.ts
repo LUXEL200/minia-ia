@@ -297,6 +297,8 @@ export const abTests = mysqlTable("abTests", {
   clicksB: int("clicksB").default(0).notNull(),
   winner: mysqlEnum("winner", ["a", "b", "tie", "undecided"]).default("undecided").notNull(),
   status: mysqlEnum("status", ["running", "finished"]).default("running").notNull(),
+  /** True when the test was auto-closed by statistical significance (z-test) */
+  autoClosed: int("autoClosed").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({

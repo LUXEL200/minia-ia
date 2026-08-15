@@ -5,7 +5,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import {
-  Plus, Trash2, TrendingUp, Award, X,
+  Plus, Trash2, TrendingUp, Award, X, Zap,
 } from "lucide-react";
 
 export default function AbTest() {
@@ -117,6 +117,11 @@ export default function AbTest() {
                       <span className={`text-[10px] px-2 py-0.5 rounded-full ${test.status === "finished" ? "bg-emerald-500/20 text-emerald-400" : "bg-cyan-500/20 text-cyan-400"}`}>
                         {test.status === "finished" ? "Terminé" : "En cours"}
                       </span>
+                      {test.autoClosed ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 flex items-center gap-1" title="Différence de CTR statistiquement significative (test z, α = 0,05)">
+                          <Zap size={10} /> Clôturé automatiquement
+                        </span>
+                      ) : null}
                     </div>
                     <div className="flex items-center gap-2">
                       <button onClick={() => setOpenTestId(openTestId === test.id ? null : test.id)} className="text-xs text-zinc-400 hover:text-white">
@@ -196,6 +201,11 @@ export default function AbTest() {
                       >
                         Match nul
                       </button>
+                    </div>
+                  )}
+                  {test.autoClosed && (
+                    <div className="px-4 pb-3 flex items-center gap-1.5 text-[11px] text-amber-400/90">
+                      <Zap size={12} /> La différence de CTR est statistiquement significative (test z à deux proportions, α = 0,05) — Minia IA a déclaré automatiquement la gagnante.
                     </div>
                   )}
                 </div>

@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import {
   Users, CreditCard, Image as ImageIcon, Bell, Settings, BarChart3,
   Crown, Shield, Search, ChevronDown, Zap, Trash2, RefreshCw,
-  Globe, Key, Layers, TrendingUp, AlertTriangle, Menu
+  Globe, Key, Layers, TrendingUp, AlertTriangle
 } from "lucide-react";
-import { useAppSidebar, AppSidebar } from "@/components/AppSidebar";
+
 
 type TabId = "dashboard" | "users" | "templates" | "api" | "notifications" | "settings";
 
@@ -25,7 +25,7 @@ export default function AdminPage() {
   const [newTemplateTitle, setNewTemplateTitle] = useState("");
   const [newTemplateImageUrl, setNewTemplateImageUrl] = useState("");
   const [newTemplateCategory, setNewTemplateCategory] = useState("viral");
-  const sidebar = useAppSidebar();
+
 
   // Guard: redirect if not admin
   useEffect(() => {
@@ -112,13 +112,9 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppSidebar open={sidebar.showSidebar} onClose={() => sidebar.setShowSidebar(false)} pageLabel="Super Admin" />
       <div className="border-b border-white/10 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={sidebar.openSidebar} className="text-zinc-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5" aria-label="Menu">
-              <Menu size={18} />
-            </button>
             <div>
             <h1 className="text-xl font-bold">Super Admin</h1>
             <p className="text-sm text-gray-500 mt-0.5">Panneau d'administration Minia IA</p>

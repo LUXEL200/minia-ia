@@ -1,0 +1,1 @@
+ALTER TABLE `abTests` ADD `autoClosed` int DEFAULT 0 NOT NULL;

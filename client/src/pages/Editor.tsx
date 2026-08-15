@@ -9,8 +9,10 @@ import {
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
   ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
+  Smartphone, Tablet, X, LayoutTemplate, Heart,
 } from "lucide-react";
-import { useAppSidebar, AppSidebar } from "@/components/AppSidebar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 
 interface EditorTextElement {
   id: string;
@@ -43,12 +45,14 @@ interface EditorShapeElement {
 interface EditorImageElement {
   id: string;
   type: "image";
+  url: string;
   x: number;
   y: number;
   width: number;
   height: number;
   opacity: number;
   borderRadius: number;
+  rotation?: number;
 }
 
 type EditorElement = EditorTextElement | EditorShapeElement | EditorImageElement;
@@ -78,7 +82,10 @@ export default function Editor() {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [bgColor, setBgColor] = useState("#000000");
   const [bgTransparent, setBgTransparent] = useState(true);
+  const [bgFit, setBgFit] = useState<"cover" | "contain">("cover");
   const [isDragging, setIsDragging] = useState(false);
+  const [devicePreview, setDevicePreview] = useState<"none" | "phone" | "tablet">("none");
+  const previewCanvasRef = useRef<HTMLDivElement>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragElStart, setDragElStart] = useState({ x: 0, y: 0 });
 
@@ -86,6 +93,9 @@ export default function Editor() {
   const thumbnailId = Number(new URLSearchParams(search).get("thumbnailId") || "0");
   const [showVersions, setShowVersions] = useState(false);
   const [versionName, setVersionName] = useState("");
+
+  const { data: creditsData } = trpc.thumbnail.credits.useQuery();
+  const isFreePlan = creditsData?.planType !== "pro" && creditsData?.planType !== "max";
 
   const { data: versions } = trpc.imageVersions.list.useQuery(
     { thumbnailId },
@@ -298,8 +308,12 @@ export default function Editor() {
         backgroundColor: bgTransparent && !bgImageUrl ? undefined : bgColor,
         cacheBust: true,
       });
+      let finalDataUrl = dataUrl;
+      if (isFreePlan) {
+        finalDataUrl = await applyWatermark(dataUrl);
+      }
       const link = document.createElement("a");
-      link.href = dataUrl;
+      link.href = finalDataUrl;
       link.download = "minia-ia-editee.png";
       link.click();
       toast.success(bgImageUrl ? "Miniature exportée en PNG (1280×720) !" : "Miniature exportée en PNG (1280×720) !");
@@ -312,6 +326,32 @@ export default function Editor() {
       link.click();
       toast.error("Export PNG indisponible — fichier SVG téléchargé à la place");
     }
+  };
+
+  /** Burn a "Minia IA" watermark into the bottom-right corner of the exported PNG */
+  const applyWatermark = async (dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = 1280;
+        c.height = 720;
+        const cx = c.getContext("2d");
+        if (!cx) return resolve(dataUrl);
+        cx.drawImage(img, 0, 0, 1280, 720);
+        cx.font = "bold 34px sans-serif";
+        cx.fillStyle = "rgba(255, 255, 255, 0.85)";
+        cx.shadowColor = "rgba(0, 0, 0, 0.7)";
+        cx.shadowBlur = 8;
+        cx.shadowOffsetX = 2;
+        cx.shadowOffsetY = 2;
+        cx.textAlign = "right";
+        cx.fillText("Minia IA", 1256, 688);
+        resolve(c.toDataURL("image/png"));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
   };
 
   const getSVGExport = () => {
@@ -371,6 +411,79 @@ export default function Editor() {
     e.target.value = "";
   };
 
+  /** Insert the uploaded image as a movable/resizable layer (properly framed) */
+  const insertImageAsLayer = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowAddMenu(false);
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/png,image/jpeg,image/webp,image/*";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file || !file.type.startsWith("image/")) return;
+      if (file.size > 8 * 1024 * 1024) { toast.error("Image trop volumineuse (max 8 Mo)"); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const url = String(reader.result || "");
+        // Measure the image to frame it proportionally within the canvas (640×360)
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(640 / img.width, 360 / img.height, 1);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const el: EditorImageElement = {
+            id: `img-${Date.now()}`,
+            type: "image",
+            url,
+            x: Math.round((640 - w) / 2),
+            y: Math.round((360 - h) / 2),
+            width: w,
+            height: h,
+            opacity: 1,
+            borderRadius: 0,
+          };
+          const newElements = [...elements, el];
+          setElements(newElements);
+          pushHistory(newElements);
+          setSelectedId(el.id);
+          toast.success("Image insérée comme calque — déplace-la et redimensionne-la dans le panneau Propriétés");
+        };
+        img.onerror = () => toast.error("Image illisible");
+        img.src = url;
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
+  /** Move an element to the front or back of the layer stack */
+  const moveLayer = (id: string, dir: "up" | "down") => {
+    const idx = elements.findIndex(e => e.id === id);
+    if (idx < 0) return;
+    const newElements = [...elements];
+    const [el] = newElements.splice(idx, 1);
+    newElements.splice(dir === "up" ? newElements.length : 0, 0, el);
+    setElements(newElements);
+    pushHistory(newElements);
+  };
+
+  /** Adjust an inserted image layer's size while keeping its ratio (framing tool) */
+  const fitImageLayer = (mode: "cover" | "contain") => {
+    const el = elements.find(e => e.id === selectedId);
+    if (!el || el.type !== "image") { toast.error("Sélectionne d'abord une image insérée"); return; }
+    const url = (el as EditorImageElement).url;
+    const img = new Image();
+    img.onload = () => {
+      const scale = mode === "cover" ? Math.max(640 / img.width, 360 / img.height) : Math.min(640 / img.width, 360 / img.height);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      updateElement(el.id, { width: w, height: h, x: Math.round((640 - w) / 2), y: Math.round((360 - h) / 2) });
+      pushHistory([...elements]);
+      toast.success(mode === "cover" ? "Image étendue (cover)" : "Image ajustée (contain)");
+    };
+    img.src = url;
+  };
+
   const clearBgImage = () => {
     setBgImageUrl(null);
     toast.success("Image de fond retirée");
@@ -418,6 +531,12 @@ export default function Editor() {
             <div className="w-full h-px bg-white/5 my-1" />
             <p className="text-[10px] text-zinc-500 px-1 pt-1">Image de fond</p>
             <button
+              onClick={insertImageAsLayer}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-cyan-400 hover:bg-white/5 transition-colors text-left"
+            >
+              <Move className="w-3.5 h-3.5" /> Insérer comme calque (modifiable)
+            </button>
+            <button
               onClick={() => bgUploadInputRef.current?.click()}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left"
             >
@@ -441,6 +560,17 @@ export default function Editor() {
       </button>
       <button onClick={handleRedo} className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors" title="Refaire">
         <Redo2 className="w-5 h-5" />
+      </button>
+
+      <div className="w-8 h-px bg-white/10 my-2" />
+
+      {/* Background fit */}
+      <button
+        onClick={() => setBgFit(f => f === "cover" ? "contain" : "cover")}
+        className={`p-2 rounded-lg transition-colors ${bgFit === "contain" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-400 hover:text-white hover:bg-white/5"}`}
+        title={bgFit === "cover" ? "Recadrage : Couvrir (cover)" : "Recadrage : Contenir (contain)"}
+      >
+        <LayoutTemplate className="w-5 h-5" />
       </button>
 
       <div className="w-8 h-px bg-white/10 my-2" />
@@ -557,6 +687,15 @@ export default function Editor() {
 
       <div className="flex-1" />
 
+      {/* Aperçu mobile/tablette */}
+      <button
+        onClick={() => setDevicePreview("phone")}
+        className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+        title="Aperçu smartphone"
+      >
+        <Smartphone className="w-5 h-5" />
+      </button>
+
       {/* Delete */}
       <button onClick={deleteSelected} className="p-2 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Supprimer">
         <Trash2 className="w-5 h-5" />
@@ -633,6 +772,100 @@ export default function Editor() {
                   className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "center" ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-500"}`}
                 >
                   <AlignCenter className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedElement.type === "image" && (
+          <div className="space-y-4">
+            <div>
+              <p className="text-[10px] text-zinc-500 mb-1.5">Encadrement (taille)</p>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => fitImageLayer("contain")}
+                  className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                >
+                  Contenir
+                </button>
+                <button
+                  onClick={() => fitImageLayer("cover")}
+                  className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                >
+                  Couvrir
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-500 mb-1 block">Largeur</label>
+              <input
+                type="range"
+                min="40"
+                max="640"
+                value={(selectedElement as EditorImageElement).width}
+                onChange={e => updateElement(selectedElement.id, { width: parseInt(e.target.value) })}
+                className="w-full accent-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-500 mb-1 block">Hauteur</label>
+              <input
+                type="range"
+                min="40"
+                max="360"
+                value={(selectedElement as EditorImageElement).height}
+                onChange={e => updateElement(selectedElement.id, { height: parseInt(e.target.value) })}
+                className="w-full accent-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-500 mb-1 block">Opacité</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={(selectedElement as EditorImageElement).opacity * 100}
+                onChange={e => updateElement(selectedElement.id, { opacity: parseInt(e.target.value) / 100 })}
+                className="w-full accent-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-500 mb-1 block">Arrondi</label>
+              <input
+                type="range"
+                min="0"
+                max="200"
+                value={(selectedElement as EditorImageElement).borderRadius}
+                onChange={e => updateElement(selectedElement.id, { borderRadius: parseInt(e.target.value) })}
+                className="w-full accent-cyan-500"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-500 mb-1 block">Rotation ({(selectedElement as EditorImageElement).rotation ?? 0}°)</label>
+              <input
+                type="range"
+                min="-180"
+                max="180"
+                value={(selectedElement as EditorImageElement).rotation ?? 0}
+                onChange={e => updateElement(selectedElement.id, { rotation: parseInt(e.target.value) })}
+                className="w-full accent-cyan-500"
+              />
+            </div>
+            <div>
+              <p className="text-[10px] text-zinc-500 mb-1.5">Ordre des calques</p>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => moveLayer(selectedElement.id, "up")}
+                  className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                >
+                  Au premier plan
+                </button>
+                <button
+                  onClick={() => moveLayer(selectedElement.id, "down")}
+                  className="flex-1 bg-white/5 hover:bg-white/10 text-zinc-300 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                >
+                  À l'arrière-plan
                 </button>
               </div>
             </div>
@@ -741,14 +974,38 @@ export default function Editor() {
       );
     }
 
+    if (el.type === "image") {
+      return (
+        <div
+          key={el.id}
+          data-element-id={el.id}
+          onMouseDown={e => handleElementMouseDown(e, el.id)}
+          style={{
+            position: "absolute",
+            left: el.x,
+            top: el.y,
+            width: el.width,
+            height: el.height,
+            backgroundImage: `url("${(el as EditorImageElement & { url?: string }).url || ""}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: el.opacity,
+            borderRadius: el.borderRadius,
+            transform: (el as EditorImageElement).rotation ? `rotate(${(el as EditorImageElement).rotation}deg)` : undefined,
+            cursor: cursorStyle,
+            outline: isSelected ? "2px solid #06B6D4" : "none",
+            outlineOffset: 2,
+            userSelect: "none",
+          }}
+        />
+      );
+    }
+
     return null;
   };
 
-  const sidebar = useAppSidebar();
-
   return (
     <div className="min-h-screen bg-[#000] flex">
-      <AppSidebar open={sidebar.showSidebar} onClose={() => sidebar.setShowSidebar(false)} pageLabel="Espace Canva" />
       {renderToolbar()}
 
       {/* Main canvas area */}
@@ -756,13 +1013,23 @@ export default function Editor() {
         {/* Top bar */}
         <div className="w-full max-w-4xl flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <button onClick={sidebar.openSidebar} className="text-zinc-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5" aria-label="Menu">
-              <Menu size={18} />
-            </button>
             <h1 className="text-sm font-medium text-white">Éditeur de miniature</h1>
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="sm" className="h-7 text-[11px] border-white/10 text-zinc-400 hover:text-white" onClick={() => setDevicePreview("tablet")}>
+                <Tablet className="w-3.5 h-3.5 mr-1" /> Aperçu tablette
+              </Button>
+              <Button variant="outline" size="sm" className="h-7 text-[11px] border-white/10 text-zinc-400 hover:text-white" onClick={() => setDevicePreview("phone")}>
+                <Smartphone className="w-3.5 h-3.5 mr-1" /> Aperçu mobile
+              </Button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-zinc-500">{Math.round(zoom * 100)}%</span>
+            {isFreePlan && (
+              <span className="hidden sm:inline-flex text-[10px] text-amber-400 border border-amber-400/30 rounded-full px-2 py-0.5">
+                Filigrane Minia IA à l'export
+              </span>
+            )}
             <Button onClick={exportCanvas} className="h-8 text-xs bg-white text-black hover:bg-white/90">
               <Save className="w-3.5 h-3.5 mr-1" /> Exporter
             </Button>
@@ -784,7 +1051,7 @@ export default function Editor() {
               height: 360 * zoom,
               backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
               backgroundImage: bgImageUrl ? `url("${bgImageUrl}")` : undefined,
-              backgroundSize: "cover",
+              backgroundSize: bgFit,
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
               transform: `scale(${zoom})`,
@@ -828,6 +1095,53 @@ export default function Editor() {
       </div>
 
       <input ref={bgUploadInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={handleBgFileUpload} />
+
+      {/* Device preview dialog */}
+      <Dialog open={devicePreview !== "none"} onOpenChange={open => { if (!open) setDevicePreview("none"); }}>
+        <DialogContent className="max-w-sm bg-[#141414] border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white text-sm">
+              {devicePreview === "phone" ? "Aperçu smartphone" : "Aperçu tablette"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center py-2">
+            <div
+              className="relative border-2 border-white/20 rounded-2xl overflow-hidden shadow-2xl"
+              style={{
+                width: devicePreview === "phone" ? 280 : 400,
+                borderRadius: devicePreview === "phone" ? 28 : 16,
+              }}
+            >
+              <div className="relative bg-[#0f0f0f]" style={{ width: "100%", aspectRatio: devicePreview === "phone" ? "9 / 16" : "3 / 2" }}>
+                <div
+                  ref={previewCanvasRef}
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    width: 640,
+                    height: 360,
+                    transform: `translate(-50%, -50%) scale(${(devicePreview === "phone" ? 360 : 900) / 640})`,
+                    transformOrigin: "center center",
+                    pointerEvents: "none",
+                    backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
+                    backgroundImage: bgImageUrl ? `url("${bgImageUrl}")` : undefined,
+                    backgroundSize: bgFit,
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                  className="relative"
+                >
+                  {elements.map(renderElement)}
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-zinc-500 text-center -mt-2">
+            Simule l'affichage dans les suggestions YouTube ({devicePreview === "phone" ? "360×640" : "900×600"})
+          </p>
+        </DialogContent>
+      </Dialog>
 
       {/* Property panel */}
       {renderPropertyPanel()}

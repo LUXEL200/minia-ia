@@ -86,3 +86,110 @@ La vérification du dashboard connecté via navigateur bloquait sur la page de c
 - Screenshot non-loggé : dashboard montre le hamburger dans la navbar (OK), /templates et /ab-test avec hamburger (OK), mobile 375x812 OK.
 - Reste à faire : vérification du payload inspiration dans l'UI (l'onglet "Image inspirée" n'est visible qu'après clic sur l'onglet, screenshot initial montrait la vue home) — code revu, semble correct (lignes 796-860 de Dashboard.tsx).
 - Puis : pnpm test + checkpoint + message de livraison.
+
+## VAGUE v4 — demandes utilisateur (15/08)
+
+Demandes :
+1. Hamburger fixe en haut à droite sur toutes les pages (y compris paramètres/sous-pages), supprimer les doublons dans les résultats
+2. Éditeur : aperçu mobile/tablette (rendu suggestions YouTube)
+3. Espace Canva : encadrement dimensionné (1280×720) pour images uploadées + outils retouche
+4. Boutons favoris/supprimer/partager/valider/modifier sur miniatures
+5. Filigrane Minia IA sur générations plan gratuit
+6. Éditeur de templates : "Ajouter à mes miniatures"
+7. A/B test : clôture automatique par significativité statistique
+
+Fait jusqu'ici (v4) :
+- [x] `client/src/components/FloatingMenu.tsx` : bouton fixe top-right z-[70], se rétracte en icône après 3s d'inactivité, ouvre AppSidebar
+- [x] Wire dans App.tsx au niveau app (après Router) — présent sur toutes les pages
+- [x] Navbar.tsx : hamburger local retiré (bouton + AppSidebar + useAppSidebar retirés)
+
+RESTE :
+- [ ] Retirer les boutons hamburger + AppSidebar dupliqués dans Dashboard.tsx (~lignes 238-256, section // ===== Hamburger Sidebar =====), Editor.tsx (~759), TemplateEditor.tsx (~215), Admin.tsx (~119), PageHeader.tsx (~lignes 17-21). Pour PageHeader, garder le breadcrumb mais retirer le bouton hamburger + AppSidebar (FloatingMenu gère tout). Vérifier que showSidebar n'est plus utilisé dans ces fichiers (TS)
+- [ ] Phase 3 : Editor.tsx — aperçu mobile/tablette (device frames), outils retouche image uploadée (resize/crop frame 1280×720, rotation, opacité), boutons favoris/supprimer/partager/valider
+- [ ] Phase 4 : TemplateEditor — bouton "Ajouter à mes miniatures" (sauver l'export PNG comme thumbnail utilisateur via storagePut S3 côté serveur) ; filigrane plan gratuit sur thumbnail.generate (overlay "Minia IA" si user credits plan free — vérifier champs role/plan dans users table)
+- [ ] Phase 5 : AbTest — clôture auto : calcul significativité (test Z deux proportions sur CTR) côté serveur, déclaration auto gagnant
+- [ ] Tests vitest + tsc + checkpoint + message final
+
+Contexte : domaine prod miniagenerat-3x8qnuoe.manus.space, auto-publish ON. ts/tests OK avant.
+
+## Progression v4 (suite)
+
+Fait :
+- FloatingMenu.tsx créé et wire dans App.tsx (toutes pages, top-right, se rétracte après 3s, z-[70])
+- Navbar.tsx : hamburger local + AppSidebar retirés
+- Dashboard.tsx : sidebar locale `renderSidebar` supprimée (lignes 238-522 via sed), state showSidebar retiré, bouton hamburger du header retiré, {renderSidebar()} retiré. TS 0 erreur.
+
+Reste à faire (dans l'ordre) :
+1. Retirer les boutons hamburger dupliqués + AppSidebar dans : Editor.tsx (~l.759), TemplateEditor.tsx (~l.215), Admin.tsx (~l.119), PageHeader.tsx (lignes ~17-21, bouton hamburger + AppSidebar → garder breadcrumb). Vérifier les `setShowSidebar(true)` restants (grappe de grep). Attention Editor.tsx a peut-être une sidebar locale type useAppSidebar → remplacer par FloatingMenu global
+2. Éditeur : aperçu mobile/tablette (DevicePreview : cadre smartphone et tablette sur le canvas 1280×720)
+3. Editor : encadrement dimensionné images uploadées (resize fit dans 1280×720, outils rotate/opacity/scale), outils retouche
+4. Boutons favoris/supprimer/partager/valider sur miniatures (dashboard grille + gallery) — favorites router existe, partager = copy link/navigator.share, valider = champ status ou favoris+archive
+5. Filigrane plan gratuit : thumbnail.generate overlay "Minia IA" si user free (vérifier users.plan/credits free)
+6. TemplateEditor : bouton "Ajouter à mes miniatures" → upload S3 storagePut (server storage.ts helpers storagePut) + insert thumbnail
+7. AbTest clôture auto : test Z deux proportions (CTR_A vs CTR_B, pooled p, z≥1.96 p<0.05) → auto-declare winner dans updateStats
+8. tsc + pnpm test + checkpoint + livraison
+
+## Structure Editor.tsx (référence interne)
+
+- Lignes : imports 1-12 ; types EditorTextElement(15)/EditorShapeElement(31)/EditorImageElement(43) avec x,y,width,height,opacity (image aussi borderRadius)
+- Composant : bgImageUrl via URL param `image/img/url` (l.65-74), selectedId, zoom, bgColor, bgTransparent, drag state, versions panel (l.85-95), thumbnailId depuis `thumbnailId` param
+- addBackground l.222, removeBgImage l.229 (reset URL param via history.replaceState)
+- Canvas : canvasContainerRef l.767, canvasRef div 640×360*zoom (l.772-788), bg image = CSS background cover center parent, éléments via elements.map(renderElement)
+- Export PNG : toPng(canvasRef, {width:1280,height:720}) l.291-315, fallback SVG l.317
+- Toolbar : renderToolbar() l.379 ; menu Ajouter l.415-426 ("Importer une image" bouton + remove pour bgImageUrl)
+- input file hidden l.824 → handleBgFileUpload ; renderPropertyPanel() l.827
+- NOTE : canvas utilise CSS background cover → image uploadée déborde pas mais est rognée (acceptable, mais l'utilisateur veut "bon encadrement")
+
+## Plan retouche encadrement (phase 3)
+- Option choisie : garder bg cover simple mais AJOUTER : (a) slider "Ajuster le recadrage" (backgroundSize cover→contain) + bouton Contain/Cover ; (b) outils image uploadée comme élément déplaçable : ajouter bouton "Insérer comme calque" qui crée un EditorImageElement à la taille du canevas (object-contain) qu'on peut déplacer/redimensionner
+- Aperçu mobile/tablette : DevicePreview (dialog) : canvas缩小 scaled par frame smartphone (iPhone 1200×2688 ratio ~0.45 → 1280×720 en ratio 16:9, preview = 360/640 × taille frame), frames : téléphone (480×854 → affiche 270×152) + tablette (900×600 → affiche ~450×253)
+- Boutons favoris/supprimer/partager/valider : dans Dashboard grille (Miniatures) + Editor topbar ; favorites existe via trpc.favorites.* ; partager = navigator.share ou copy link ; valider = marquer "approuvé" (utiliser champ status ou favoris+note) ; supprimer = trpc.thumbnail.delete
+
+## Backend existant (référence)
+- thumbnails router : list/get/create/generate/credits/delete ; favorites router ; imageVersions ; customizations ; abTests ; templates ; avatars ; endcards ; notifications
+- storage : server/storage.ts (storagePut helpers) — utiliser pour "Ajouter à mes miniatures"
+- users table : role, plan ou credits free/pro/max — vérifier champs avant watermark ; watermark : overlay texte "Minia IA" dans export PNG (dessiner canvas 2d après toPng) OU via html-to-image avec div overlay — plus simple : div overlay "Minia IA" dans canvasRef toujours visible, puis export l'inclut ; condition : user free
+- abTests.updateStats : calcul auto significativité : z = (pA-pB)/sqrt(p*(1-p)*(1/nA+1/nB)), p pooled ; si z>=1.96 → declare winner A ; z<=-1.96 → B ; sinon ongoing
+- pnpm test : 9 tests ; pnpm db:push pour migrations
+
+## Suivi v4 — backend fait, frontend en cours
+
+Backend terminé et testé :
+- routers.ts : `thumbnail.saveFromBase64` (b64→storagePut→createThumbnail, style=custom, creditsUsed=0), `thumbnail.credits` retourne aussi planType
+- `abTests.updateStats` : clôture auto par z-test deux proportions (n≥100, |z|≥1.96 → winner a/b + finished) ; import { abTests } déjà dans schema import ligne 9
+- tests server/features.v2.test.ts : 2 nouveaux tests auto-close
+
+Problème test en cours (à débugger) :
+- Erreur « Cannot read properties of undefined (reading 'from') » à routers.ts:311 : le mock dbMock.select est OVERWRITTEN dans createCaller() par `dbMock.select = vi.fn().mockReturnValue({ from: vi.fn()...})` puis beforeEach reset les mocks (vi.fn().mockReset) — le Object.assign(vi.fn(),{from}) est perdu au beforeEach.resetAllMocks().
+- Solution : modifier la fixture `from` directement : `dbMock.select.mockImplementation(() => mockSelectResult)` ou ajouter `.from` sur la valeur retournée par select dans createCaller (lignes 40-47) : `from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]), limit: vi.fn() })`
+
+Reste frontend :
+1. TemplateEditor : bouton "Ajouter à mes miniatures" → utiliser toPng du canvas puis trpc.thumbnail.saveFromBase64({b64:dataUrl sans prefix, mime:"image/png", title})
+2. Editor : filigrane plan gratuit (div overlay "Minia IA" bottom-right, condition credits.planType==="free"), aperçu mobile/tablette (DevicePreview), encadrement dimensionné images (fit contain toggle), boutons favoris/supprimer/partager/valider (dashboard miniatures)
+3. AbTest.tsx : afficher badge auto-close + message significativité
+4. Vérif screenshots + checkpoint + livraison
+
+## Vérifications screenshots (15/08)
+
+- OK : Hamburger fixe haut-droite présent sur /, /dashboard, /gallery, /editor, /admin, /ab-test, /template-editor, /templates
+- OK : /dashboard rend proprement (stat cards, floating nav) ; /gallery OK
+- OK : /editor OK avec état vide « Importer une image »
+- PROBLÈME : /template-editor sans paramètre id → « Template introuvable. » (normal sans id, mais devrait rediriger vers /templates). À corriger.
+- PROBLÈME : sur /template-editor et /templates, le bouton « Exporter » (rose) et le menu sont collés en haut à droite — overlap. Vérifier padding top bar.
+- /ab-test OK (empty state), /templates OK (16 templates)
+
+## Reste à faire (frontend)
+1. TemplateEditor : gérer id manquant → retourner sur /templates [FAIT]
+2. TemplateEditor : bouton « Ajouter à mes miniatures » → toPng(canvas) → saveFromBase64 [FAIT]
+3. Editor : filigrane (applyWatermark canvas 2d sur export si isFreePlan), aperçu mobile/tablette (Dialog previewCanvasRef scaled), fit cover/contain (bgFit + fitImageLayer), EditorImageElement avec url + rendu + panneau propriétés (Contenir/Couvrir, largeur/hauteur/opacité/arrondi), « Insérer comme calque » [FAIT]
+4. Dashboard : boutons favoris/supprimer/partager/valider/modifier dans overlays hover (recent + all-generations), handleShare (navigator.share ou clipboard) [FAIT]
+5. AbTest.tsx : badge « Clôturé automatiquement » (autoClosed ambre) + message z-test [FAIT] ; backend autoClosed int (schema + migration 0004 appliquée) + routers set autoClosed:1
+6. Checkpoint + livraison [EN COURS — reste : tests vitest, todo.md, checkpoint]
+
+## Vague v4 — état final (15/08, 09:33)
+- TOUT le code v4 est terminé : FloatingMenu top-right, Editor (watermark export + device preview + fit + calques/rotation/ordre + insert-as-layer), Dashboard overlays (favori/supprimer/partager/valider/modifier), Gallery overlays (favori+partager), AbTest autoClosed + badge, server-side watermark via sharp sur thumbnail.generate plan free, TemplateEditor saveFromBase64.
+- Tests vitest 11/11 verts, tsc 0 erreur, sharp ajouté (server-side watermark réel via composite SVG).
+- Vérification navigateur du canvas éditeur : le fond CSS background-image du canevas ne semble PAS s'afficher quand image=https://picsum.photos/... — console JS montre count:0 (aucun div avec picsum dans style). Cause suspectée : bgImageUrl passe decodeURIComponent mais picsum renvoie une redirection 302→ le navigateur charge l'image via CSS — peut-être que la page de l'éditeur est rendue AVANT le chargement de l'image et le screenshot n'attend pas ; OU le navigateur sandbox a refusé picsum. À vérifier : ouvrir /gallery → clic Modifier sur une vraie miniature uploadée (miniagenerat-3x8qnuoe.manus.space).
+- NOTE : l'image de la galerie charge bien (picsum pas utilisé en gallery). Le paramètre image avec /manus-storage/ URL fonctionne déjà (validé v3). Le test picsum est juste un artefact de test — pas un bug à corriger.
+- Vérifié navigateur (15/08 09:33) : image /manus-storage s'affiche bien en fond du canevas, dialog "Aperçu smartphone" s'ouvre avec la miniature à l'échelle. OK.
+- Reste : checkpoint final + message de livraison utilisateur.

@@ -12,7 +12,7 @@ import {
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
   RectangleHorizontal, Star, Trash, Zap, Sun, Key, TrendingUp,
-  Settings, Bell, LogOut, Type, Shield, Upload,
+  Settings, Bell, LogOut, Type, Shield, Upload, Share2,
 } from "lucide-react";
 
 const STYLES = [
@@ -38,7 +38,6 @@ export default function Dashboard() {
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [showSidebar, setShowSidebar] = useState(false);
   const [sidebarPlatform, setSidebarPlatform] = useState<"compte" | "miniatures" | "personnes" | "modèles">("compte");
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
   const [showStyleDropdown, setShowStyleDropdown] = useState(false);
@@ -190,6 +189,20 @@ export default function Dashboard() {
 
   const handleCreateTask = (thumbnailId: number) => createTaskMutation.mutate({ thumbnailId, status: "pending" });
 
+  const handleShare = async (thumbnailId: number, imageUrl: string, prompt: string) => {
+    const shareUrl = `${window.location.origin}/gallery`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Miniature Minia IA", text: prompt, url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Lien copié dans le presse-papiers !");
+      }
+    } catch {
+      // User cancelled — no action needed
+    }
+  };
+
   const handleUpdateTask = (taskId: number, status: "pending" | "reviewing" | "approved" | "rejected" | "cancelled") => {
     updateTaskMutation.mutate({ taskId, status });
   };
@@ -235,298 +248,10 @@ export default function Dashboard() {
   const recentThumbnails = [...thumbnails ?? []].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 8);
   const templateThumbnails = completedThumbnails.slice(0, 4);
 
-  // ===== Hamburger Sidebar =====
-  const renderSidebar = () => (
-    <>
-      {/* Overlay */}
-      {showSidebar && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
-          onClick={() => setShowSidebar(false)}
-        />
-      )}
-
-      {/* Sidebar panel */}
-      <aside
-        className={`fixed top-0 left-0 h-full w-[300px] max-w-[85vw] z-[70] bg-[#111] border-r border-white/5 shadow-2xl transition-transform duration-300 ${
-          showSidebar ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full overflow-y-auto pb-4">
-          {/* Org info */}
-          <div className="p-4 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
-                {user?.name?.charAt(0)?.toUpperCase() || "U"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm text-white font-medium truncate">{user?.name || "Mon organisation"}</p>
-                <p className="text-[10px] text-zinc-500 truncate">Organisation pour {user?.email || "moi"}</p>
-              </div>
-              <button
-                onClick={() => setShowSidebar(false)}
-                className="ml-auto text-zinc-500 hover:text-white transition-colors p-1"
-              >
-                <XCircle className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Create thumbnail CTA */}
-          <div className="p-4 border-b border-white/5">
-            <button
-              onClick={() => { setShowSidebar(false); setActiveView("generate"); }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#06B6D4] to-[#0891B2] text-white text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-            >
-              <Plus className="w-4 h-4" />
-              Créer une miniature
-            </button>
-          </div>
-
-          {/* Platform selector */}
-          <div className="p-4 border-b border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Plate-forme</p>
-            <button
-              onClick={() => setSidebarPlatform("compte")}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[#181818] border border-white/5 text-xs text-zinc-300"
-            >
-              <span className="flex items-center gap-2">
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                Compte
-              </span>
-              <ChevronRight className="w-3 h-3 text-zinc-600" />
-            </button>
-          </div>
-
-          {/* YouThumb section */}
-          <div className="px-4 py-3">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Minia IA</p>
-            <nav className="space-y-1">
-              <button
-                onClick={() => { setShowSidebar(false); setActiveView("home"); }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                Tableau de bord
-              </button>
-              <button
-                onClick={() => { setShowSidebar(false); setActiveView("all-generations"); }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <Image className="w-4 h-4" />
-                Miniatures
-              </button>
-              <button
-                onClick={() => { setShowSidebar(false); setActiveView("team"); }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <UserRound className="w-4 h-4" />
-                Personnes
-              </button>
-              <button
-                onClick={() => { setShowSidebar(false); setActiveView("home"); }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <Grid3X3 className="w-4 h-4" />
-                Modèles
-              </button>
-            </nav>
-          </div>
-
-          {/* Extra tools section */}
-          <div className="px-4 py-3">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Outils supplémentaires</p>
-            <nav className="space-y-1">
-              <Link
-                href="/editor"
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <Type className="w-4 h-4" />
-                Espace Canva
-              </Link>
-              <Link
-                href="/ab-test"
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <TrendingUp className="w-4 h-4" />
-                Tests A/B
-              </Link>
-              <Link
-                href="/preview"
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                Aperçu miniature
-              </Link>
-              <Link
-                href="/endcards"
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <RectangleHorizontal className="w-4 h-4" />
-                Générateur de cartes YouTube
-              </Link>
-              <Link
-                href="/favorites"
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <Star className="w-4 h-4" />
-                Favoris
-              </Link>
-              <Link
-                href="/trash"
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-              >
-                <Trash className="w-4 h-4" />
-                Poubelle
-              </Link>
-            </nav>
-          </div>
-
-          {/* Upgrade CTA */}
-          <div className="mt-auto px-4 pt-4">
-            <div className="bg-[#181818] border border-white/5 rounded-xl p-4">
-              <p className="text-xs text-white font-medium mb-1">Passez à la version Pro</p>
-              <p className="text-[10px] text-zinc-500 mb-3">Débloquez toutes les fonctionnalités et améliorez vos vignettes.</p>
-              <Link
-                href="/pricing"
-                onClick={() => setShowSidebar(false)}
-                className="block w-full py-2.5 rounded-lg bg-gradient-to-r from-[#EC4899] to-[#F43F5E] text-white text-xs font-medium text-center hover:opacity-90 transition-opacity"
-              >
-                <Zap className="w-3 h-3 inline mr-1" />
-                Mise à niveau
-              </Link>
-            </div>
-          </div>
-
-          {/* User profile with dropdown */}
-          <div className="px-4 pt-3 mt-auto border-t border-white/5 relative">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#181818] transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#06B6D4] to-[#EC4899] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                {user?.name?.charAt(0)?.toUpperCase() || "U"}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-white font-medium truncate">{user?.name || "Moi"}</p>
-                <p className="text-[10px] text-zinc-500 truncate">{user?.email || ""}</p>
-              </div>
-              <svg className="w-3 h-3 text-zinc-500 flex-shrink-0 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showProfileMenu ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"} />
-              </svg>
-            </button>
-
-            {/* Dropdown menu */}
-            {showProfileMenu && (
-              <div className="absolute bottom-full left-4 right-4 mb-1 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-80">
-                {/* User info in dropdown */}
-                <div className="p-3 border-b border-white/5">
-                  <p className="text-xs text-white font-medium">{user?.name || "Moi"}</p>
-                  <p className="text-[10px] text-zinc-500">{user?.email || ""}</p>
-                </div>
-
-                <div className="py-1">
-                  <Link
-                    href="/pricing"
-                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
-                    className="flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-[#181818] transition-colors"
-                  >
-                    <Zap className="w-4 h-4 text-pink-500" />
-                    <span className="font-medium">Passez à la version Pro</span>
-                  </Link>
-                </div>
-
-                <div className="py-1 border-t border-white/5">
-                  <button
-                    onClick={() => { setShowProfileMenu(false); if (toggleTheme) { toggleTheme(); toast.success(theme === "dark" ? "Mode clair activé" : "Mode sombre activé"); } }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-                  >
-                    <Sun className="w-4 h-4" />
-                    Mode clair
-                  </button>
-                  <Link
-                    href="/account"
-                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-                  >
-                    <UserRound className="w-4 h-4" />
-                    Compte
-                  </Link>
-                  <Link
-                    href="/api-keys"
-                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-                  >
-                    <Key className="w-4 h-4" />
-                    Clés API
-                  </Link>
-                  <Link
-                    href="/settings"
-                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Paramètres
-                  </Link>
-                  <Link
-                    href="/billing"
-                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    Facturation
-                  </Link>
-                  <Link
-                    href="/notifications"
-                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-                  >
-                    <Bell className="w-4 h-4" />
-                    Notifications
-                    <span className="ml-auto bg-red-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">1</span>
-                  </Link>
-                </div>
-
-                {/* Admin link — visible only to admins */}
-                {user?.role === "admin" && (
-                  <div className="py-1 border-t border-white/5">
-                    <Link
-                      href="/admin"
-                      onClick={() => { setShowProfileMenu(false); setShowSidebar(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                    >
-                      <Shield className="w-4 h-4" />
-                      Super Admin
-                      <span className="ml-auto bg-red-500/20 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">ADMIN</span>
-                    </Link>
-                  </div>
-                )}
-
-                <div className="py-1 border-t border-white/5">
-                  <button
-                    onClick={() => { setShowProfileMenu(false); setShowSidebar(false); logout(); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Déconnexion
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </aside>
-    </>
-  );
-
-  // ===== Header =====
   const renderHeader = () => (
     <header className="sticky top-0 z-50 bg-[#000]/90 backdrop-blur-xl border-b border-white/5">
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowSidebar(true)} className="text-zinc-400 hover:text-white transition-colors p-1">
-            <Menu className="w-5 h-5" />
-          </button>
           <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
           <span className="text-sm text-zinc-300 font-medium">Tableau de bord</span>
         </div>
@@ -669,11 +394,14 @@ export default function Dashboard() {
                       <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
                         <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
                       </button>
-                      <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Éditer">
-                        <Type className="w-4 h-4 text-white" />
+                      <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Partager">
+                        <Share2 className="w-4 h-4 text-white" />
                       </button>
-                      <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Créer une tâche">
+                      <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Valider (créer une tâche)">
                         <ListChecks className="w-4 h-4 text-white" />
+                      </button>
+                      <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Modifier (Canva)">
+                        <Type className="w-4 h-4 text-white" />
                       </button>
                       <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors" title="Supprimer">
                         <Trash2 className="w-4 h-4 text-white" />
@@ -1169,11 +897,14 @@ export default function Dashboard() {
                 <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
                   <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
                 </button>
-                <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Éditer">
-                  <Type className="w-4 h-4 text-white" />
+                <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Partager">
+                  <Share2 className="w-4 h-4 text-white" />
                 </button>
-                <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Créer une tâche">
+                <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Valider (créer une tâche)">
                   <ListChecks className="w-4 h-4 text-white" />
+                </button>
+                <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-white/10 hover:bg-cyan-500/20 transition-colors" title="Modifier (Canva)">
+                  <Type className="w-4 h-4 text-white" />
                 </button>
                 <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 transition-colors" title="Supprimer">
                   <Trash2 className="w-4 h-4 text-white" />
@@ -1189,7 +920,6 @@ export default function Dashboard() {
   // ===== Main render =====
   return (
     <div className="min-h-screen bg-[#000]">
-      {renderSidebar()}
       {renderHeader()}
       <main className="pt-2">
         {activeView === "home" && renderHomeView()}

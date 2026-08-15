@@ -39,6 +39,7 @@ import Editor from "./pages/Editor";
 import TemplateEditor from "./pages/TemplateEditor";
 import AbTest from "./pages/AbTest";
 import Admin from "./pages/Admin";
+import FloatingMenu from "./components/FloatingMenu";
 
 function Router() {
   return (
@@ -94,6 +95,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <FloatingMenu />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

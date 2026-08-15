@@ -35,17 +35,20 @@ const appRouter = t.router({
   abTests: abTestsRouter,
 });
 
+const limitChain = vi.fn();
+const whereChain = vi.fn();
+
 function createCaller() {
+  whereChain.mockReturnValue({
+    orderBy: vi.fn().mockResolvedValue([]),
+    limit: vi.fn(),
+  });
+  const fromChain = vi.fn().mockReturnValue({
+    where: whereChain,
+    limit: vi.fn(),
+  });
   const dbMock = {
-    select: vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          orderBy: vi.fn().mockResolvedValue([]),
-          limit: vi.fn(),
-        }),
-        limit: vi.fn(),
-      }),
-    }),
+    select: vi.fn().mockImplementation(() => ({ from: fromChain })),
     insert: vi.fn(),
     update: vi.fn().mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) }),
     delete: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
@@ -165,5 +168,43 @@ describe("abTestsRouter", () => {
   it("rejects unauthenticated users", async () => {
     const caller = appRouter.createCaller({ user: null } as never);
     await expect(caller.abTests.list()).rejects.toThrow();
+  });
+  it("auto-closes the test when CTR difference is statistically significant (z >= 1.96)", async () => {
+    const { caller, dbMock } = createCaller();
+    (updateAbTest as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    const setChain = vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) });
+    limitChain.mockResolvedValue([{ id: 1, userId: 1, status: "running", viewsA: 5000, clicksA: 500, viewsB: 5000, clicksB: 100 }]);
+    whereChain.mockReturnValue({ limit: limitChain });
+    dbMock.update.mockReturnValue({ set: setChain });
+
+    const res = await caller.abTests.updateStats({
+      id: 1,
+      viewsA: 5000,
+      clicksA: 500,
+      viewsB: 5000,
+      clicksB: 100,
+    });
+    expect(res.success).toBe(true);
+    // Significant difference (10% vs 2%) → winner "a", status "finished", auto-closed
+    expect(setChain).toHaveBeenCalledWith({ winner: "a", status: "finished", autoClosed: 1 });
+    expect(dbMock.update).toHaveBeenCalled();
+  });
+  it("keeps the test running when the CTR difference is not significant", async () => {
+    const { caller, dbMock } = createCaller();
+    (updateAbTest as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    limitChain.mockResolvedValue([{ id: 1, userId: 1, status: "running", viewsA: 5000, clicksA: 100, viewsB: 5000, clicksB: 105 }]);
+    whereChain.mockReturnValue({ limit: limitChain });
+    dbMock.update.mockReturnValue({ set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }) });
+
+    const res = await caller.abTests.updateStats({
+      id: 1,
+      viewsA: 5000,
+      clicksA: 100,
+      viewsB: 5000,
+      clicksB: 105,
+    });
+    expect(res.success).toBe(true);
+    // 2.0% vs 2.1% is not significant → no auto-close update
+    expect(dbMock.update).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Home, ChevronRight, Menu } from "lucide-react";
-import { AppSidebar } from "@/components/AppSidebar";
+import { ArrowLeft, Home, ChevronRight } from "lucide-react";
 
 interface PageHeaderProps {
   title: string;
@@ -12,18 +10,10 @@ interface PageHeaderProps {
 }
 
 export default function PageHeader({ title, subtitle, backTo = "/dashboard", breadcrumb, right }: PageHeaderProps) {
-  const [showSidebar, setShowSidebar] = useState(false);
-
   return (
     <div className="mb-6">
-      {/* Menu hamburger + sidebar avec tous les menus de gauche */}
-      <AppSidebar open={showSidebar} onClose={() => setShowSidebar(false)} pageLabel={title} />
-
-      {/* Breadcrumb */}
+      {/* Breadcrumb — le menu hamburger global (FloatingMenu) reste fixe en haut à droite */}
       <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3 overflow-x-auto">
-        <button onClick={() => setShowSidebar(true)} className="hover:text-gray-300 transition-colors shrink-0 p-0.5 -ml-1" title="Menu">
-          <Menu size={16} />
-        </button>
         <Link href={backTo} className="flex items-center gap-1 hover:text-gray-300 transition-colors shrink-0">
           <Home size={13} />
         </Link>

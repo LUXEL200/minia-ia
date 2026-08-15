@@ -112,3 +112,13 @@
 
 - [x] Ajouter le hamburger/AppSidebar aux pages qui n'utilisent pas PageHeader : Editor, TemplateEditor, Admin (Models/Gallery/Home utilisent Navbar déjà pourvu du hamburger)
 - [x] Vérifier en session connectée que le menu hamburger (tous les sous-menus) est accessible depuis chaque page — captures desktop validées (Editor, TemplateEditor, Admin, Gallery, Home)
+
+## Vague v4 (nouvelles demandes utilisateur)
+
+- [x] Hamburger fixe en haut à droite sur toutes les pages (y compris sous-pages/paramètres), retirer les doublons dans les résultats — FloatingMenu.tsx (top-right, se rétracte après 3s), retiré de Navbar/Dashboard/PageHeader/pages
+- [x] Éditeur : aperçu mobile/tablette (visualisation comme dans les suggestions YouTube) — boutons Smartphone/Tablet + Dialog de prévisualisation à l'échelle (360×202 / 900×506)
+- [x] Espace Canva : encadrement dimensionné correct (canvas 1280×720) pour les images uploadées — outils de retouche (taille, position, rotation, opacité, calques) — « Insérer comme calque » (mesure et centre l'image), bouton Contienir/Couvrir, sliders largeur/hauteur/opacité/arrondi, fond cover/contain
+- [x] Miniatures : boutons favoris, supprimer, partager, valider (approuver), modifier — overlays hover dans Dashboard (récentes + toutes générations), handleShare (navigator.share ou presse-papiers)
+- [x] Filigrane Minia IA sur les générations du plan gratuit — applyWatermark gravé à l'export PNG (badge « Filigrane » affiché pour le plan gratuit)
+- [x] Éditeur de templates : bouton "Ajouter à mes miniatures" (export direct vers le dashboard) — saveFromBase64 via storagePut
+- [x] A/B Test : clôture automatique — déclarer gagnant quand l'écart de CTR est statistiquement significatif — test z deux proportions (|z| ≥ 1,96), flag autoClosed en BDD + badge « Clôturé automatiquement » + message de significativité

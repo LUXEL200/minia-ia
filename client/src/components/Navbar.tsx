@@ -7,8 +7,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
-import { AppSidebar } from "@/components/AppSidebar";
+import { Zap, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import {
@@ -30,7 +29,6 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(false);
   const { user, loading, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
@@ -122,18 +120,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Hamburger — ouvre le menu complet (tous les menus de gauche), connecté ou non */}
-        <button
-          className="text-white p-2"
-          onClick={() => setShowSidebar(true)}
-          aria-label="Ouvrir le menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
       </nav>
-
-      {/* Menu hamburger complet — sidebar avec tous les sous-menus */}
-      <AppSidebar open={showSidebar} onClose={() => setShowSidebar(false)} pageLabel="Minia IA" />
 
       {/* Mobile menu */}
       <AnimatePresence>

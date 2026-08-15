@@ -6,6 +6,46 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { generateImage, listImageModels } from "./_core/imageGeneration";
+
+/**
+ * Burn the "Minia IA" watermark into a generated image for free-plan users.
+ * Fetches the image, composites "Minia IA" bottom-right via sharp, returns dataURL.
+ */
+async function burnWatermark(imageUrl: string): Promise<string | null> {
+  try {
+    const sharp = (await import("sharp")).default;
+    const resp = await fetch(imageUrl);
+    if (!resp.ok) return null;
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    const { width, height } = await sharp(buffer).metadata();
+    const outWidth = Math.min(width ?? 1280, 1280);
+    const outHeight = (height && width) ? Math.round((outWidth / width) * height) : 720;
+    const watermark = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${outWidth}" height="${outHeight}">
+        <defs>
+          <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(0,0,0,0)"/>
+            <stop offset="55%" stop-color="rgba(0,0,0,0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.35)"/>
+          </linearGradient>
+        </defs>
+        <rect width="${outWidth}" height="${outHeight}" fill="url(#fade)"/>
+        <text x="${outWidth - 24}" y="${outHeight - 22}" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="34"
+              fill="rgba(255,255,255,0.95)" text-anchor="end">Minia IA</text>
+      </svg>`
+    );
+    const wm = await sharp(watermark).png().toBuffer();
+    const composed = await sharp(buffer)
+      .resize(outWidth, outHeight, { fit: "cover" })
+      .composite([{ input: wm, top: 0, left: 0 }])
+      .png()
+      .toBuffer();
+    return `data:image/png;base64,${composed.toString("base64")}`;
+  } catch (err) {
+    console.error("[Watermark] Failed:", err);
+    return null;
+  }
+}
 import { thumbnails, avatars, endCards, templateCustomizations, imageVersions, abTests } from "../drizzle/schema";
 import {
   getThumbnailsByUserId,
@@ -302,6 +342,40 @@ export const abTestsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, ...rest } = input;
       await updateAbTest(id, ctx.user.id, rest);
+
+      // Auto-close when the CTR difference is statistically significant
+      // (two-proportion z-test, pooled variance, alpha = 0.05 → |z| ≥ 1.96)
+      if (!rest.winner && !rest.status) {
+        const db = await getDb();
+        if (db) {
+          const rows = await db.select().from(abTests)
+            .where(and(eq(abTests.id, id), eq(abTests.userId, ctx.user.id)))
+            .limit(1);
+          const test = rows[0];
+          if (test && test.status === "running") {
+            const nA = Math.max(1, test.viewsA);
+            const nB = Math.max(1, test.viewsB);
+            const pA = test.clicksA / nA;
+            const pB = test.clicksB / nB;
+            if (nA >= 100 && nB >= 100) {
+              const pooled = (test.clicksA + test.clicksB) / (nA + nB);
+              const denom = Math.sqrt(pooled * (1 - pooled) * (1 / nA + 1 / nB));
+              if (denom > 0) {
+                const z = (pA - pB) / denom;
+                if (z >= 1.96) {
+                  await db.update(abTests)
+                    .set({ winner: "a", status: "finished", autoClosed: 1 })
+                    .where(and(eq(abTests.id, id), eq(abTests.userId, ctx.user.id)));
+                } else if (z <= -1.96) {
+                  await db.update(abTests)
+                    .set({ winner: "b", status: "finished", autoClosed: 1 })
+                    .where(and(eq(abTests.id, id), eq(abTests.userId, ctx.user.id)));
+                }
+              }
+            }
+          }
+        }
+      }
       return { success: true } as const;
     }),
 
@@ -579,6 +653,27 @@ export const appRouter = router({
       return getThumbnailsByUserId(ctx.user.id);
     }),
 
+    /** Save an editor/custom image (base64) as a new thumbnail in the user's gallery */
+    saveFromBase64: protectedProcedure
+      .input(z.object({
+        b64: z.string().min(10),
+        mime: z.string().max(64).default("image/png"),
+        title: z.string().min(1).max(200).default("Miniature importée"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { storagePut } = await import("./storage");
+        const key = `user-images/${ctx.user.id}/${Date.now()}-custom.png`;
+        const { url } = await storagePut(key, input.b64, input.mime);
+        return createThumbnail({
+          userId: ctx.user.id,
+          prompt: input.title,
+          style: "custom",
+          imageUrl: url,
+          status: "completed",
+          creditsUsed: 0,
+        });
+      }),
+
     /** Get a single thumbnail by ID — verifies ownership */
     get: protectedProcedure
       .input(z.object({ id: z.number() }))
@@ -653,8 +748,19 @@ export const appRouter = router({
             });
 
             if (url) {
-              await updateThumbnailStatus(thumbId, "completed", url);
-              results.push({ id: thumbId, status: "completed", imageUrl: url });
+              let finalUrl = url;
+              // Free-plan users get a watermarked version stored
+              if (credits.planType === "free") {
+                const wmB64 = await burnWatermark(url);
+                if (wmB64) {
+                  const { storagePut } = await import("./storage");
+                  const key = `thumbnails/${ctx.user.id}/${thumbId}-watermarked.png`;
+                  const { url: wmUrl } = await storagePut(key, wmB64, "image/png");
+                  finalUrl = wmUrl;
+                }
+              }
+              await updateThumbnailStatus(thumbId, "completed", finalUrl);
+              results.push({ id: thumbId, status: "completed", imageUrl: finalUrl });
               successfulCount++;
             } else {
               await updateThumbnailStatus(thumbId, "failed");
@@ -682,9 +788,10 @@ export const appRouter = router({
         };
       }),
 
-    /** Get user's current credits */
+    /** Get user's current credits and plan */
     credits: protectedProcedure.query(async ({ ctx }) => {
-      return ensureUserCredits(ctx.user.id);
+      const credits = await ensureUserCredits(ctx.user.id);
+      return { ...credits, planType: credits.planType };
     }),
 
     /** Delete a thumbnail — verifies ownership */

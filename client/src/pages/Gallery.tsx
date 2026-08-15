@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Download, Loader2, ImageIcon, Sparkles, Filter, Heart, TrendingUp, Clock, Pencil } from "lucide-react";
+import { Download, Loader2, ImageIcon, Sparkles, Filter, Heart, TrendingUp, Clock, Pencil, Share2 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 
@@ -198,6 +198,26 @@ export default function Gallery() {
                           {STYLE_LABELS[thumb.style ?? "viral"]}
                         </span>
                         <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleLike(thumb.id); }}
+                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-pink-500/20 transition-colors"
+                            title="Ajouter aux favoris"
+                          >
+                            <Heart className="w-4 h-4 text-white" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard?.writeText(`${window.location.origin}/gallery`).then(
+                                () => toast.success("Lien copié dans le presse-papiers !"),
+                                () => toast.error("Impossible de copier le lien"),
+                              );
+                            }}
+                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors"
+                            title="Partager"
+                          >
+                            <Share2 className="w-4 h-4 text-white" />
+                          </button>
                           <Link
                             href={`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`}
                             className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors"
