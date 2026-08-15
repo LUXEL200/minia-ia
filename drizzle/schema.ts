@@ -235,3 +235,73 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Template customizations — user-defined edits of a library template
+ * (text layers, colors, emojis, overlay elements) before/after generation.
+ */
+export const templateCustomizations = mysqlTable("templateCustomizations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  templateId: int("templateId").notNull(),
+  title: text("title").notNull(),
+  /** JSON: array of elements { id, type: "text"|"emoji"|"shape", text, x, y, fontSize, color, ... } */
+  elements: json("elements").notNull(),
+  backgroundColor: varchar("backgroundColor", { length: 16 }).default("#000000"),
+  /** Optional: thumbnail produced from this customization */
+  thumbnailId: int("thumbnailId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("custom_user_idx").on(table.userId),
+  templateIdIdx: index("custom_template_idx").on(table.templateId),
+}));
+
+export type TemplateCustomization = typeof templateCustomizations.$inferSelect;
+export type InsertTemplateCustomization = typeof templateCustomizations.$inferInsert;
+
+/**
+ * Image versions — snapshot history of an edited thumbnail in the Canva editor
+ */
+export const imageVersions = mysqlTable("imageVersions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  thumbnailId: int("thumbnailId").notNull(),
+  name: text("name").notNull(),
+  imageUrl: text("imageUrl").notNull(),
+  /** JSON: editor elements snapshot at save time */
+  elements: json("elements").notNull(),
+  isCurrent: mysqlEnum("isCurrent", ["yes", "no"]).default("no").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ver_user_idx").on(table.userId),
+  thumbIdx: index("ver_thumb_idx").on(table.thumbnailId),
+}));
+
+export type ImageVersion = typeof imageVersions.$inferSelect;
+export type InsertImageVersion = typeof imageVersions.$inferInsert;
+
+/**
+ * A/B tests — two thumbnail variants compared on declared CTR
+ */
+export const abTests = mysqlTable("abTests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: text("title").notNull(),
+  variantAId: int("variantAId").notNull(),
+  variantBId: int("variantBId").notNull(),
+  /** Declared stats (user reports YouTube Analytics views/clicks) */
+  viewsA: int("viewsA").default(0).notNull(),
+  clicksA: int("clicksA").default(0).notNull(),
+  viewsB: int("viewsB").default(0).notNull(),
+  clicksB: int("clicksB").default(0).notNull(),
+  winner: mysqlEnum("winner", ["a", "b", "tie", "undecided"]).default("undecided").notNull(),
+  status: mysqlEnum("status", ["running", "finished"]).default("running").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("ab_user_idx").on(table.userId),
+}));
+
+export type AbTest = typeof abTests.$inferSelect;
+export type InsertAbTest = typeof abTests.$inferInsert;

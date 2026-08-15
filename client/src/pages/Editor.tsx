@@ -1,13 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { toPng } from "html-to-image";
+import { trpc } from "@/lib/trpc";
 import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   ArrowLeft, Download, Type, Move, Trash2, Plus,
-  RotateCcw, ZoomIn, ZoomOut, Layers, Palette,
+  RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
+  ChevronLeft, Undo2, Redo2, Save,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
-  Undo2, Redo2, Save,
 } from "lucide-react";
 
 interface EditorTextElement {
@@ -79,6 +80,73 @@ export default function Editor() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragElStart, setDragElStart] = useState({ x: 0, y: 0 });
+
+  // === Versions panel ===
+  const thumbnailId = Number(new URLSearchParams(search).get("thumbnailId") || "0");
+  const [showVersions, setShowVersions] = useState(false);
+  const [versionName, setVersionName] = useState("");
+
+  const { data: versions } = trpc.imageVersions.list.useQuery(
+    { thumbnailId },
+    { enabled: thumbnailId > 0 }
+  );
+  const createVersion = trpc.imageVersions.create.useMutation();
+  const restoreVersion = trpc.imageVersions.restore.useMutation();
+  const deleteVersion = trpc.imageVersions.delete.useMutation();
+  const utilsVersions = trpc.useUtils();
+
+  const captureSnapshot = async (): Promise<string | null> => {
+    if (!canvasRef.current) return null;
+    try {
+      return await toPng(canvasRef.current, { width: 1280, height: 720, pixelRatio: 1, cacheBust: true });
+    } catch {
+      return null;
+    }
+  };
+
+  const handleSaveVersion = async () => {
+    if (thumbnailId <= 0) {
+      toast.error("Ouvre l'éditeur depuis une miniature de ton tableau de bord pour utiliser les versions");
+      return;
+    }
+    const dataUrl = await captureSnapshot();
+    if (!dataUrl) {
+      toast.error("Impossible de capturer le canevas");
+      return;
+    }
+    const name = versionName.trim() || `Version ${new Date().toLocaleString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+    createVersion.mutate(
+      { thumbnailId, name, imageUrl: dataUrl, elements },
+      {
+        onSuccess: () => {
+          toast.success(`Version « ${name} » enregistrée`);
+          setVersionName("");
+          utilsVersions.imageVersions.list.invalidate({ thumbnailId });
+        },
+        onError: (err: any) => toast.error(err.message),
+      }
+    );
+  };
+
+  const handleRestoreVersion = async (version: { id: number; imageUrl: string; elements: unknown }) => {
+    restoreVersion.mutate(
+      { versionId: version.id, thumbnailId },
+      {
+        onSuccess: () => {
+          // Restore visual state from the version snapshot
+          const el = version.elements as EditorElement[];
+          if (Array.isArray(el)) {
+            setElements(el);
+            pushHistory(el);
+          }
+          setBgImageUrl(version.imageUrl);
+          toast.success("Version restaurée !");
+          utilsVersions.imageVersions.list.invalidate({ thumbnailId });
+        },
+        onError: (err: any) => toast.error(err.message),
+      }
+    );
+  };
 
   // History for undo/redo
   const [history, setHistory] = useState<EditorElement[][]>([[]]);
@@ -375,6 +443,72 @@ export default function Editor() {
               style={{ backgroundColor: c }}
             />
           ))}
+        </div>
+      )}
+
+      {/* Versions */}
+      <button
+        onClick={() => setShowVersions(!showVersions)}
+        className={`p-2 rounded-lg transition-colors relative ${showVersions ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-400 hover:text-white hover:bg-white/5"}`}
+        title="Versions"
+      >
+        <History className="w-5 h-5" />
+        {versions && versions.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#ff0050] text-white text-[9px] rounded-full flex items-center justify-center">
+            {versions.length}
+          </span>
+        )}
+      </button>
+      {showVersions && (
+        <div className="absolute left-16 bottom-0 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-50 w-72 p-3">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Versions d'image</p>
+          {thumbnailId <= 0 && (
+            <p className="text-xs text-zinc-500 mb-2">Ouvre l'éditeur depuis une miniature de ton tableau de bord pour enregistrer des versions.</p>
+          )}
+          <div className="flex gap-1.5 mb-3">
+            <input
+              value={versionName}
+              onChange={e => setVersionName(e.target.value)}
+              placeholder="Nom de la version…"
+              className="flex-1 bg-[#111] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white placeholder-zinc-600 outline-none"
+            />
+            <button
+              onClick={handleSaveVersion}
+              disabled={createVersion.isPending}
+              className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors"
+            >
+              Sauvegarder
+            </button>
+          </div>
+          {(!versions || versions.length === 0) ? (
+            <p className="text-xs text-zinc-500 text-center py-3">Aucune version enregistrée</p>
+          ) : (
+            <div className="space-y-1.5 max-h-52 overflow-y-auto">
+              {versions.map((v: any) => (
+                <div key={v.id} className={`flex items-center gap-2 rounded-lg border p-2 ${v.isCurrent === "yes" ? "border-cyan-500/50 bg-cyan-500/10" : "border-white/10"}`}>
+                  <img src={v.imageUrl} alt={v.name} className="w-16 h-9 object-cover rounded" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-white truncate">{v.name}</p>
+                    <p className="text-[10px] text-zinc-500">{new Date(v.createdAt).toLocaleString("fr-FR")}</p>
+                  </div>
+                  <button
+                    onClick={() => handleRestoreVersion(v)}
+                    className="text-cyan-400 hover:text-cyan-300"
+                    title="Restaurer cette version"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                  <button
+                    onClick={() => deleteVersion.mutate({ id: v.id, thumbnailId }, { onSuccess: () => utilsVersions.imageVersions.list.invalidate({ thumbnailId }) })}
+                    className="text-zinc-500 hover:text-red-400"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

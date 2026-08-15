@@ -6,7 +6,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { generateImage, listImageModels } from "./_core/imageGeneration";
-import { thumbnails, avatars, endCards } from "../drizzle/schema";
+import { thumbnails, avatars, endCards, templateCustomizations, imageVersions, abTests } from "../drizzle/schema";
 import {
   getThumbnailsByUserId,
   getThumbnailById,
@@ -54,6 +54,14 @@ import {
   updateUserCredits,
   updateUserPlan,
   sendGlobalNotification,
+  createTemplateCustomization,
+  updateTemplateCustomization,
+  deleteTemplateCustomization,
+  createImageVersion,
+  deleteImageVersion,
+  createAbTest,
+  updateAbTest,
+  deleteAbTest,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
 
@@ -101,6 +109,206 @@ export const templatesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const isAdmin = ctx.user.role === "admin";
       await deleteTemplate(input.id, ctx.user.id, isAdmin);
+      return { success: true } as const;
+    }),
+});
+
+// === Template customizations (user edits of a library template) ===
+export const customizationsRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de données indisponible" });
+    return db.select().from(templateCustomizations)
+      .where(eq(templateCustomizations.userId, ctx.user.id))
+      .orderBy(templateCustomizations.createdAt);
+  }),
+
+  get: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de données indisponible" });
+      const rows = await db.select().from(templateCustomizations)
+        .where(and(eq(templateCustomizations.id, input.id), eq(templateCustomizations.userId, ctx.user.id)))
+        .limit(1);
+      if (rows.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Personnalisation introuvable" });
+      return rows[0];
+    }),
+
+  create: protectedProcedure
+    .input(z.object({
+      templateId: z.number(),
+      title: z.string().min(1).max(200),
+      elements: z.any(),
+      backgroundColor: z.string().max(16).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return createTemplateCustomization({
+        userId: ctx.user.id,
+        templateId: input.templateId,
+        title: input.title,
+        elements: input.elements,
+        backgroundColor: input.backgroundColor ?? "#000000",
+      });
+    }),
+
+  update: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+      title: z.string().max(200).optional(),
+      elements: z.any().optional(),
+      backgroundColor: z.string().max(16).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await updateTemplateCustomization(input.id, ctx.user.id, input);
+      return { success: true } as const;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await deleteTemplateCustomization(input.id, ctx.user.id);
+      return { success: true } as const;
+    }),
+});
+
+// === Image versions (Canva editor snapshots) ===
+export const imageVersionsRouter = router({
+  list: protectedProcedure
+    .input(z.object({ thumbnailId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de données indisponible" });
+      return db.select().from(imageVersions)
+        .where(and(eq(imageVersions.thumbnailId, input.thumbnailId), eq(imageVersions.userId, ctx.user.id)))
+        .orderBy(imageVersions.createdAt);
+    }),
+
+  create: protectedProcedure
+    .input(z.object({
+      thumbnailId: z.number(),
+      name: z.string().min(1).max(100),
+      imageUrl: z.string().url(),
+      elements: z.any(),
+      isCurrent: z.enum(["yes", "no"]).default("no"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return createImageVersion({
+        userId: ctx.user.id,
+        thumbnailId: input.thumbnailId,
+        name: input.name,
+        imageUrl: input.imageUrl,
+        elements: input.elements,
+        isCurrent: input.isCurrent,
+      });
+    }),
+
+  restore: protectedProcedure
+    .input(z.object({ versionId: z.number(), thumbnailId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de données indisponible" });
+      const rows = await db.select().from(imageVersions)
+        .where(and(eq(imageVersions.id, input.versionId), eq(imageVersions.userId, ctx.user.id), eq(imageVersions.thumbnailId, input.thumbnailId)))
+        .limit(1);
+      if (rows.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Version introuvable" });
+      // Unmark all versions, mark this one as current
+      await db.update(imageVersions).set({ isCurrent: "no" }).where(eq(imageVersions.thumbnailId, input.thumbnailId));
+      await db.update(imageVersions).set({ isCurrent: "yes" }).where(eq(imageVersions.id, input.versionId));
+      return { version: rows[0] } as const;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number(), thumbnailId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await deleteImageVersion(input.id, ctx.user.id, input.thumbnailId);
+      return { success: true } as const;
+    }),
+});
+
+// === A/B Tests (thumbnail variants with declared CTR) ===
+export const abTestsRouter = router({
+  list: protectedProcedure    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de données indisponible" });
+      const tests = await db.select().from(abTests)
+      .where(eq(abTests.userId, ctx.user.id))
+      .orderBy(abTests.createdAt);
+    // Enrich with variant images
+    const enriched = [];
+    for (const t of tests) {
+      const a = await getThumbnailById(t.variantAId);
+      const b = await getThumbnailById(t.variantBId);
+      if (a && b && a.userId === ctx.user.id && b.userId === ctx.user.id) {
+        enriched.push({ ...t, variantA: a, variantB: b });
+      }
+    }
+    return enriched;
+  }),
+
+  get: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de données indisponible" });
+      const rows = await db.select().from(abTests)
+        .where(and(eq(abTests.id, input.id), eq(abTests.userId, ctx.user.id)))
+        .limit(1);
+      if (rows.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Test A/B introuvable" });
+      const test = rows[0];
+      const variantA = await getThumbnailById(test.variantAId);
+      const variantB = await getThumbnailById(test.variantBId);
+      if (!variantA || !variantB || variantA.userId !== ctx.user.id || variantB.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Accès refusé" });
+      }
+      const ctrA = test.viewsA > 0 ? (test.clicksA / test.viewsA) * 100 : 0;
+      const ctrB = test.viewsB > 0 ? (test.clicksB / test.viewsB) * 100 : 0;
+      return { ...test, variantA, variantB, ctrA: Math.round(ctrA * 10) / 10, ctrB: Math.round(ctrB * 10) / 10 };
+    }),
+
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string().min(1).max(200),
+      variantAId: z.number(),
+      variantBId: z.number(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.variantAId === input.variantBId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Les deux variantes doivent être différentes" });
+      }
+      const a = await getThumbnailById(input.variantAId);
+      const b = await getThumbnailById(input.variantBId);
+      if (!a || !b || a.userId !== ctx.user.id || b.userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Vous devez posséder les deux miniatures" });
+      }
+      return createAbTest({
+        userId: ctx.user.id,
+        title: input.title,
+        variantAId: input.variantAId,
+        variantBId: input.variantBId,
+      });
+    }),
+
+  updateStats: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+      viewsA: z.number().min(0).optional(),
+      clicksA: z.number().min(0).optional(),
+      viewsB: z.number().min(0).optional(),
+      clicksB: z.number().min(0).optional(),
+      winner: z.enum(["a", "b", "tie", "undecided"]).optional(),
+      status: z.enum(["running", "finished"]).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...rest } = input;
+      await updateAbTest(id, ctx.user.id, rest);
+      return { success: true } as const;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await deleteAbTest(input.id, ctx.user.id);
       return { success: true } as const;
     }),
 });
@@ -677,6 +885,15 @@ export const appRouter = router({
 
   // === Templates ===
   templates: templatesRouter,
+
+  // === Template customizations ===
+  customizations: customizationsRouter,
+
+  // === Image versions ===
+  imageVersions: imageVersionsRouter,
+
+  // === A/B Tests ===
+  abTests: abTestsRouter,
 
   // === Favorites ===
   favorites: favoritesRouter,

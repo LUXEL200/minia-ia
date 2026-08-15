@@ -13,6 +13,7 @@ import {
   X,
   ArrowLeft,
   User,
+  Pencil,
 } from "lucide-react";
 
 const categories = [
@@ -168,16 +169,28 @@ export default function Templates() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <p className="text-xs font-medium truncate">{t.title}</p>
-                    <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center justify-between gap-2 mt-1">
                       <span className="text-[10px] text-zinc-400">{t.category}</span>
-                      {(isAdmin || t.userId === user?.id) && (
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleDelete(t.id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/template-editor?templateId=${t.id}`);
+                          }}
+                          className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                          title="Personnaliser ce template"
                         >
-                          <Trash2 size={14} />
+                          <Pencil size={14} />
                         </button>
-                      )}
+                        {(isAdmin || t.userId === user?.id) && (
+                          <button
+                            onClick={() => handleDelete(t.id)}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

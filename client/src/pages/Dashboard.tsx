@@ -11,7 +11,7 @@ import {
   ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
-  RectangleHorizontal, Star, Trash, Zap, Sun, Key,
+  RectangleHorizontal, Star, Trash, Zap, Sun, Key, TrendingUp,
   Settings, Bell, LogOut, Type, Shield,
 } from "lucide-react";
 

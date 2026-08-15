@@ -91,3 +91,15 @@
 
 - [x] Rendre Admin réellement responsive : sidebar latérale sur desktop/tablette, barre d'onglets fixe en bas sur mobile (6 onglets admin)
 - [x] Éditeur — export PNG production-grade 1280×720 via html-to-image avec repli SVG
+
+## Nouvelles fonctionnalités (v2)
+
+- [x] Table `templateCustomizations` — personnalisation utilisateur d'un template (texte, couleurs, emojis, éléments)
+- [x] Table `imageVersions` — historique des versions d'une miniature éditée (snapshot des éléments + image de fond)
+- [x] Table `abTests` — tests A/B (2 variantes d'une miniature) avec vues/clics et CTR calculé côté serveur
+- [x] Backend tRPC : customizations CRUD (routers customizations/imageVersions/abTests), versions save/restore/delete, AB test CRUD + updateStats + ownership checks
+- [x] Page "Éditeur de template" (/template-editor) — personnaliser un template de la bibliothèque (texte, emojis, formes, fond), enregistrer et exporter PNG
+- [x] Éditeur : bouton "Historique" — sauvegarder/restaurer/supprimer les versions d'une miniature
+- [x] Page A/B Test (/ab-test) — créer un test (2 variantes sélectionnées dans la grille), saisir les vues/clics, CTR calculé, déclarer gagnante/match nul, lien dans le menu hamburger
+- [x] Tests vitest pour les nouvelles procédures (server/features.v2.test.ts, 8 tests)
+- [x] Vérification desktop des nouvelles pages (Templates, Éditeur de template, A/B Test)

@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, InsertTemplateCustomization, InsertImageVersion, InsertAbTest } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 
@@ -661,4 +661,65 @@ export async function sendGlobalNotification(title: string, message?: string, ty
     });
   }
   return true;
+}
+
+// === Template customizations ===
+export async function createTemplateCustomization(data: InsertTemplateCustomization) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const [result] = await db.insert(templateCustomizations).values(data);
+  return { id: result.insertId };
+}
+
+export async function updateTemplateCustomization(id: number, userId: number, data: Partial<InsertTemplateCustomization>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(templateCustomizations).set(data)
+    .where(and(eq(templateCustomizations.id, id), eq(templateCustomizations.userId, userId)));
+}
+
+export async function deleteTemplateCustomization(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.delete(templateCustomizations)
+    .where(and(eq(templateCustomizations.id, id), eq(templateCustomizations.userId, userId)));
+}
+
+// === Image versions ===
+export async function createImageVersion(data: InsertImageVersion) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const [result] = await db.insert(imageVersions).values(data);
+  return { id: result.insertId };
+}
+
+export async function deleteImageVersion(id: number, userId: number, thumbnailId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.delete(imageVersions).where(and(
+    eq(imageVersions.id, id),
+    eq(imageVersions.userId, userId),
+    eq(imageVersions.thumbnailId, thumbnailId),
+  ));
+}
+
+// === A/B tests ===
+export async function createAbTest(data: InsertAbTest) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const [result] = await db.insert(abTests).values(data);
+  return { id: result.insertId };
+}
+
+export async function updateAbTest(id: number, userId: number, data: Partial<InsertAbTest>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(abTests).set(data)
+    .where(and(eq(abTests.id, id), eq(abTests.userId, userId)));
+}
+
+export async function deleteAbTest(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.delete(abTests).where(and(eq(abTests.id, id), eq(abTests.userId, userId)));
 }

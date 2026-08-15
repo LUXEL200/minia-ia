@@ -36,6 +36,8 @@ import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
 import ThumbnailPreview from "./pages/ThumbnailPreview";
 import Editor from "./pages/Editor";
+import TemplateEditor from "./pages/TemplateEditor";
+import AbTest from "./pages/AbTest";
 import Admin from "./pages/Admin";
 
 function Router() {
@@ -76,6 +78,8 @@ function Router() {
       <Route path={"/billing"} component={Billing} />
       <Route path={"/preview"} component={ThumbnailPreview} />
       <Route path={"/editor"} component={Editor} />
+      <Route path={"/template-editor"} component={TemplateEditor} />
+      <Route path={"/ab-test"} component={AbTest} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
