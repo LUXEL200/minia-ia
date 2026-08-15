@@ -49,3 +49,40 @@ Les pages Templates (16 templates visibles avec filtres), Tests A/B (état vide 
 1. Marquer les 3 fonctionnalités comme [x] dans todo.md
 2. webdev_save_checkpoint avec message décrivant les 3 fonctionnalités
 3. Message final utilisateur + suggestions prochaines étapes
+
+## Corrections v3 (demande utilisateur)
+1. Espace Canva : ajout d'un lien "Espace Canva" (/editor) dans la section Outils supplémentaires du menu hamburger du Dashboard.tsx (fait).
+2. Editor.tsx : ajout d'un bouton "Importer une image" (upload de fichier image comme fond du canevas) dans le menu Ajouter de la barre latérale + bouton "Retirer l'image de fond" + message d'accueil "Espace Canva — ajoute des éléments ou une image de fond" avec bouton importer. File input hidden avec ref bgUploadInputRef. Fait.
+3. Reste : onglet inspiration Dashboard.tsx — autoriser l'upload d'image en plus du lien (inspirationUrl/inspirationImage existent lignes ~47 et handleInspirationSubmit ligne ~733).
+4. Reste : généraliser le menu hamburger avec tous les sous-menus de gauche sur TOUTES les pages dashboard (Templates, Avatars, EndCards, Favorites, Trash, Preview, Notifications, Account, ApiKeys, Billing, Settings, Admin, AbTest, Editor, TemplateEditor). La sidebar complète (avec tous les sous-menus) n'existe que dans Dashboard.tsx. Plan : créer un composant partagé AppSidebar.tsx réutilisable (extract ou copier la sidebar de Dashboard.tsx avec showSidebar/showProfileMenu/admin link), puis l'intégrer dans chaque page. PageHeader.tsx existe (client/src/components/PageHeader.tsx) — peut contenir le bouton hamburger.
+5. Routes existantes : /editor, /template-editor, /ab-test, /avatars, /preview, /endcards, /favorites, /trash, /templates, /notifications, /account, /api-keys, /billing, /settings, /admin, /models.
+6. Dashboard.tsx hamburger : section "MiniIA" (Tableau de bord / Miniatures / Personnes / Modèles), Outils (Avatars, Aperçu, Endcards, Favoris, Poubelle, Editor, AbTest), CTA Pro, profil dropdown.
+7. Note : console log ancien SyntaxError createAbTest est un log daté (08:15) datant d'avant la correction, ignore.
+
+## Vérification v3 (screenshots)
+- Home : hamburger visible dans la navbar (icône menu à droite) — OK
+- /templates : PageHeader avec bouton hamburger + breadcrumb + bouton Retour — OK, 16 templates visibles
+- /ab-test : PageHeader avec hamburger — OK
+- /dashboard : ERREUR "Rendered more hooks than during the previous render" — probablement un hook après un return conditionnel ou un hook conditionnel introduit dans mes edits de Dashboard.tsx. À diagnostiquer : j'ai ajouté `inspirationFileInputRef = useRef<HTMLInputElement>(null)` AVANT `renderGenerateView` mais dans le corps du composant (OK). Problème probable : `renderSidebar`/render* définis dans le corps + early returns (navigate effect). Vérifier l'emplacement du useRef par rapport aux returns conditionnels dans Dashboard.tsx.
+
+## État généralisation hamburger (fait)
+- AppSidebar.tsx créé (client/src/components/AppSidebar.tsx) : slide-in sidebar + AppHeader exportés. Sidebar complète : org info, Créer une miniature, Plate-forme, Minia IA (Tableau de bord/Miniatures/Personnes/Modèles), Outils (Espace Canva /editor, Tests A/B /ab-test, Avatars, Aperçu, Endcards, Favoris, Poubelle), CTA Pro, profil dropdown (Pro/Mode clair/Compte/Clés API/Paramètres/Facturation/Notifications/ADMIN/Déconnexion).
+- PageHeader.tsx réécrit : ajoute bouton hamburger + AppSidebar. Pages Templates/Avatars/EndCards/Favorites/Trash/Notifications/Account/ApiKeys/Billing/Settings/AbTest héritent du hamburger automatiquement.
+- Navbar.tsx : hamburger ajouté (tous écrans) + AppSidebar.
+- Dashboard.tsx : lien Espace Canva ajouté dans la sidebar interne + upload inspiration fait.
+
+## Vérification finale v3 (après fix hooks)
+Dashboard rend sans erreur (hooks déplacés en tête de composant). L'écran d'accueil du dashboard est visible avec les cartes, personnes, générations récentes et barre flottante. Le mobile (375x812) montre le hamburger dans la navbar en haut à gauche sur / et sur /dashboard. L'éditeur montre le vide state "Importer une image" (bouton d'import de fond déjà en place). L'upload dans l'onglet inspiration est branché sur `inspirationFileInputRef` (ligne ~824) et `handleInspirationFileUpload`. Reste : vérifier l'upload inspiration dans le dashboard screenshot live, puis checkpoint.
+
+## État v3 — corrections demandées par l'utilisateur (15/08)
+La vérification du dashboard connecté via navigateur bloquait sur la page de connexion Manus (captcha "Verify you are human" + notice suppression de compte région utilisateur, impossible de cocher par coordonnées). J'ai abandonné la vérification E2E loggée et me suis basé sur le code + screenshots non-loggés : hooks fixés, TS clean, 9 tests verts.
+
+### Travaux v3 terminés
+1. **Espace Canva visible** : lien "Espace Canva" ajouté dans la sidebar hamburger du dashboard + vide-state clair "Importer une image" dans /editor.
+2. **Upload image inspiration** : Dashboard.tsx onglet "Image inspirée" = bouton "Importer une image depuis mon appareil" (dataURL ≤8Mo) + champ URL Pinterest. Le backend thumbnail.generate accepte maintenant `inspirationImageUrl` (URL) ou `inspirationB64`/`inspirationMime` (upload) → passé à generateImage via `originalImages` (b64Json ou url).
+3. **Hamburger partout** : AppSidebar.tsx (composant partagé, menu complet : Créer miniature, Plate-forme, Tableau de bord/Miniatures/Personnes/Modèles, Espace Canva, Tests A/B, Avatars, Aperçu, Endcards, Favoris, Poubelle, Pro, profil dropdown) intégré dans PageHeader.tsx (pages Templates/Avatars/EndCards/Favorites/Trash/Notifications/Account/ApiKeys/Billing/Settings/AbTest) et Navbar.tsx (pages publiques). Dashboard.tsx : lien Canva ajouté dans sa propre sidebar.
+
+### Vérifications restantes avant checkpoint
+- Screenshot non-loggé : dashboard montre le hamburger dans la navbar (OK), /templates et /ab-test avec hamburger (OK), mobile 375x812 OK.
+- Reste à faire : vérification du payload inspiration dans l'UI (l'onglet "Image inspirée" n'est visible qu'après clic sur l'onglet, screenshot initial montrait la vue home) — code revu, semble correct (lignes 796-860 de Dashboard.tsx).
+- Puis : pnpm test + checkpoint + message de livraison.

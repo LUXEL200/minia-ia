@@ -103,3 +103,12 @@
 - [x] Page A/B Test (/ab-test) — créer un test (2 variantes sélectionnées dans la grille), saisir les vues/clics, CTR calculé, déclarer gagnante/match nul, lien dans le menu hamburger
 - [x] Tests vitest pour les nouvelles procédures (server/features.v2.test.ts, 8 tests)
 - [x] Vérification desktop des nouvelles pages (Templates, Éditeur de template, A/B Test)
+
+## Corrections utilisateur (v3)
+
+- [x] Espace Canva visible : lien "Espace Canva" dans la sidebar hamburger du dashboard + état vide clair "Importer une image" dans /editor
+- [x] Onglet inspiration : upload d'image depuis l'appareil (b64) en plus du lien — backend thumbnail.generate accepte inspirationImageUrl et inspirationB64/inspirationMime via originalImages
+- [x] Menu hamburger présent partout : composant AppSidebar partagé (sidebar complète + dropdown profil) intégré dans PageHeader et Navbar, lien Canva + A/B ajoutés à la sidebar
+
+- [x] Ajouter le hamburger/AppSidebar aux pages qui n'utilisent pas PageHeader : Editor, TemplateEditor, Admin (Models/Gallery/Home utilisent Navbar déjà pourvu du hamburger)
+- [x] Vérifier en session connectée que le menu hamburger (tous les sous-menus) est accessible depuis chaque page — captures desktop validées (Editor, TemplateEditor, Admin, Gallery, Home)

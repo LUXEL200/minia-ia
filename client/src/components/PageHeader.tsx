@@ -1,5 +1,7 @@
-import { Link, useLocation } from "wouter";
-import { ArrowLeft, Home, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Link } from "wouter";
+import { ArrowLeft, Home, ChevronRight, Menu } from "lucide-react";
+import { AppSidebar } from "@/components/AppSidebar";
 
 interface PageHeaderProps {
   title: string;
@@ -10,12 +12,18 @@ interface PageHeaderProps {
 }
 
 export default function PageHeader({ title, subtitle, backTo = "/dashboard", breadcrumb, right }: PageHeaderProps) {
-  const [, navigate] = useLocation();
+  const [showSidebar, setShowSidebar] = useState(false);
 
   return (
     <div className="mb-6">
+      {/* Menu hamburger + sidebar avec tous les menus de gauche */}
+      <AppSidebar open={showSidebar} onClose={() => setShowSidebar(false)} pageLabel={title} />
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3 overflow-x-auto">
+        <button onClick={() => setShowSidebar(true)} className="hover:text-gray-300 transition-colors shrink-0 p-0.5 -ml-1" title="Menu">
+          <Menu size={16} />
+        </button>
         <Link href={backTo} className="flex items-center gap-1 hover:text-gray-300 transition-colors shrink-0">
           <Home size={13} />
         </Link>
@@ -42,7 +50,7 @@ export default function PageHeader({ title, subtitle, backTo = "/dashboard", bre
         <div className="flex items-center gap-2 shrink-0">
           {right}
           <button
-            onClick={() => navigate(backTo)}
+            onClick={() => (window.location.href = backTo)}
             className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
           >
             <ArrowLeft size={13} />

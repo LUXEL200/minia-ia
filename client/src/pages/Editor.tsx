@@ -7,9 +7,10 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Download, Type, Move, Trash2, Plus,
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
-  ChevronLeft, Undo2, Redo2, Save,
+  ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
 } from "lucide-react";
+import { useAppSidebar, AppSidebar } from "@/components/AppSidebar";
 
 interface EditorTextElement {
   id: string;
@@ -348,6 +349,32 @@ export default function Editor() {
 
   const selectedElement = elements.find(el => el.id === selectedId);
   const colors = ["#FFFFFF", "#000000", "#EF4444", "#F97316", "#EAB308", "#22C55E", "#06B6D4", "#3B82F6", "#8B5CF6", "#EC4899"];
+  const bgUploadInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Fichier non supporté — choisis une image (PNG, JPG, WEBP)");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image trop volumineuse (max 8 Mo)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setBgImageUrl(String(reader.result || ""));
+      toast.success("Image de fond ajoutée !");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const clearBgImage = () => {
+    setBgImageUrl(null);
+    toast.success("Image de fond retirée");
+  };
 
   const renderToolbar = () => (
     <div className="fixed left-0 top-0 h-full w-16 bg-[#111] border-r border-white/5 flex flex-col items-center py-4 gap-2 z-40">
@@ -386,8 +413,24 @@ export default function Editor() {
               <Layers className="w-3.5 h-3.5" /> Triangle
             </button>
             <button onClick={addBackground} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left">
-              <Palette className="w-3.5 h-3.5" /> Arrière-plan
+              <Palette className="w-3.5 h-3.5" /> Couleur d'arrière-plan
             </button>
+            <div className="w-full h-px bg-white/5 my-1" />
+            <p className="text-[10px] text-zinc-500 px-1 pt-1">Image de fond</p>
+            <button
+              onClick={() => bgUploadInputRef.current?.click()}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-white/5 transition-colors text-left"
+            >
+              <Layers className="w-3.5 h-3.5" /> Importer une image
+            </button>
+            {bgImageUrl && (
+              <button
+                onClick={clearBgImage}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400 hover:bg-white/5 transition-colors text-left"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Retirer l'image de fond
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -701,15 +744,23 @@ export default function Editor() {
     return null;
   };
 
+  const sidebar = useAppSidebar();
+
   return (
     <div className="min-h-screen bg-[#000] flex">
+      <AppSidebar open={sidebar.showSidebar} onClose={() => sidebar.setShowSidebar(false)} pageLabel="Espace Canva" />
       {renderToolbar()}
 
       {/* Main canvas area */}
       <div className="flex-1 ml-16 mr-0 lg:mr-56 flex flex-col items-center justify-center p-4">
         {/* Top bar */}
         <div className="w-full max-w-4xl flex items-center justify-between mb-4">
-          <h1 className="text-sm font-medium text-white">Éditeur de miniature</h1>
+          <div className="flex items-center gap-3">
+            <button onClick={sidebar.openSidebar} className="text-zinc-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5" aria-label="Menu">
+              <Menu size={18} />
+            </button>
+            <h1 className="text-sm font-medium text-white">Éditeur de miniature</h1>
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-zinc-500">{Math.round(zoom * 100)}%</span>
             <Button onClick={exportCanvas} className="h-8 text-xs bg-white text-black hover:bg-white/90">
@@ -761,12 +812,22 @@ export default function Editor() {
 
             {elements.length === 0 && !bgImageUrl && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-zinc-700 text-sm">Ajoute des éléments avec le bouton + à gauche</p>
+                <div className="text-center px-6">
+                  <p className="text-zinc-500 text-sm mb-3">Espace Canva — ajouts des éléments ou une image de fond</p>
+                  <button
+                    onClick={() => bgUploadInputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Layers className="w-3.5 h-3.5" /> Importer une image
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      <input ref={bgUploadInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={handleBgFileUpload} />
 
       {/* Property panel */}
       {renderPropertyPanel()}

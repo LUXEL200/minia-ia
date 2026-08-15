@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -12,7 +12,7 @@ import {
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
   RectangleHorizontal, Star, Trash, Zap, Sun, Key, TrendingUp,
-  Settings, Bell, LogOut, Type, Shield,
+  Settings, Bell, LogOut, Type, Shield, Upload,
 } from "lucide-react";
 
 const STYLES = [
@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [generateTab, setGenerateTab] = useState<"text" | "image">("text");
   const [inspirationUrl, setInspirationUrl] = useState("");
   const [inspirationImage, setInspirationImage] = useState<string | null>(null);
+  const inspirationFileInputRef = useRef<HTMLInputElement>(null);
 
   // Theme
   const { theme, toggleTheme } = useTheme();
@@ -120,6 +121,16 @@ export default function Dashboard() {
         prompt: prompt.trim(),
         style: style as any,
         quantity,
+        ...(inspirationUrl ? { inspirationImageUrl: inspirationUrl } : {}),
+        ...(inspirationImage && inspirationImage.startsWith("data:")
+          ? (() => {
+              const [header, b64] = inspirationImage.split(",");
+              return {
+                inspirationB64: b64 ?? "",
+                inspirationMime: (header || "image/jpeg").split(":")[1]?.split(";")[0] ?? "image/jpeg",
+              };
+            })()
+          : {}),
       });
       toast.success(`${result.successful} miniature(s) générée(s) !`);
       setPrompt("");
@@ -327,11 +338,18 @@ export default function Dashboard() {
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Outils supplémentaires</p>
             <nav className="space-y-1">
               <Link
-                href="/avatars"
+                href="/editor"
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
               >
-                <UserCircle2 className="w-4 h-4" />
-                Avatars
+                <Type className="w-4 h-4" />
+                Espace Canva
+              </Link>
+              <Link
+                href="/ab-test"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors"
+              >
+                <TrendingUp className="w-4 h-4" />
+                Tests A/B
               </Link>
               <Link
                 href="/preview"
@@ -752,6 +770,30 @@ export default function Dashboard() {
     }
   };
 
+  const handleInspirationFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Fichier non supporté — choisis une image (PNG, JPG, WEBP)");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image trop volumineuse (max 8 Mo)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setInspirationImage(String(reader.result || ""));
+      setInspirationUrl("");
+      toast.success("Image d'inspiration chargée !");
+      if (!prompt.trim()) {
+        setPrompt("Reproduis le style de cette image d'inspiration pour créer une miniature YouTube virale");
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   // ===== Generate View =====
   const renderGenerateView = () => (
     <div className="max-w-2xl mx-auto px-4 pb-8">
@@ -787,7 +829,15 @@ export default function Dashboard() {
       {/* Image inspiration tab */}
       {generateTab === "image" && (
         <div className="mb-6">
-          <label className="block text-xs text-zinc-400 mb-2">URL d'inspiration (image ou lien Pinterest)</label>
+          <label className="block text-xs text-zinc-400 mb-2">Image d'inspiration (upload ou lien Pinterest)</label>
+          <div className="flex flex-col sm:flex-row gap-2 mb-2">
+            <button
+              onClick={() => inspirationFileInputRef.current?.click()}
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#181818] border border-dashed border-zinc-600 text-zinc-300 hover:text-white hover:border-zinc-400 text-xs transition-all flex-1"
+            >
+              <Upload className="w-3.5 h-3.5" /> Importer une image depuis mon appareil
+            </button>
+          </div>
           <div className="flex gap-2">
             <input
               type="url"
@@ -803,6 +853,7 @@ export default function Dashboard() {
               Charger
             </Button>
           </div>
+          <input ref={inspirationFileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={handleInspirationFileUpload} />
           {inspirationImage && (
             <div className="mt-3 relative rounded-xl overflow-hidden">
               <img src={inspirationImage} alt="Inspiration" className="w-full h-48 object-cover rounded-xl border border-white/5" />
@@ -816,7 +867,7 @@ export default function Dashboard() {
             </div>
           )}
           <p className="text-[10px] text-zinc-600 mt-2">
-            Collez un lien Pinterest ou une URL d'image pour vous en inspirer. L'IA reproduira le style, les couleurs et la composition.
+            Importe une image depuis ton appareil ou colle un lien Pinterest / URL d'image pour t'en inspirer. L'IA reproduira le style, les couleurs et la composition.
           </p>
         </div>
       )}

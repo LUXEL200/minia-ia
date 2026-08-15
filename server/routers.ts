@@ -596,6 +596,9 @@ export const appRouter = router({
         prompt: z.string().min(10, "La description doit contenir au moins 10 caractères").max(500),
         style: z.enum(["viral", "mrbeast", "minimalist", "dramatic", "tech", "retro"]).default("viral"),
         quantity: z.number().min(1).max(4).default(1),
+        inspirationImageUrl: z.string().max(2000).optional(),
+        inspirationB64: z.string().max(10_000_000).optional(),
+        inspirationMime: z.string().max(64).default("image/jpeg"),
       }))
       .mutation(async ({ ctx, input }) => {
         // Check credits
@@ -618,6 +621,12 @@ export const appRouter = router({
         };
 
         const fullPrompt = `${input.prompt}\n\nStyle: ${stylePrompts[input.style]}`;
+        let referenceImages: Array<{ url?: string; b64Json?: string; mimeType?: string }> | undefined;
+        if (input.inspirationImageUrl) {
+          referenceImages = [{ url: input.inspirationImageUrl, mimeType: "image/jpeg" }];
+        } else if (input.inspirationB64) {
+          referenceImages = [{ b64Json: input.inspirationB64, mimeType: input.inspirationMime || "image/jpeg" }];
+        }
 
         // Create thumbnail records and generate images
         const results: Array<{ id: number; status: string; imageUrl: string | null }> = [];
@@ -635,9 +644,10 @@ export const appRouter = router({
           });
 
           try {
-            // Generate image via Forge API
+            // Generate image via Forge API (with optional reference image for style inspiration)
             const { url } = await generateImage({
               prompt: fullPrompt,
+              originalImages: referenceImages,
               model: "MODEL_GPT_IMAGE_2",
               quality: "high",
             });

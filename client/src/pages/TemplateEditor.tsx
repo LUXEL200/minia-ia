@@ -5,9 +5,10 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Type, Smile, Square, Eraser, Palette, Bold, Plus,
+  ArrowLeft, Type, Smile, Square, Eraser, Palette, Bold, Plus, Menu,
   Save, Download, Trash2, Move,
 } from "lucide-react";
+import { useAppSidebar, AppSidebar } from "@/components/AppSidebar";
 
 type EditorElement = {
   id: string;
@@ -60,6 +61,7 @@ export default function TemplateEditor() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{ id: string; startX: number; startY: number; elX: number; elY: number } | null>(null);
   const [showColors, setShowColors] = useState(false);
+  const sidebar = useAppSidebar();
 
   // Load saved customization via query param ?customId
   const customId = Number(new URLSearchParams(search).get("customId") || "0");
@@ -207,9 +209,12 @@ export default function TemplateEditor() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Top bar */}
+      <AppSidebar open={sidebar.showSidebar} onClose={() => sidebar.setShowSidebar(false)} pageLabel="Éditeur de template" />
       <header className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2">
+          <button onClick={sidebar.openSidebar} className="text-zinc-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5" aria-label="Menu">
+            <Menu size={18} />
+          </button>
           <Link href="/templates" className="text-zinc-400 hover:text-white transition-colors">
             <ArrowLeft size={18} />
           </Link>
