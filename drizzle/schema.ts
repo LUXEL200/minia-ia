@@ -398,3 +398,26 @@ export const publishedSchedules = mysqlTable("publishedSchedules", {
 
 export type PublishedSchedule = typeof publishedSchedules.$inferSelect;
 export type InsertPublishedSchedule = typeof publishedSchedules.$inferInsert;
+
+/**
+ * Credit pack purchases — simulated (fake) payments, ready for a future Stripe
+ * integration. Credits are added to userCredits immediately on purchase.
+ */
+export const creditPackPurchases = mysqlTable("creditPackPurchases", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  packId: varchar("packId", { length: 32 }).notNull(),
+  packLabel: varchar("packLabel", { length: 64 }).notNull(),
+  creditsGranted: int("creditsGranted").notNull(),
+  amountCents: int("amountCents").notNull(),
+  currency: varchar("currency", { length: 8 }).default("EUR").notNull(),
+  status: mysqlEnum("status", ["completed", "refunded", "failed"]).default("completed").notNull(),
+  /** Placeholder for the future Stripe payment intent ID */
+  paymentId: varchar("paymentId", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("cpp_user_idx").on(table.userId),
+}));
+
+export type CreditPackPurchase = typeof creditPackPurchases.$inferSelect;
+export type InsertCreditPackPurchase = typeof creditPackPurchases.$inferInsert;

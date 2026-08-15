@@ -132,6 +132,8 @@ import {
   getRemindersToFire,
   markScheduleReminded,
   getThumbnailByIdWithCheck,
+  listCreditPackPurchases,
+  createCreditPackPurchase,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
 
@@ -1414,6 +1416,68 @@ export const appRouter = router({
           }
         }
         return { fired } as const;
+      }),
+  }),
+  // === Credit packs (simulated payments, ready for Stripe later) ===
+  packs: router({
+    /** Catalogue des packs rechargeables (prix de simulation) */
+    catalog: publicProcedure.query(() => {
+      return [
+        { id: "starter", label: "Pack Starter", credits: 10, amountCents: 490, currency: "EUR", tag: "Découverte", popular: false },
+        { id: "creator", label: "Pack Créateur", credits: 50, amountCents: 1990, currency: "EUR", tag: "Le plus populaire", popular: true },
+        { id: "pro", label: "Pack Pro", credits: 200, amountCents: 6990, currency: "EUR", tag: "Pour les réguliers", popular: false },
+        { id: "max", label: "Pack Max", credits: 500, amountCents: 14990, currency: "EUR", tag: "Volume maximal", popular: false },
+      ] as const;
+    }),
+
+    /** Historique des achats de l'utilisateur connecté */
+    purchases: protectedProcedure.query(async ({ ctx }) => {
+      return listCreditPackPurchases(ctx.user.id);
+    }),
+
+    /** Achat simulé : enregistre le paiement fictif et crédite immédiatement le compte */
+    purchase: protectedProcedure
+      .input(z.object({ packId: z.enum(["starter", "creator", "pro", "max"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const catalog = [
+          { id: "starter", label: "Pack Starter", credits: 10, amountCents: 490 },
+          { id: "creator", label: "Pack Créateur", credits: 50, amountCents: 1990 },
+          { id: "pro", label: "Pack Pro", credits: 200, amountCents: 6990 },
+          { id: "max", label: "Pack Max", credits: 500, amountCents: 14990 },
+        ];
+        const pack = catalog.find(p => p.id === input.packId);
+        if (!pack) throw new TRPCError({ code: "BAD_REQUEST", message: "Pack introuvable" });
+
+        // 1) Enregistrer l'achat (paiement fictif — paymentId placeholder pour Stripe plus tard)
+        const purchase = await createCreditPackPurchase({
+          userId: ctx.user.id,
+          packId: pack.id,
+          packLabel: pack.label,
+          creditsGranted: pack.credits,
+          amountCents: pack.amountCents,
+          currency: "EUR",
+          status: "completed",
+          paymentId: `sim_${Date.now()}_${ctx.user.id}`,
+        });
+        if (!purchase) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Échec de l'enregistrement de l'achat" });
+
+        // 2) Créditer immédiatement le compte
+        const current = await ensureUserCredits(ctx.user.id);
+        await updateUserCredits(ctx.user.id, (current?.credits ?? 0) + pack.credits);
+
+        // 3) Notification in-app de confirmation
+        try {
+          await createNotification({
+            userId: ctx.user.id,
+            title: "Crédits rechargés",
+            message: `${pack.credits} crédits ont été ajoutés à ton compte (${pack.label}).`,
+            type: "credit",
+            metadata: JSON.stringify({ purchaseId: purchase.id, packId: pack.id, credits: pack.credits }),
+          });
+        } catch { /* les notifications ne doivent pas casser l'achat */ }
+
+        const updated = await getUserCredits(ctx.user.id);
+        return { success: true, credits: updated?.credits ?? 0, purchase } as const;
       }),
   }),
   // === Organization ===

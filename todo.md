@@ -191,3 +191,12 @@
 - [x] Audit : repérer les titres/headers textes sombres (text-gray-*, text-zinc-*, text-black, text-[#0…]) sur conteneurs hardcodés sombres
 - [x] Corriger : overrides .light — header sticky bg-[#000]/80-90 → var(--secondary) ; text-black (#111 fixe) ; bg-white → var(--card) ; fractions bg-zinc-900/60, bg-black/35 ; hover:text-white/zinc-300/400 ; bloc membre /organisation lisible
 - [x] Vérifications visuelles mode clair sur 16 pages (dashboard, miniatures, personnes, organisation, gallery, ab-test, notifications, settings, account, templates, avatars, endcards, billing, api-keys, admin, editor) + 59/59 vitest + tsc 0 erreur + checkpoint
+
+## Vague v12 (demande utilisateur — 15/08)
+
+- [x] Backend : table `creditPackPurchases` (packs achetés, montant, statut) + procédures tRPC packs.list / packs.purchase (paiement factice → crédits ajoutés) avec ownership
+- [x] Backend : historique d'achats (packs.purchases) + débit fictif (optionnel : simuler paiement Stripe, structuré pour basculer)
+- [x] Frontend : section « Recharger » dans /billing — packs (10/50/200/500 crédits) avec prix, dialog de paiement simulé, historique d'achats
+- [x] Frontend : solde crédité immédiatement après achat (utils.thumbnail.credits.invalidate)
+- [x] Guide d'utilisation du calendrier de planification (message utilisateur clair)
+- [x] Tests vitest (64/64 dont 5 tests packs) + tsc 0 erreur + vérifications visuelles + checkpoint

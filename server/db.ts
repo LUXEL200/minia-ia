@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 
@@ -1127,4 +1127,26 @@ export async function getThumbnailByIdWithCheck(id: number, userId?: number) {
   if (!t) return undefined;
   if (userId !== undefined && t.userId !== userId) return undefined;
   return t;
+}
+
+// === Credit pack purchases (simulated payments, ready for Stripe later) ===
+
+export async function listCreditPackPurchases(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(creditPackPurchases)
+    .where(eq(creditPackPurchases.userId, userId))
+    .orderBy(desc(creditPackPurchases.createdAt))
+    .limit(50);
+}
+
+export async function createCreditPackPurchase(insert: InsertCreditPackPurchase) {
+  const db = await getDb();
+  if (!db) return null;
+  const [result] = await db.insert(creditPackPurchases).values(insert);
+  const insertId = (result as unknown as { insertId: number }).insertId;
+  const rows = await db.select().from(creditPackPurchases).where(eq(creditPackPurchases.id, insertId)).limit(1);
+  return rows[0] ?? null;
 }
