@@ -272,3 +272,9 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 
 - [x] Landing refonte vidéo : analyser youthumb.ai/en (section vidéo démo, design, animations) et transposer sur la landing Minia IA (hero 2 colonnes + badge compteur animé + maquette produit animée style mock UI + section démo produit scroll-triggered, style bleu nuit/orange)
 - [x] Finaliser : tests vitest + tsc + vérifs visuelles dark+light + checkpoint + publication
+
+## Vague v18 (demande utilisateur — 15/08)
+
+- [ ] Retirer le lien « Super Admin » du menu déroulant sous le profil (doublon visible, badge ADMIN)
+- [ ] Refondre l'interface éditeur CANVAS : 3 panneaux style pro — sidebar gauche (templates/miniatures + formats 16:9/9:16/1:1/4:5/21:9 + couleurs), canvas central (barre d'outils pointeur/recadrer/texte/formes/pinceau/calques, undo/redo, bande de variantes en bas avec bouton +), panneau droit (sliders opacité/saturation/contraste, upload image)
+- [ ] Tests vitest + tsc + vérifs visuelles + checkpoint + publication

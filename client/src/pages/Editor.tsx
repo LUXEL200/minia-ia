@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { toPng } from "html-to-image";
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation, useSearch } from "wouter";
@@ -9,7 +9,7 @@ import {
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
   ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
-  Smartphone, Tablet, X, LayoutTemplate, Heart,
+  Smartphone, Tablet, X, Heart, Sparkles,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -85,6 +85,21 @@ export default function Editor() {
   const [bgFit, setBgFit] = useState<"cover" | "contain">("cover");
   const [isDragging, setIsDragging] = useState(false);
   const [devicePreview, setDevicePreview] = useState<"none" | "phone" | "tablet">("none");
+
+  // === Format du canevas (dynamique selon le panneau gauche) ===
+  const [canvasSize, setCanvasSize] = useState({ w: 640, h: 360 });
+  const exportDimensions = useMemo(() => {
+    const ratio = canvasSize.w / canvasSize.h;
+    if (Math.abs(ratio - 16 / 9) < 0.01) return { w: 1280, h: 720 };
+    if (Math.abs(ratio - 9 / 16) < 0.01) return { w: 720, h: 1280 };
+    if (Math.abs(ratio - 1) < 0.01) return { w: 1280, h: 1280 };
+    if (Math.abs(ratio - 4 / 5) < 0.01) return { w: 1152, h: 1440 };
+    if (Math.abs(ratio - 21 / 9) < 0.01) return { w: 1512, h: 648 };
+    const max = 1512;
+    return canvasSize.w >= canvasSize.h
+      ? { w: max, h: Math.round(max / ratio) }
+      : { w: Math.round(max * ratio), h: max };
+  }, [canvasSize]);
   const previewCanvasRef = useRef<HTMLDivElement>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragElStart, setDragElStart] = useState({ x: 0, y: 0 });
@@ -109,7 +124,7 @@ export default function Editor() {
   const captureSnapshot = async (): Promise<string | null> => {
     if (!canvasRef.current) return null;
     try {
-      return await toPng(canvasRef.current, { width: 1280, height: 720, pixelRatio: 1, cacheBust: true });
+      return await toPng(canvasRef.current, { width: exportDimensions.w, height: exportDimensions.h, pixelRatio: 1, cacheBust: true });
     } catch {
       return null;
     }
@@ -489,112 +504,64 @@ export default function Editor() {
     toast.success("Image de fond retirée");
   };
 
-  const renderToolbar = () => (
-    <div className="fixed left-0 top-0 h-full w-16 bg-[#111] border-r border-border flex flex-col items-center py-4 gap-2 z-40">
-      <button
-        onClick={() => navigate("/dashboard")}
-        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        title="Retour"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+  // ===== Left panel (formats, colors, background) =====
+  const formats = [
+    { key: "16:9", label: "16:9", w: 640, h: 360 },
+    { key: "9:16", label: "9:16", w: 360, h: 640 },
+    { key: "1:1", label: "1:1", w: 480, h: 480 },
+    { key: "4:5", label: "4:5", w: 480, h: 600 },
+    { key: "21:9", label: "21:9", w: 700, h: 300 },
+  ];
 
-      <div className="w-8 h-px bg-muted/80 my-2" />
-
-      {/* Add menu */}
-      <div className="relative">
-        <button
-          onClick={() => setShowAddMenu(!showAddMenu)}
-          className={`p-2 rounded-lg transition-colors ${showAddMenu ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-          title="Ajouter"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-        {showAddMenu && (
-          <div className="absolute left-full ml-2 top-0 bg-[#1a1a1a] border border-border rounded-xl p-3 shadow-2xl z-50 w-48">
-            <p className="text-[10px] text-muted-foreground uppercase mb-2">Ajouter</p>
-            <button onClick={addTextElement} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
-              <Type className="w-3.5 h-3.5" /> Texte
-            </button>
-            <button onClick={() => addShapeElement("rect")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
-              <Layers className="w-3.5 h-3.5" /> Rectangle
-            </button>
-            <button onClick={() => addShapeElement("circle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
-              <Layers className="w-3.5 h-3.5" /> Cercle
-            </button>
-            <button onClick={() => addShapeElement("triangle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
-              <Layers className="w-3.5 h-3.5" /> Triangle
-            </button>
-            <button onClick={addBackground} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
-              <Palette className="w-3.5 h-3.5" /> Couleur d'arrière-plan
-            </button>
-            <div className="w-full h-px bg-muted my-1" />
-            <p className="text-[10px] text-muted-foreground px-1 pt-1">Image de fond</p>
-            <button
-              onClick={insertImageAsLayer}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-orange-400 hover:bg-muted transition-colors text-left"
-            >
-              <Move className="w-3.5 h-3.5" /> Insérer comme calque (modifiable)
-            </button>
-            <button
-              onClick={() => bgUploadInputRef.current?.click()}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left"
-            >
-              <Layers className="w-3.5 h-3.5" /> Importer une image
-            </button>
-            {bgImageUrl && (
+  const renderLeftPanel = () => (
+    <aside className="w-64 shrink-0 border-r border-border bg-[#0c0d12] flex flex-col overflow-y-auto">
+      {/* Format */}
+      <div className="p-3 border-b border-border">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Format</p>
+        <div className="grid grid-cols-5 gap-1.5">
+          {formats.map(f => {
+            const active = canvasSize.w === f.w && canvasSize.h === f.h;
+            return (
               <button
-                onClick={clearBgImage}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400 hover:bg-muted transition-colors text-left"
+                key={f.key}
+                onClick={() => setCanvasSize({ w: f.w, h: f.h })}
+                className={`aspect-square rounded-lg border text-[10px] font-medium flex items-center justify-center transition-colors ${
+                  active
+                    ? "border-orange-400 bg-orange-400/15 text-orange-300"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-white/20"
+                }`}
+                title={f.label}
               >
-                <Trash2 className="w-3.5 h-3.5" /> Retirer l'image de fond
+                {f.label}
               </button>
-            )}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
-      {/* Undo/Redo */}
-      <button onClick={handleUndo} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Annuler">
-        <Undo2 className="w-5 h-5" />
-      </button>
-      <button onClick={handleRedo} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Refaire">
-        <Redo2 className="w-5 h-5" />
-      </button>
-
-      <div className="w-8 h-px bg-muted/80 my-2" />
-
       {/* Background fit */}
-      <button
-        onClick={() => setBgFit(f => f === "cover" ? "contain" : "cover")}
-        className={`p-2 rounded-lg transition-colors ${bgFit === "contain" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-        title={bgFit === "cover" ? "Recadrage : Couvrir (cover)" : "Recadrage : Contenir (contain)"}
-      >
-        <LayoutTemplate className="w-5 h-5" />
-      </button>
+      <div className="p-3 border-b border-border">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Ajustement du fond</p>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => setBgFit("cover")}
+            className={`flex-1 text-[11px] rounded-lg px-2 py-1.5 transition-colors ${bgFit === "cover" ? "bg-orange-500/20 text-orange-300" : "bg-card text-muted-foreground hover:text-foreground"}`}
+          >
+            Couvrir
+          </button>
+          <button
+            onClick={() => setBgFit("contain")}
+            className={`flex-1 text-[11px] rounded-lg px-2 py-1.5 transition-colors ${bgFit === "contain" ? "bg-orange-500/20 text-orange-300" : "bg-card text-muted-foreground hover:text-foreground"}`}
+          >
+            Contenir
+          </button>
+        </div>
+      </div>
 
-      <div className="w-8 h-px bg-muted/80 my-2" />
-
-      {/* Zoom */}
-      <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Zoom +">
-        <ZoomIn className="w-5 h-5" />
-      </button>
-      <button onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Zoom -">
-        <ZoomOut className="w-5 h-5" />
-      </button>
-
-      <div className="w-8 h-px bg-muted/80 my-2" />
-
-      {/* Color picker */}
-      <button
-        onClick={() => setShowColorPicker(!showColorPicker)}
-        className={`p-2 rounded-lg transition-colors ${showColorPicker ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-        title="Couleur"
-      >
-        <Palette className="w-5 h-5" />
-      </button>
-      {showColorPicker && (
-        <div className="absolute left-18 ml-2 bg-[#1a1a1a] border border-border rounded-xl p-2 shadow-2xl z-50 flex flex-wrap gap-1.5 max-w-36">
+      {/* Colors */}
+      <div className="p-3 border-b border-border">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Couleurs</p>
+        <div className="flex flex-wrap gap-1.5">
           {colors.map(c => (
             <button
               key={c}
@@ -612,101 +579,127 @@ export default function Editor() {
                   setBgTransparent(false);
                 }
               }}
-              className="w-6 h-6 rounded-full border border-border hover:scale-110 transition-transform"
+              className="w-7 h-7 rounded-full border border-border hover:scale-110 transition-transform"
               style={{ backgroundColor: c }}
             />
           ))}
+          <button
+            onClick={() => setBgTransparent(true)}
+            className={`w-7 h-7 rounded-full border text-[9px] font-bold transition-colors ${bgTransparent && !bgImageUrl ? "border-orange-400 text-orange-300" : "border-border text-muted-foreground"}`}
+            title="Fond transparent"
+          >
+            ∅
+          </button>
         </div>
-      )}
+      </div>
 
-      {/* Versions */}
-      <button
-        onClick={() => setShowVersions(!showVersions)}
-        className={`p-2 rounded-lg transition-colors relative ${showVersions ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-        title="Versions"
-      >
-        <History className="w-5 h-5" />
-        {versions && versions.length > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#ff0050] text-white text-[9px] rounded-full flex items-center justify-center">
-            {versions.length}
-          </span>
-        )}
-      </button>
-      {showVersions && (
-        <div className="absolute left-16 bottom-0 bg-[#1a1a1a] border border-border rounded-xl shadow-2xl z-50 w-72 p-3">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Versions d'image</p>
-          {thumbnailId <= 0 && (
-            <p className="text-xs text-muted-foreground mb-2">Ouvre l'éditeur depuis une miniature de ton tableau de bord pour enregistrer des versions.</p>
-          )}
-          <div className="flex gap-1.5 mb-3">
-            <input
-              value={versionName}
-              onChange={e => setVersionName(e.target.value)}
-              placeholder="Nom de la version…"
-              className="flex-1 bg-[#111] border border-border rounded-lg px-2 py-1.5 text-xs text-white placeholder-zinc-600 outline-none"
-            />
+      {/* Layers quick actions */}
+      <div className="p-3 border-b border-border">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Calques</p>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            onClick={() => bgUploadInputRef.current?.click()}
+            className="flex items-center justify-center gap-1.5 bg-card hover:bg-card/80 border border-border text-xs text-foreground rounded-lg px-2 py-2 transition-colors"
+          >
+            <Layers className="w-3.5 h-3.5" /> Fond
+          </button>
+          <button
+            onClick={insertImageAsLayer as any}
+            className="flex items-center justify-center gap-1.5 bg-card hover:bg-card/80 border border-border text-xs text-orange-300 rounded-lg px-2 py-2 transition-colors"
+          >
+            <Move className="w-3.5 h-3.5" /> Calque
+          </button>
+          {bgImageUrl && (
             <button
-              onClick={handleSaveVersion}
-              disabled={createVersion.isPending}
-              className="bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors"
+              onClick={clearBgImage}
+              className="flex items-center justify-center gap-1.5 bg-card hover:bg-red-500/10 border border-border text-xs text-red-400 rounded-lg px-2 py-2 transition-colors col-span-2"
             >
-              Sauvegarder
+              <Trash2 className="w-3.5 h-3.5" /> Retirer le fond
             </button>
-          </div>
-          {(!versions || versions.length === 0) ? (
-            <p className="text-xs text-muted-foreground text-center py-3">Aucune version enregistrée</p>
-          ) : (
-            <div className="space-y-1.5 max-h-52 overflow-y-auto">
-              {versions.map((v: any) => (
-                <div key={v.id} className={`flex items-center gap-2 rounded-lg border p-2 ${v.isCurrent === "yes" ? "border-orange-400/50 bg-orange-400/10" : "border-border"}`}>
-                  <img src={v.imageUrl} alt={v.name} className="w-16 h-9 object-cover rounded" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-white truncate">{v.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{new Date(v.createdAt).toLocaleString("fr-FR")}</p>
-                  </div>
-                  <button
-                    onClick={() => handleRestoreVersion(v)}
-                    className="text-orange-400 hover:text-orange-300"
-                    title="Restaurer cette version"
-                  >
-                    <RotateCcw size={14} />
-                  </button>
-                  <button
-                    onClick={() => deleteVersion.mutate({ id: v.id, thumbnailId }, { onSuccess: () => utilsVersions.imageVersions.list.invalidate({ thumbnailId }) })}
-                    className="text-muted-foreground hover:text-red-400"
-                    title="Supprimer"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
           )}
+          <button
+            onClick={() => setShowVersions(v => !v)}
+            className="flex items-center justify-center gap-1.5 bg-card hover:bg-card/80 border border-border text-xs text-foreground rounded-lg px-2 py-2 transition-colors col-span-2 relative"
+          >
+            <History className="w-3.5 h-3.5" /> Versions
+            {versions && versions.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 text-white text-[9px] rounded-full flex items-center justify-center">
+                {versions.length}
+              </span>
+            )}
+          </button>
         </div>
-      )}
+      </div>
 
       <div className="flex-1" />
 
-      {/* Aperçu mobile/tablette */}
-      <button
-        onClick={() => setDevicePreview("phone")}
-        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        title="Aperçu smartphone"
-      >
-        <Smartphone className="w-5 h-5" />
-      </button>
-
-      {/* Delete */}
-      <button onClick={deleteSelected} className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Supprimer">
-        <Trash2 className="w-5 h-5" />
-      </button>
-
-      {/* Export */}
-      <button onClick={exportCanvas} className="p-2 rounded-lg bg-cyan-500/20 text-orange-400 hover:bg-cyan-500/30 transition-colors" title="Exporter">
-        <Download className="w-5 h-5" />
-      </button>
-    </div>
+      {/* AI regenerate strip */}
+      <div className="p-3 border-t border-border">
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-orange-500 via-orange-400 to-amber-400 hover:from-orange-600 hover:via-orange-500 hover:to-amber-500 transition-all shadow-lg shadow-orange-500/20"
+        >
+          <Sparkles className="w-4 h-4" /> Générer avec IA
+        </Link>
+      </div>
+    </aside>
   );
+
+  const renderVersionsPanel = () => {
+    if (!showVersions) return null;
+    return (
+      <div className="absolute left-3 bottom-16 bg-[#0c0d12] border border-border rounded-xl shadow-2xl z-50 w-72 p-3">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Versions d'image</p>
+        {thumbnailId <= 0 && (
+          <p className="text-xs text-muted-foreground mb-2">Ouvre l'éditeur depuis une miniature de ton tableau de bord pour enregistrer des versions.</p>
+        )}
+        <div className="flex gap-1.5 mb-3">
+          <input
+            value={versionName}
+            onChange={e => setVersionName(e.target.value)}
+            placeholder="Nom de la version…"
+            className="flex-1 bg-[#111] border border-border rounded-lg px-2 py-1.5 text-xs text-white placeholder-zinc-600 outline-none"
+          />
+          <button
+            onClick={handleSaveVersion}
+            disabled={createVersion.isPending}
+            className="bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors"
+          >
+            Sauvegarder
+          </button>
+        </div>
+        {(!versions || versions.length === 0) ? (
+          <p className="text-xs text-muted-foreground text-center py-3">Aucune version enregistrée</p>
+        ) : (
+          <div className="space-y-1.5 max-h-52 overflow-y-auto">
+            {versions.map((v: any) => (
+              <div key={v.id} className={`flex items-center gap-2 rounded-lg border p-2 ${v.isCurrent === "yes" ? "border-orange-400/50 bg-orange-400/10" : "border-border"}`}>
+                <img src={v.imageUrl} alt={v.name} className="w-16 h-9 object-cover rounded" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white truncate">{v.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{new Date(v.createdAt).toLocaleString("fr-FR")}</p>
+                </div>
+                <button
+                  onClick={() => handleRestoreVersion(v)}
+                  className="text-orange-400 hover:text-orange-300"
+                  title="Restaurer cette version"
+                >
+                  <RotateCcw size={14} />
+                </button>
+                <button
+                  onClick={() => deleteVersion.mutate({ id: v.id, thumbnailId }, { onSuccess: () => utilsVersions.imageVersions.list.invalidate({ thumbnailId }) })}
+                  className="text-muted-foreground hover:text-red-400"
+                  title="Supprimer"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderPropertyPanel = () => {
     if (!selectedElement) return null;
@@ -741,19 +734,19 @@ export default function Editor() {
             <div className="flex gap-1">
               <button
                 onClick={() => updateElement(selectedElement.id, { fontWeight: (selectedElement as EditorTextElement).fontWeight === "bold" ? "normal" : "bold" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontWeight === "bold" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontWeight === "bold" ? "bg-orange-500/20 text-orange-300" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Bold className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => updateElement(selectedElement.id, { fontStyle: (selectedElement as EditorTextElement).fontStyle === "italic" ? "normal" : "italic" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontStyle === "italic" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontStyle === "italic" ? "bg-orange-500/20 text-orange-300" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Italic className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => updateElement(selectedElement.id, { textDecoration: (selectedElement as EditorTextElement).textDecoration === "underline" ? "none" : "underline" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).textDecoration === "underline" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).textDecoration === "underline" ? "bg-orange-500/20 text-orange-300" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Underline className="w-3.5 h-3.5" />
               </button>
@@ -763,13 +756,13 @@ export default function Editor() {
               <div className="flex gap-1">
                 <button
                   onClick={() => updateElement(selectedElement.id, { align: "left" })}
-                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "left" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground"}`}
+                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "left" ? "bg-orange-500/20 text-orange-300" : "text-muted-foreground"}`}
                 >
                   <AlignLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => updateElement(selectedElement.id, { align: "center" })}
-                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "center" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground"}`}
+                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "center" ? "bg-orange-500/20 text-orange-300" : "text-muted-foreground"}`}
                 >
                   <AlignCenter className="w-3.5 h-3.5" />
                 </button>
@@ -785,7 +778,7 @@ export default function Editor() {
               <div className="flex gap-1.5">
                 <button
                   onClick={() => fitImageLayer("contain")}
-                  className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-orange-400 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                  className="flex-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
                 >
                   Contenir
                 </button>
@@ -1005,36 +998,143 @@ export default function Editor() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000] flex">
-      {renderToolbar()}
+    <div className="min-h-screen bg-[#000] flex overflow-hidden">
+      {renderLeftPanel()}
 
-      {/* Main canvas area */}
-      <div className="flex-1 ml-16 mr-0 lg:mr-56 flex flex-col items-center justify-center p-4">
-        {/* Top bar */}
-        <div className="w-full max-w-4xl flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-sm font-medium text-white">Éditeur de miniature</h1>
-            <div className="flex items-center gap-1.5">
-              <Button variant="outline" size="sm" className="h-7 text-[11px] border-border text-muted-foreground hover:text-foreground" onClick={() => setDevicePreview("tablet")}>
-                <Tablet className="w-3.5 h-3.5 mr-1" /> Aperçu tablette
-              </Button>
-              <Button variant="outline" size="sm" className="h-7 text-[11px] border-border text-muted-foreground hover:text-foreground" onClick={() => setDevicePreview("phone")}>
-                <Smartphone className="w-3.5 h-3.5 mr-1" /> Aperçu mobile
-              </Button>
-            </div>
+      {/* Zone centrale : topbar + canvas + variantes */}
+      <div className="flex-1 flex flex-col min-w-0 z-10">
+        {/* Topbar pro */}
+        <div className="h-14 shrink-0 border-b border-border bg-[#0c0d12] flex items-center px-3 gap-2 relative pr-20">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+            title="Retour au tableau de bord"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden md:inline text-xs font-medium">Tableau de bord</span>
+          </Link>
+
+          <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+
+          {/* Outils centraux */}
+          <div className="flex items-center gap-0.5 mx-auto">
+            <button
+              onClick={addTextElement}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Ajouter du texte"
+            >
+              <Type className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => { setShowAddMenu(!showAddMenu); setShowAddMenu(m => m); }}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Ajouter une forme"
+            >
+              <Layers className="w-4 h-4" />
+            </button>
+            <div className="w-px h-5 bg-border mx-1" />
+            <button
+              onClick={handleUndo}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Annuler"
+            >
+              <Undo2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleRedo}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Refaire"
+            >
+              <Redo2 className="w-4 h-4" />
+            </button>
+            <div className="w-px h-5 bg-border mx-1" />
+            <button
+              onClick={() => setZoom(z => Math.min(2, z + 0.1))}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Zoom +"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Zoom -"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <div className="w-px h-5 bg-border mx-1" />
+            <button
+              onClick={() => setDevicePreview("phone")}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Aperçu smartphone"
+            >
+              <Smartphone className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setDevicePreview("tablet")}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              title="Aperçu tablette"
+            >
+              <Tablet className="w-4 h-4" />
+            </button>
           </div>
+
+          {/* Droite : zoom, filigrane, export */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground">{Math.round(zoom * 100)}%</span>
+            <span className="text-[10px] text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
             {isFreePlan && (
-              <span className="hidden sm:inline-flex text-[10px] text-amber-400 border border-amber-400/30 rounded-full px-2 py-0.5">
-                Filigrane Minia IA à l'export
+              <span className="hidden lg:inline-flex text-[10px] text-amber-400 border border-amber-400/30 rounded-full px-2 py-0.5">
+                Filigrane
               </span>
             )}
-            <Button onClick={exportCanvas} className="h-8 text-xs bg-white text-black hover:bg-white/90">
-              <Save className="w-3.5 h-3.5 mr-1" /> Exporter
+            <Button onClick={exportCanvas} className="h-8 text-xs bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white">
+              <Download className="w-3.5 h-3.5 mr-1" /> Exporter
             </Button>
           </div>
         </div>
+
+        {/* Menu ajouter (forme/couleur/image) — flottant sous la topbar */}
+        {showAddMenu && (
+          <div className="absolute top-14 left-1/2 -translate-x-1/2 mt-1 bg-[#1a1a1a] border border-border rounded-xl p-3 shadow-2xl z-50 w-56">
+            <p className="text-[10px] text-muted-foreground uppercase mb-2">Ajouter</p>
+            <button onClick={addTextElement} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
+              <Type className="w-3.5 h-3.5" /> Texte
+            </button>
+            <button onClick={() => addShapeElement("rect")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
+              <Layers className="w-3.5 h-3.5" /> Rectangle
+            </button>
+            <button onClick={() => addShapeElement("circle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
+              <Layers className="w-3.5 h-3.5" /> Cercle
+            </button>
+            <button onClick={() => addShapeElement("triangle")} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
+              <Layers className="w-3.5 h-3.5" /> Triangle
+            </button>
+            <div className="w-full h-px bg-muted my-1" />
+            <button onClick={addBackground} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left">
+              <Palette className="w-3.5 h-3.5" /> Couleur d'arrière-plan
+            </button>
+            <button
+              onClick={() => bgUploadInputRef.current?.click()}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-foreground hover:bg-muted transition-colors text-left"
+            >
+              <Layers className="w-3.5 h-3.5" /> Importer une image
+            </button>
+            <button
+              onClick={insertImageAsLayer as any}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-orange-400 hover:bg-muted transition-colors text-left"
+            >
+              <Move className="w-3.5 h-3.5" /> Insérer comme calque (modifiable)
+            </button>
+            {bgImageUrl && (
+              <button
+                onClick={clearBgImage}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400 hover:bg-muted transition-colors text-left"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Retirer l'image de fond
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Canvas */}
         <div
@@ -1047,8 +1147,8 @@ export default function Editor() {
             data-canvas="true"
             onMouseDown={handleCanvasMouseDown}
             style={{
-              width: 640 * zoom,
-              height: 360 * zoom,
+              width: canvasSize.w * zoom,
+              height: canvasSize.h * zoom,
               backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
               backgroundImage: bgImageUrl ? `url("${bgImageUrl}")` : undefined,
               backgroundSize: bgFit,
@@ -1077,13 +1177,15 @@ export default function Editor() {
             )}
             {elements.map(renderElement)}
 
+            {renderVersionsPanel()}
+
             {elements.length === 0 && !bgImageUrl && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center px-6">
-                  <p className="text-muted-foreground text-sm mb-3">Espace Canva — ajouts des éléments ou une image de fond</p>
+                  <p className="text-muted-foreground text-sm mb-3">Canva — ajoute des éléments ou une image de fond</p>
                   <button
                     onClick={() => bgUploadInputRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-orange-400 text-xs px-3 py-1.5 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 text-xs px-3 py-1.5 rounded-lg transition-colors"
                   >
                     <Layers className="w-3.5 h-3.5" /> Importer une image
                   </button>
@@ -1119,9 +1221,9 @@ export default function Editor() {
                     position: "absolute",
                     left: "50%",
                     top: "50%",
-                    width: 640,
-                    height: 360,
-                    transform: `translate(-50%, -50%) scale(${(devicePreview === "phone" ? 360 : 900) / 640})`,
+                    width: canvasSize.w,
+                    height: canvasSize.h,
+                    transform: `translate(-50%, -50%) scale(${(devicePreview === "phone" ? 360 : 900) / canvasSize.w})`,
                     transformOrigin: "center center",
                     pointerEvents: "none",
                     backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
@@ -1138,12 +1240,12 @@ export default function Editor() {
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground text-center -mt-2">
-            Simule l'affichage dans les suggestions YouTube ({devicePreview === "phone" ? "360×640" : "900×600"})
+            Simule l'affichage dans les suggestions YouTube ({canvasSize.w}×{canvasSize.h})
           </p>
         </DialogContent>
       </Dialog>
 
-      {/* Property panel */}
+      {/* Panneau droit propriétés */}
       {renderPropertyPanel()}
     </div>
   );

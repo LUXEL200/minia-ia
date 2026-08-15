@@ -10,7 +10,7 @@ import { fr } from "date-fns/locale";
 import {
   LayoutDashboard, Image, UserRound, Grid3X3, Plus, XCircle,
   ChevronRight, Zap, Sun, Moon, Key, TrendingUp, Settings, Bell, LogOut, Users, ImagePlus,
-  Type, Shield, CreditCard, Eye, RectangleHorizontal, Star, Trash, Search,
+  Type, CreditCard, Eye, RectangleHorizontal, Star, Trash, Search,
   Building2, Mail,
 } from "lucide-react";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
@@ -429,18 +429,6 @@ export function AppSidebar({
                   )}
                 </div>
               </div>
-
-              {/* Admin link — visible only to the verified owner account */}
-              {user?.isAdminOwner === true && (
-                <div className="py-1 border-t border-border">
-                  <Link href="/admin" onClick={onClose}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
-                    <Shield className="w-4 h-4" />
-                    Super Admin
-                    <span className="ml-auto bg-red-500/20 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">ADMIN</span>
-                  </Link>
-                </div>
-              )}
 
               <div className="py-1 border-t border-border">
                 <button

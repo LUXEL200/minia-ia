@@ -26,15 +26,15 @@ const CANVAS_W = 1280;
 const CANVAS_H = 720;
 
 const presetColors = [
-  "#ffffff", "#000000", "#ff0050", "#00d4ff", "#ffe600",
-  "#7c3aed", "#fdba74", "#f97316", "#3b82f6", "#ec4899",
+  "#ffffff", "#000000", "#f97316", "#fdba74", "#ffe600",
+  "#1e2a5a", "#f59e0b", "#ea580c", "#3b82f6", "#fcd34d",
 ];
 
 const presetEmojis = ["🔥", "⚡", "💥", "👀", "🚀", "💰", "😱", "🎯", "⭐", "✅", "❌", "🏆"];
 
 const presetShapes = [
-  { name: "Carré", shape: "rect" as const, color: "#ff0050" },
-  { name: "Bandeau", shape: "banner" as const, color: "#00d4ff" },
+  { name: "Carré", shape: "rect" as const, color: "#f97316" },
+  { name: "Bandeau", shape: "banner" as const, color: "#fdba74" },
   { name: "Cercle", shape: "circle" as const, color: "#ffe600" },
 ];
 
@@ -246,11 +246,11 @@ export default function TemplateEditor() {
             <Save size={14} /> <span className="hidden sm:inline">Enregistrer</span>
           </button>
           <button onClick={handleSaveToGallery} disabled={saveToGallery.isPending}
-            className="flex items-center gap-1.5 bg-[#00d4ff] text-black hover:bg-[#00bfe6] disabled:opacity-50 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
+            className="flex items-center gap-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:from-orange-500 hover:to-orange-600 disabled:opacity-50 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
             <Plus size={14} /> <span className="hidden sm:inline">Ajouter à mes miniatures</span>
           </button>
           <button onClick={exportPng}
-            className="flex items-center gap-1.5 bg-[#ff0050] hover:bg-[#e60048] px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
+            className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors">
             <Download size={14} /> <span className="hidden sm:inline">Exporter PNG</span>
           </button>
         </div>
