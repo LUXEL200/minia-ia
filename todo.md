@@ -186,3 +186,8 @@
 - [x] Vue semaine dans le calendrier : bascule mois/semaine
 - [x] Badge J-1 dans la cloche Notifications + lien direct vers la miniature
 - [x] Tests vitest + tsc + vérifications mode clair + responsive + checkpoint
+
+## Vague v11 (demande utilisateur — 15/08)
+- [x] Audit : repérer les titres/headers textes sombres (text-gray-*, text-zinc-*, text-black, text-[#0…]) sur conteneurs hardcodés sombres
+- [x] Corriger : overrides .light — header sticky bg-[#000]/80-90 → var(--secondary) ; text-black (#111 fixe) ; bg-white → var(--card) ; fractions bg-zinc-900/60, bg-black/35 ; hover:text-white/zinc-300/400 ; bloc membre /organisation lisible
+- [x] Vérifications visuelles mode clair sur 16 pages (dashboard, miniatures, personnes, organisation, gallery, ab-test, notifications, settings, account, templates, avatars, endcards, billing, api-keys, admin, editor) + 59/59 vitest + tsc 0 erreur + checkpoint

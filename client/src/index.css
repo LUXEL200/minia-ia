@@ -440,6 +440,14 @@ html.light .bg-zinc-700 {
   background-color: var(--muted);
   color: var(--muted-foreground);
 }
+/* Fractions sombres supplémentaires */
+html.light .bg-zinc-900\/60,
+html.light .bg-zinc-900\/50,
+html.light .bg-zinc-900\/40,
+html.light .bg-zinc-950\/60 {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
 html.light .bg-white\/20 {
   background-color: var(--border);
 }
@@ -450,11 +458,14 @@ html.light .bg-black\/30 {
   background-color: var(--muted);
   color: var(--muted-foreground);
 }
+html.light .bg-black\/35,
 html.light .bg-black\/40,
 html.light .bg-black\/50,
 html.light .bg-black\/60,
 html.light .bg-black\/70,
+html.light .bg-\[\#000\]\/80,
 html.light .bg-black\/80,
+html.light .bg-\[\#000\]\/90,
 html.light .bg-black\/90,
 html.light .bg-black\/5,
 html.light .bg-zinc-900\/50,
@@ -509,7 +520,30 @@ html.light .text-\[\#27272A\] {
   color: var(--muted-foreground);
 }
 html.light .text-black {
-  color: var(--background);
+  color: #111111;
+}
+html.light .bg-white {
+  background-color: var(--card);
+}
+html.light .bg-white.text-black,
+html.light .bg-white.text-black * {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+html.light .hover\:bg-white\/90:hover {
+  background-color: var(--card);
+}
+html.light .hover\:text-white:hover {
+  color: var(--foreground);
+}
+html.light .hover\:text-zinc-300:hover {
+  color: var(--muted-foreground);
+}
+html.light .hover\:text-zinc-400:hover {
+  color: var(--muted-foreground);
+}
+html.light .hover\:text-red-400:hover {
+  color: var(--destructive, #dc2626);
 }
 /* Bordures dures codées en dur */
 html.light .border-\[\#27272A\],
