@@ -23,7 +23,7 @@ export default function GalleryPreviewSection() {
             transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 bg-card/70 border border-border rounded-full px-4 py-2 mb-4"
           >
-            <Eye className="w-4 h-4 text-cyan-400" />
+            <Eye className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Aperçu communautaire</span>
           </motion.div>
 
@@ -35,7 +35,7 @@ export default function GalleryPreviewSection() {
             className="font-display text-3xl md:text-4xl font-bold mb-4"
           >
             La communauté{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               génère en continu
             </span>
           </motion.h2>
@@ -62,7 +62,7 @@ export default function GalleryPreviewSection() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="group relative aspect-video rounded-[20px] overflow-hidden bg-card/70 border border-border hover:border-cyan-500/30 transition-all duration-300"
+                className="group relative aspect-video rounded-[20px] overflow-hidden bg-card/70 border border-border hover:border-orange-400/30 transition-all duration-300"
               >
                 {thumb.imageUrl ? (
                   <img
@@ -105,8 +105,8 @@ export default function GalleryPreviewSection() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center"
         >
-          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-card/70 border border-border rounded-lg text-white font-medium hover:border-cyan-500/30 hover:bg-[#1F1F23] transition-all duration-300 group">
-            <Eye className="w-4 h-4 text-cyan-400" />
+          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-card/70 border border-border rounded-lg text-white font-medium hover:border-orange-400/30 hover:bg-[#1F1F23] transition-all duration-300 group">
+            <Eye className="w-4 h-4 text-orange-400" />
             Voir la galerie complète
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>

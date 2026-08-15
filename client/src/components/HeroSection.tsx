@@ -127,7 +127,7 @@ export default function HeroSection() {
                 <Button
                   size="lg"
                   onClick={handleCTAClick}
-                  className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 text-black font-bold text-base px-8 py-6 rounded-full glow-btn group"
+                  className="bg-gradient-to-r from-orange-400 to-green-400 hover:from-cyan-400 hover:to-violet-400 text-black font-bold text-base px-8 py-6 rounded-full glow-btn group"
                 >
                   Essayer gratuitement
                   <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -167,7 +167,7 @@ export default function HeroSection() {
             <div className="hidden lg:col-span-5 lg:flex relative">
               <div className="relative w-full">
                 {/* Main thumbnail */}
-                <div className="relative rounded-[20px] overflow-hidden border-2 border-primary/25 shadow-2xl shadow-cyan-500/10 z-10 hover-tilt feature-edge">
+                <div className="relative rounded-[20px] overflow-hidden border-2 border-primary/25 shadow-2xl shadow-orange-400/10 z-10 hover-tilt feature-edge">
                   <img
                     src="/manus-storage/thumbnail-mrbeast_fc8fbcd3.png"
                     alt="Miniature virale"

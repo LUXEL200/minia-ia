@@ -6,11 +6,12 @@ import { toast } from "sonner";
 import {
   Users, CreditCard, Image as ImageIcon, Bell, Settings, BarChart3,
   Crown, Shield, Search, ChevronDown, Zap, Trash2, RefreshCw,
-  Globe, Key, Layers, TrendingUp, AlertTriangle
+  Globe, Key, Layers, TrendingUp, AlertTriangle, Star, MessageSquare,
+  CheckCircle2, XCircle, Clock
 } from "lucide-react";
 
 
-type TabId = "dashboard" | "users" | "templates" | "api" | "notifications" | "settings";
+type TabId = "dashboard" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials";
 
 export default function AdminPage() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -29,23 +30,23 @@ export default function AdminPage() {
 
   // Guard: redirect if not admin
   useEffect(() => {
-    if (!loading && isAuthenticated && user?.role !== "admin") {
+    if (!loading && isAuthenticated && user?.isAdminOwner !== true) {
       navigate("/dashboard");
     }
   }, [loading, isAuthenticated, user, navigate]);
 
   // Queries
   const { data: stats, refetch: refetchStats } = trpc.admin.stats.useQuery(undefined, {
-    enabled: !loading && isAuthenticated && user?.role === "admin",
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
   const { data: allUsers, refetch: refetchUsers } = trpc.admin.users.useQuery(undefined, {
-    enabled: !loading && isAuthenticated && user?.role === "admin",
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
   const { data: allTemplates, refetch: refetchTemplates } = trpc.admin.templates.useQuery(undefined, {
-    enabled: !loading && isAuthenticated && user?.role === "admin",
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
   const { data: models, refetch: refetchModels } = trpc.admin.models.useQuery(undefined, {
-    enabled: !loading && isAuthenticated && user?.role === "admin",
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
 
   // Mutations
@@ -78,15 +79,31 @@ export default function AdminPage() {
     onError: (e) => toast.error(e.message),
   });
 
+  // Testimonial moderation
+  const { data: allTestimonials, refetch: refetchTestimonials } = trpc.testimonials.list.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+  });
+  const pendingTestimonials = (allTestimonials ?? []).filter(t => t.verified === "pending");
+  const approvedTestimonials = (allTestimonials ?? []).filter(t => t.verified === "approved");
+  const rejectedTestimonials = (allTestimonials ?? []).filter(t => t.verified === "rejected");
+  const setVerifiedMut = trpc.testimonials.setVerified.useMutation({
+    onSuccess: () => { toast.success("Décision de modération enregistrée"); refetchTestimonials(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteTestimonialMut = trpc.testimonials.delete.useMutation({
+    onSuccess: () => { toast.success("Avis supprimé"); refetchTestimonials(); },
+    onError: (e) => toast.error(e.message),
+  });
+
   // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-cyan-400 border-t-transparent" />
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-orange-400 border-t-transparent" />
       </div>
     );
   }
-  if (!isAuthenticated || user?.role !== "admin") {
+  if (!isAuthenticated || user?.isAdminOwner !== true) {
     return null;
   }
 
@@ -102,12 +119,13 @@ export default function AdminPage() {
     { id: "api", label: "API & Modèles", icon: <Key size={18} /> },
     { id: "notifications", label: "Notifications", icon: <Bell size={18} /> },
     { id: "settings", label: "Paramètres", icon: <Settings size={18} /> },
+    { id: "testimonials", label: "Avis", icon: <Star size={18} /> },
   ];
 
   const planColors: Record<string, string> = {
     free: "bg-gray-700 text-gray-300",
-    pro: "bg-purple-600/30 text-purple-300",
-    max: "bg-cyan-600/30 text-cyan-300",
+    pro: "bg-green-500/30 text-green-300",
+    max: "bg-cyan-600/30 text-orange-300",
   };
 
   return (
@@ -163,7 +181,7 @@ export default function AdminPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex flex-col items-center gap-0.5 px-3 py-2 min-w-fit flex-1 text-[10px] transition-colors ${
-                  activeTab === tab.id ? "text-cyan-400" : "text-gray-500"
+                  activeTab === tab.id ? "text-orange-400" : "text-gray-500"
                 }`}
               >
                 {tab.icon}
@@ -221,7 +239,7 @@ export default function AdminPage() {
                           amount: parseInt(bulkAmount) || 10,
                         })}
                         disabled={bulkCreditsMut.isPending}
-                        className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
+                        className="bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
                       >
                         {bulkCreditsMut.isPending ? "..." : "Ajouter"}
                       </button>
@@ -244,7 +262,7 @@ export default function AdminPage() {
                           sendNotifMut.mutate({ title: notifTitle, message: notifMessage || undefined });
                         }}
                         disabled={sendNotifMut.isPending}
-                        className="bg-pink-600 hover:bg-pink-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
+                        className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
                       >
                         {sendNotifMut.isPending ? "..." : "Envoyer"}
                       </button>
@@ -318,7 +336,7 @@ export default function AdminPage() {
                 <h3 className="font-semibold">Templates d'inspiration ({allTemplates?.length ?? 0})</h3>
                 <button
                   onClick={() => setShowNewTemplateForm(!showNewTemplateForm)}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
+                  className="bg-orange-500 hover:bg-orange-400 text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                   + Ajouter un template
                 </button>
@@ -490,7 +508,7 @@ export default function AdminPage() {
                       sendNotifMut.mutate({ title: notifTitle, message: notifMessage || undefined });
                     }}
                     disabled={sendNotifMut.isPending || !notifTitle.trim()}
-                    className="bg-pink-600 hover:bg-pink-500 disabled:opacity-50 text-white text-sm px-5 py-2.5 rounded-lg font-medium transition-colors"
+                    className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm px-5 py-2.5 rounded-lg font-medium transition-colors"
                   >
                     {sendNotifMut.isPending ? "Envoi..." : "Envoyer à tous"}
                   </button>
@@ -520,7 +538,7 @@ export default function AdminPage() {
                     <p className="text-sm font-medium">Crédits par défaut (nouvel utilisateur)</p>
                     <p className="text-xs text-gray-500">Nombre de crédits attribués à l'inscription</p>
                   </div>
-                  <span className="text-sm text-cyan-400">10</span>
+                  <span className="text-sm text-orange-400">10</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <div>
@@ -534,14 +552,14 @@ export default function AdminPage() {
                     <p className="text-sm font-medium">Plan Pro — crédits</p>
                     <p className="text-xs text-gray-500">Crédits mensuels pour le plan Pro</p>
                   </div>
-                  <span className="text-sm text-purple-400">100</span>
+                  <span className="text-sm text-green-400">100</span>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-medium">Plan Max — crédits</p>
                     <p className="text-xs text-gray-500">Crédits mensuels pour le plan Max</p>
                   </div>
-                  <span className="text-sm text-cyan-400">500</span>
+                  <span className="text-sm text-orange-400">500</span>
                 </div>
               </div>
 
@@ -568,6 +586,112 @@ export default function AdminPage() {
               </div>
             </div>
           )}
+
+          {/* Testimonials Tab (moderation) */}
+          {activeTab === "testimonials" && (
+            <div className="space-y-6">
+              <h3 className="font-semibold">Modération des avis réels</h3>
+              <p className="text-xs text-gray-400">
+                Les avis soumis via le formulaire public sont "pending" par défaut. Valide-les pour qu'ils apparaissent sur la landing.
+              </p>
+
+              {/* Pending */}
+              <div>
+                <h4 className="text-sm font-medium text-orange-400 flex items-center gap-2 mb-3">
+                  <Clock size={14} /> À modérer ({pendingTestimonials.length})
+                </h4>
+                <div className="space-y-3">
+                  {pendingTestimonials.length === 0 && (
+                    <div className="bg-muted border border-dashed border-border rounded-xl p-6 text-center text-xs text-gray-500">
+                      Aucun avis en attente de modération.
+                    </div>
+                  )}
+                  {(pendingTestimonials || []).map(t => (
+                    <div key={t.id} className="bg-muted border border-border rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <p className="text-sm text-white">{t.content}</p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {t.authorName || "Anonyme"}{t.authorChannel ? ` • @${t.authorChannel}` : ""} • {t.rating}/5 ★
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => setVerifiedMut.mutate({ id: t.id, verified: "approved" })}
+                            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
+                          >
+                            <CheckCircle2 size={12} /> Valider
+                          </button>
+                          <button
+                            onClick={() => setVerifiedMut.mutate({ id: t.id, verified: "rejected" })}
+                            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                          >
+                            <XCircle size={12} /> Refuser
+                          </button>
+                          <button
+                            onClick={() => deleteTestimonialMut.mutate({ id: t.id })}
+                            className="text-xs p-1.5 rounded-full text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Approved */}
+              <div>
+                <h4 className="text-sm font-medium text-green-400 flex items-center gap-2 mb-3">
+                  <CheckCircle2 size={14} /> Validés et affichés ({approvedTestimonials.length})
+                </h4>
+                <div className="space-y-3">
+                  {(approvedTestimonials || []).map(t => (
+                    <div key={t.id} className="bg-muted border border-green-500/20 rounded-xl p-4 flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-sm text-white">{t.content}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {t.authorName || "Anonyme"}{t.authorChannel ? ` • @${t.authorChannel}` : ""} • {t.rating}/5 ★
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setVerifiedMut.mutate({ id: t.id, verified: "pending" })}
+                        className="text-xs px-3 py-1.5 rounded-full bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors shrink-0"
+                      >
+                        Retirer
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rejected */}
+              {rejectedTestimonials.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-red-400 flex items-center gap-2 mb-3">
+                    <XCircle size={14} /> Refusés ({rejectedTestimonials.length})
+                  </h4>
+                  <div className="space-y-3">
+                    {(rejectedTestimonials || []).map(t => (
+                      <div key={t.id} className="bg-muted border border-border rounded-xl p-4 flex items-start justify-between gap-3 opacity-60">
+                        <div className="flex-1">
+                          <p className="text-sm text-white">{t.content}</p>
+                          <p className="text-xs text-gray-500 mt-1">{t.authorName || "Anonyme"}</p>
+                        </div>
+                        <button
+                          onClick={() => setVerifiedMut.mutate({ id: t.id, verified: "pending" })}
+                          className="text-xs px-3 py-1.5 rounded-full bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors shrink-0"
+                        >
+                          Réviser
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -578,9 +702,9 @@ export default function AdminPage() {
 
 function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
   const colorMap: Record<string, string> = {
-    cyan: "border-cyan-500/30",
-    pink: "border-pink-500/30",
-    purple: "border-purple-500/30",
+    cyan: "border-orange-400/30",
+    pink: "border-green-400/30",
+    purple: "border-green-400/30",
     green: "border-green-500/30",
     orange: "border-orange-500/30",
     blue: "border-blue-500/30",
@@ -588,7 +712,7 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
     gold: "border-yellow-500/30",
   };
   const iconColorMap: Record<string, string> = {
-    cyan: "text-cyan-400", pink: "text-pink-400", purple: "text-purple-400",
+    cyan: "text-orange-400", pink: "text-pink-400", purple: "text-purple-400",
     green: "text-green-400", orange: "text-orange-400", blue: "text-blue-400",
     red: "text-red-400", gold: "text-yellow-400",
   };
@@ -618,7 +742,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
 
   return (
     <div className="flex items-center gap-3 bg-muted rounded-lg border border-border p-3">
-      <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-green-500 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
         {(user.name || user.email || "?").charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
@@ -639,7 +763,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
             />
             <button
               onClick={() => { onUpdateCredits(parseInt(creditsValue) || 0); setEditCredits(false); }}
-              className="text-xs bg-cyan-600 text-white px-2 py-1 rounded"
+              className="text-xs bg-orange-500 text-white px-2 py-1 rounded"
             >
               ✓
             </button>
@@ -653,7 +777,7 @@ function UserRow({ user, onUpdateRole, onUpdateCredits, onUpdatePlan, planColors
         ) : (
           <button
             onClick={() => setEditCredits(true)}
-            className="text-xs text-gray-400 w-16 text-right hover:text-cyan-400 transition-colors"
+            className="text-xs text-gray-400 w-16 text-right hover:text-orange-400 transition-colors"
           >
             {userCredits} crédits
           </button>

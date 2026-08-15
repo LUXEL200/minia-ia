@@ -505,7 +505,7 @@ export default function Editor() {
       <div className="relative">
         <button
           onClick={() => setShowAddMenu(!showAddMenu)}
-          className={`p-2 rounded-lg transition-colors ${showAddMenu ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+          className={`p-2 rounded-lg transition-colors ${showAddMenu ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
           title="Ajouter"
         >
           <Plus className="w-5 h-5" />
@@ -532,7 +532,7 @@ export default function Editor() {
             <p className="text-[10px] text-muted-foreground px-1 pt-1">Image de fond</p>
             <button
               onClick={insertImageAsLayer}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-cyan-400 hover:bg-muted transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-orange-400 hover:bg-muted transition-colors text-left"
             >
               <Move className="w-3.5 h-3.5" /> Insérer comme calque (modifiable)
             </button>
@@ -567,7 +567,7 @@ export default function Editor() {
       {/* Background fit */}
       <button
         onClick={() => setBgFit(f => f === "cover" ? "contain" : "cover")}
-        className={`p-2 rounded-lg transition-colors ${bgFit === "contain" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+        className={`p-2 rounded-lg transition-colors ${bgFit === "contain" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         title={bgFit === "cover" ? "Recadrage : Couvrir (cover)" : "Recadrage : Contenir (contain)"}
       >
         <LayoutTemplate className="w-5 h-5" />
@@ -588,7 +588,7 @@ export default function Editor() {
       {/* Color picker */}
       <button
         onClick={() => setShowColorPicker(!showColorPicker)}
-        className={`p-2 rounded-lg transition-colors ${showColorPicker ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+        className={`p-2 rounded-lg transition-colors ${showColorPicker ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         title="Couleur"
       >
         <Palette className="w-5 h-5" />
@@ -622,7 +622,7 @@ export default function Editor() {
       {/* Versions */}
       <button
         onClick={() => setShowVersions(!showVersions)}
-        className={`p-2 rounded-lg transition-colors relative ${showVersions ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+        className={`p-2 rounded-lg transition-colors relative ${showVersions ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
         title="Versions"
       >
         <History className="w-5 h-5" />
@@ -648,7 +648,7 @@ export default function Editor() {
             <button
               onClick={handleSaveVersion}
               disabled={createVersion.isPending}
-              className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors"
+              className="bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors"
             >
               Sauvegarder
             </button>
@@ -658,7 +658,7 @@ export default function Editor() {
           ) : (
             <div className="space-y-1.5 max-h-52 overflow-y-auto">
               {versions.map((v: any) => (
-                <div key={v.id} className={`flex items-center gap-2 rounded-lg border p-2 ${v.isCurrent === "yes" ? "border-cyan-500/50 bg-cyan-500/10" : "border-border"}`}>
+                <div key={v.id} className={`flex items-center gap-2 rounded-lg border p-2 ${v.isCurrent === "yes" ? "border-orange-400/50 bg-orange-400/10" : "border-border"}`}>
                   <img src={v.imageUrl} alt={v.name} className="w-16 h-9 object-cover rounded" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-white truncate">{v.name}</p>
@@ -666,7 +666,7 @@ export default function Editor() {
                   </div>
                   <button
                     onClick={() => handleRestoreVersion(v)}
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-orange-400 hover:text-orange-300"
                     title="Restaurer cette version"
                   >
                     <RotateCcw size={14} />
@@ -702,7 +702,7 @@ export default function Editor() {
       </button>
 
       {/* Export */}
-      <button onClick={exportCanvas} className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors" title="Exporter">
+      <button onClick={exportCanvas} className="p-2 rounded-lg bg-cyan-500/20 text-orange-400 hover:bg-cyan-500/30 transition-colors" title="Exporter">
         <Download className="w-5 h-5" />
       </button>
     </div>
@@ -734,26 +734,26 @@ export default function Editor() {
                 max="120"
                 value={(selectedElement as EditorTextElement).fontSize}
                 onChange={e => updateElement(selectedElement.id, { fontSize: parseInt(e.target.value) })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
               <span className="text-[10px] text-muted-foreground">{(selectedElement as EditorTextElement).fontSize}px</span>
             </div>
             <div className="flex gap-1">
               <button
                 onClick={() => updateElement(selectedElement.id, { fontWeight: (selectedElement as EditorTextElement).fontWeight === "bold" ? "normal" : "bold" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontWeight === "bold" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontWeight === "bold" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Bold className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => updateElement(selectedElement.id, { fontStyle: (selectedElement as EditorTextElement).fontStyle === "italic" ? "normal" : "italic" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontStyle === "italic" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).fontStyle === "italic" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Italic className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => updateElement(selectedElement.id, { textDecoration: (selectedElement as EditorTextElement).textDecoration === "underline" ? "none" : "underline" })}
-                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).textDecoration === "underline" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground hover:text-foreground"}`}
+                className={`p-1.5 rounded ${(selectedElement as EditorTextElement).textDecoration === "underline" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Underline className="w-3.5 h-3.5" />
               </button>
@@ -763,13 +763,13 @@ export default function Editor() {
               <div className="flex gap-1">
                 <button
                   onClick={() => updateElement(selectedElement.id, { align: "left" })}
-                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "left" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground"}`}
+                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "left" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground"}`}
                 >
                   <AlignLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => updateElement(selectedElement.id, { align: "center" })}
-                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "center" ? "bg-cyan-500/20 text-cyan-400" : "text-muted-foreground"}`}
+                  className={`p-1.5 rounded ${(selectedElement as EditorTextElement).align === "center" ? "bg-cyan-500/20 text-orange-400" : "text-muted-foreground"}`}
                 >
                   <AlignCenter className="w-3.5 h-3.5" />
                 </button>
@@ -785,7 +785,7 @@ export default function Editor() {
               <div className="flex gap-1.5">
                 <button
                   onClick={() => fitImageLayer("contain")}
-                  className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
+                  className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-orange-400 text-[11px] rounded-lg px-2 py-1.5 transition-colors"
                 >
                   Contenir
                 </button>
@@ -805,7 +805,7 @@ export default function Editor() {
                 max="640"
                 value={(selectedElement as EditorImageElement).width}
                 onChange={e => updateElement(selectedElement.id, { width: parseInt(e.target.value) })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
             <div>
@@ -816,7 +816,7 @@ export default function Editor() {
                 max="360"
                 value={(selectedElement as EditorImageElement).height}
                 onChange={e => updateElement(selectedElement.id, { height: parseInt(e.target.value) })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
             <div>
@@ -827,7 +827,7 @@ export default function Editor() {
                 max="100"
                 value={(selectedElement as EditorImageElement).opacity * 100}
                 onChange={e => updateElement(selectedElement.id, { opacity: parseInt(e.target.value) / 100 })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
             <div>
@@ -838,7 +838,7 @@ export default function Editor() {
                 max="200"
                 value={(selectedElement as EditorImageElement).borderRadius}
                 onChange={e => updateElement(selectedElement.id, { borderRadius: parseInt(e.target.value) })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
             <div>
@@ -849,7 +849,7 @@ export default function Editor() {
                 max="180"
                 value={(selectedElement as EditorImageElement).rotation ?? 0}
                 onChange={e => updateElement(selectedElement.id, { rotation: parseInt(e.target.value) })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
             <div>
@@ -882,7 +882,7 @@ export default function Editor() {
                 max="600"
                 value={(selectedElement as EditorShapeElement).width}
                 onChange={e => updateElement(selectedElement.id, { width: parseInt(e.target.value) })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
             <div>
@@ -893,7 +893,7 @@ export default function Editor() {
                 max="400"
                 value={(selectedElement as EditorShapeElement).height}
                 onChange={e => updateElement(selectedElement.id, { height: parseInt(e.target.value) })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
             <div>
@@ -904,7 +904,7 @@ export default function Editor() {
                 max="100"
                 value={(selectedElement as EditorShapeElement).opacity * 100}
                 onChange={e => updateElement(selectedElement.id, { opacity: parseInt(e.target.value) / 100 })}
-                className="w-full accent-cyan-500"
+                className="w-full accent-orange-400"
               />
             </div>
           </div>
@@ -1083,7 +1083,7 @@ export default function Editor() {
                   <p className="text-muted-foreground text-sm mb-3">Espace Canva — ajouts des éléments ou une image de fond</p>
                   <button
                     onClick={() => bgUploadInputRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs px-3 py-1.5 rounded-lg transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-orange-400 text-xs px-3 py-1.5 rounded-lg transition-colors"
                   >
                     <Layers className="w-3.5 h-3.5" /> Importer une image
                   </button>

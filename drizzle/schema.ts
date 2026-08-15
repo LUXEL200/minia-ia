@@ -421,3 +421,27 @@ export const creditPackPurchases = mysqlTable("creditPackPurchases", {
 
 export type CreditPackPurchase = typeof creditPackPurchases.$inferSelect;
 export type InsertCreditPackPurchase = typeof creditPackPurchases.$inferInsert;
+
+/**
+ * Real user testimonials — collected via a public feedback form (no fabricated reviews).
+ * Moderated by admins before being displayed on the landing page.
+ */
+export const testimonials = mysqlTable("testimonials", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  /** Verified flag from admin moderation */
+  verified: mysqlEnum("verified", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  /** Author display info */
+  authorName: varchar("authorName", { length: 128 }),
+  authorChannel: varchar("authorChannel", { length: 128 }),
+  /** 1-5 star rating */
+  rating: int("rating").default(5).notNull(),
+  /** Free-form feedback */
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("test_user_idx").on(table.userId),
+  verifiedIdx: index("test_verified_idx").on(table.verified),
+}));
+export type Testimonial = typeof testimonials.$inferSelect;
+export type InsertTestimonial = typeof testimonials.$inferInsert;

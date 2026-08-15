@@ -47,7 +47,7 @@ export default function Templates() {
   const createTemplate = trpc.templates.create.useMutation();
   const deleteTemplate = trpc.templates.delete.useMutation();
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.isAdminOwner === true;
 
   const handleUpload = () => {
     if (!title.trim()) { toast.error("Titre requis"); return; }
@@ -177,7 +177,7 @@ export default function Templates() {
                             e.stopPropagation();
                             navigate(`/template-editor?templateId=${t.id}`);
                           }}
-                          className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                          className="text-orange-400 hover:text-orange-300 transition-colors"
                           title="Personnaliser ce template"
                         >
                           <Pencil size={14} />

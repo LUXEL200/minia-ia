@@ -55,12 +55,12 @@ export default function PricingSection() {
       <div className="container">
         <AnimatedSection animation="fade-up">
           <div className="text-center mb-12">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-orange-400 mb-4 block">
               / Tarifs
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
               Moins cher qu'une{" "}
-              <span className="text-cyan-400">miniature freelance</span>
+              <span className="text-orange-400">miniature freelance</span>
             </h2>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4 mb-8">
               1 miniature freelance = 30€ en moyenne. Fais le calcul.
@@ -139,7 +139,7 @@ export default function PricingSection() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <span className="text-4xl font-display font-bold text-cyan-400">
+                      <span className="text-4xl font-display font-bold text-orange-400">
                         {isYearly ? plan.priceYearly : plan.priceMonthly}$
                       </span>
                       <span className="text-sm text-zinc-500">
@@ -162,7 +162,7 @@ export default function PricingSection() {
                         transition={{ delay: j * 0.1 }}
                         className="flex items-center gap-3 text-sm text-zinc-300"
                       >
-                        <Check className="w-4 h-4 flex-shrink-0 text-cyan-400" />
+                        <Check className="w-4 h-4 flex-shrink-0 text-orange-400" />
                         {item}
                       </motion.li>
                     ))}

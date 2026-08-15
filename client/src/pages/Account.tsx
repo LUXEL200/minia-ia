@@ -48,7 +48,7 @@ export default function AccountPage() {
               <h2 className="text-lg font-semibold">{user?.name}</h2>
               <p className="text-sm text-zinc-400">{user?.email}</p>
               <div className="flex items-center gap-1 mt-1">
-                {user?.role === "admin" ? (
+                {user?.isAdminOwner === true ? (
                   <span className="inline-flex items-center gap-1 text-[10px] bg-[#ff0050] text-white px-2 py-0.5 rounded-full">
                     <Shield size={10} /> Admin
                   </span>

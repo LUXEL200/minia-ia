@@ -58,12 +58,12 @@ export default function Blog() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <PenLine className="w-4 h-4 text-cyan-400" />
+            <PenLine className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Blog & Ressources</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Apprends à{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               performer
             </span>
           </h1>
@@ -80,14 +80,14 @@ export default function Blog() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="group bg-[#18181B] border border-[#27272A] rounded-xl p-6 hover:border-cyan-500/20 transition-all duration-300 cursor-pointer"
+              className="group bg-[#18181B] border border-[#27272A] rounded-xl p-6 hover:border-orange-400/20 transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-center gap-2 mb-4">
-                <span className="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 rounded text-xs text-cyan-400">
+                <span className="px-2 py-0.5 bg-cyan-500/10 border border-orange-400/20 rounded text-xs text-orange-400">
                   {post.category}
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">
+              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-orange-400 transition-colors">
                 {post.title}
               </h3>
               <p className="text-sm text-[#A1A1AA] mb-4 line-clamp-3">{post.excerpt}</p>
@@ -102,7 +102,7 @@ export default function Blog() {
                     {post.readTime}
                   </span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-[#71717A] group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-4 h-4 text-[#71717A] group-hover:text-orange-400 group-hover:translate-x-1 transition-all" />
               </div>
             </motion.article>
           ))}

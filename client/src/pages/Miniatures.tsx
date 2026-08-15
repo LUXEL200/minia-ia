@@ -232,9 +232,9 @@ export default function Miniatures() {
               <div key={thumb.id} className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950 group">
                 <img src={thumb.imageUrl} alt={thumb.prompt} className="w-full h-full object-cover" />
                 {thumb.youtubeStatus === "planned" && (
-                  <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-cyan-500/30">
-                    <CalendarClock className="w-3 h-3 text-cyan-400" />
-                    <span className="text-[10px] text-cyan-300 font-medium">Planifié</span>
+                  <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-orange-400/30">
+                    <CalendarClock className="w-3 h-3 text-orange-400" />
+                    <span className="text-[10px] text-orange-300 font-medium">Planifié</span>
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
@@ -251,16 +251,16 @@ export default function Miniatures() {
                   <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Télécharger">
                     <Download className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => likeMutation.mutate({ thumbnailId: thumb.id })} className="p-2 rounded-full bg-muted/80 hover:bg-pink-500/20 transition-colors" title="Favori">
+                  <button onClick={() => likeMutation.mutate({ thumbnailId: thumb.id })} className="p-2 rounded-full bg-muted/80 hover:bg-green-400/20 transition-colors" title="Favori">
                     <Star className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-yellow-400 fill-yellow-400" : "text-white"}`} />
                   </button>
                   <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Partager">
                     <Share2 className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => createTaskMutation.mutate({ thumbnailId: thumb.id, status: "pending" })} className="p-2 rounded-full bg-muted/80 hover:bg-cyan-500/20 transition-colors" title="Valider (créer une tâche)">
+                  <button onClick={() => createTaskMutation.mutate({ thumbnailId: thumb.id, status: "pending" })} className="p-2 rounded-full bg-muted/80 hover:bg-orange-400/20 transition-colors" title="Valider (créer une tâche)">
                     <ListChecks className="w-4 h-4 text-white" />
                   </button>
-                  <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-muted/80 hover:bg-cyan-500/20 transition-colors" title="Modifier (Canva)">
+                  <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-muted/80 hover:bg-orange-400/20 transition-colors" title="Modifier (Canva)">
                     <Type className="w-4 h-4 text-white" />
                   </button>
                   <button onClick={() => deleteMutation.mutate({ id: thumb.id })} className="p-2 rounded-full bg-muted/80 hover:bg-red-500/20 transition-colors" title="Supprimer">

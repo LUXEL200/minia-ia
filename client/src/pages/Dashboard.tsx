@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import CalendarView from "@/components/CalendarView";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -13,7 +14,7 @@ import {
   ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
-  RectangleHorizontal, Star, Trash, Zap, Sun, Key, TrendingUp,
+  RectangleHorizontal, Star, Trash, Zap, Sun, Key, TrendingUp, Globe,
   Settings, Bell, LogOut, Type, Shield, Upload, Share2, Copy,
   Search, CalendarRange, Youtube, CalendarClock, X,
 } from "lucide-react";
@@ -445,7 +446,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards — 2x2 grid */}
-      <div className="grid grid-cols-2 gap-3 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-8" data-tour="stats">
         <div className="bg-muted rounded-[20px] p-4 relative">
           <Image className="absolute top-4 right-4 w-4 h-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Miniatures</span>
@@ -477,7 +478,7 @@ export default function Dashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-              <CalendarClock className="w-4 h-4 text-cyan-400" /> À publier bientôt
+              <CalendarClock className="w-4 h-4 text-orange-400" /> À publier bientôt
             </h2>
             <span className="text-[10px] text-muted-foreground">Rappels automatiques</span>
           </div>
@@ -492,7 +493,7 @@ export default function Dashboard() {
                   <p className="text-[10px] text-muted-foreground mt-0.5">
                     {new Date(s.scheduledAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
                   </p>
-                  <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-cyan-500/15 text-[10px] text-cyan-300">
+                  <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-orange-400/15 text-[10px] text-orange-300">
                     <CalendarClock className="w-3 h-3" /> {countdownOf(s.scheduledAt)}
                   </span>
                 </div>
@@ -510,7 +511,9 @@ export default function Dashboard() {
       )}
 
       {/* v9 : Vue Calendrier des publications planifiées */}
-      <CalendarView />
+      <div data-tour="calendar">
+        <CalendarView />
+      </div>
 
       {/* Vos personnes */}
       <div className="mb-8">
@@ -559,7 +562,7 @@ export default function Dashboard() {
       {/* Générations récentes */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-white">Générations récentes</h2>
+          <h2 className="text-sm font-semibold text-white" data-tour="recent">Générations récentes</h2>
           <button
             onClick={() => navigate("/miniatures")}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -601,16 +604,16 @@ export default function Dashboard() {
                       <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Télécharger">
                         <Download className="w-4 h-4 text-white" />
                       </button>
-                      <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-muted/80 hover:bg-pink-500/20 transition-colors" title="Favori">
+                      <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-muted/80 hover:bg-green-400/20 transition-colors" title="Favori">
                         <Star className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-yellow-400 fill-yellow-400" : "text-white"}`} />
                       </button>
                       <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-muted/80 hover:bg-white/20 transition-colors" title="Partager">
                         <Share2 className="w-4 h-4 text-white" />
                       </button>
-                      <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-muted/80 hover:bg-cyan-500/20 transition-colors" title="Valider (créer une tâche)">
+                      <button onClick={() => handleCreateTask(thumb.id)} className="p-2 rounded-full bg-muted/80 hover:bg-orange-400/20 transition-colors" title="Valider (créer une tâche)">
                         <ListChecks className="w-4 h-4 text-white" />
                       </button>
-                      <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-muted/80 hover:bg-cyan-500/20 transition-colors" title="Modifier (Canva)">
+                      <button onClick={() => navigate(`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`)} className="p-2 rounded-full bg-muted/80 hover:bg-orange-400/20 transition-colors" title="Modifier (Canva)">
                         <Type className="w-4 h-4 text-white" />
                       </button>
                       <button onClick={() => handleDelete(thumb.id)} className="p-2 rounded-full bg-muted/80 hover:bg-red-500/20 transition-colors" title="Supprimer">
@@ -736,7 +739,7 @@ export default function Dashboard() {
   const renderGenerateView = () => (
     <div className="max-w-2xl mx-auto px-4 pb-8">
       <div className="pt-6 pb-4">
-        <h1 className="text-lg font-semibold text-white">Générer</h1>
+        <h1 className="text-lg font-semibold text-white" data-tour="create">Générer</h1>
         <p className="text-xs text-muted-foreground mt-1">Crée ta miniature virale</p>
       </div>
 
@@ -786,7 +789,7 @@ export default function Dashboard() {
             />
             <Button
               onClick={handleInspirationSubmit}
-              className="h-10 px-4 text-xs bg-cyan-600 text-white hover:bg-cyan-700 rounded-[20px]"
+              className="h-10 px-4 text-xs bg-orange-500 text-white hover:bg-cyan-700 rounded-[20px]"
             >
               Charger
             </Button>
@@ -954,6 +957,7 @@ export default function Dashboard() {
       <main className="pt-2">
         {activeView === "home" && renderHomeView()}
         {activeView === "generate" && renderGenerateView()}
+        <OnboardingTour />
       </main>
 
       {/* Floating nav (like Youthumb) */}
@@ -984,6 +988,13 @@ export default function Dashboard() {
             <Image className="w-5 h-5" />
             <span className="text-[10px] font-medium">Miniatures</span>
           </button>
+          <button
+            onClick={() => navigate("/gallery")}
+            className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-[20px] transition-all text-muted-foreground hover:text-foreground"
+          >
+            <Globe className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Galerie</span>
+          </button>
         </div>
       </div>
 
@@ -1007,7 +1018,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-muted-foreground line-clamp-4">{planTarget.prompt}</p>
                 {displayThumbnails.find(t => t.id === planTarget.id)?.youtubeStatus === "planned" && (
-                  <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[10px] text-cyan-300">
+                  <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-orange-400/15 border border-orange-400/30 text-[10px] text-orange-300">
                     <CalendarClock className="w-3 h-3" /> Déjà planifiée
                   </span>
                 )}

@@ -13,7 +13,7 @@ export default function Terms() {
           className="text-center max-w-3xl mx-auto mb-12"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <FileText className="w-4 h-4 text-cyan-400" />
+            <FileText className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Conditions d'utilisation</span>
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold">
@@ -65,7 +65,7 @@ export default function Terms() {
 
             <div>
               <h2 className="text-lg font-bold text-white mb-3">9. Contact</h2>
-              <p>Pour toute question relative à ces conditions, contactez-nous via la page <a href="/contact" className="text-cyan-400 hover:underline">Contact</a>.</p>
+              <p>Pour toute question relative à ces conditions, contactez-nous via la page <a href="/contact" className="text-orange-400 hover:underline">Contact</a>.</p>
             </div>
 
             <div className="pt-6 border-t border-[#27272A]">

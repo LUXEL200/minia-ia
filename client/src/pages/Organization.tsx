@@ -252,7 +252,7 @@ export default function OrganizationPage() {
                     ) : (
                       (org?.members ?? []).map((m: any) => (
                         <div key={m.userId} className="flex items-center gap-3 bg-zinc-900/60 border border-zinc-800 rounded-xl p-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-green-400 flex items-center justify-center text-xs font-bold flex-shrink-0">
                             {(m.name || "U").charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
@@ -436,7 +436,7 @@ export default function OrganizationPage() {
                         {(org?.members ?? []).map((m: any) => (
                           <tr key={m.userId} className="border-b border-zinc-800/50 last:border-0">
                             <td className="py-2.5 pr-2">
-                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center text-[10px] font-bold">
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-green-400 flex items-center justify-center text-[10px] font-bold">
                                 {(m.name || "U").charAt(0).toUpperCase()}
                               </div>
                             </td>

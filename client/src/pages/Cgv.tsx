@@ -13,7 +13,7 @@ export default function Cgv() {
           className="text-center max-w-3xl mx-auto mb-12"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <FileText className="w-4 h-4 text-cyan-400" />
+            <FileText className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">CGV</span>
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold">

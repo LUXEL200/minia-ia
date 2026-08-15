@@ -47,12 +47,12 @@ export default function BestPractices() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <Sparkles className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Bonnes pratiques</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Crée des miniatures{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               qui cliquent
             </span>
           </h1>
@@ -72,12 +72,12 @@ export default function BestPractices() {
               className="flex gap-5 p-6 bg-[#18181B] border border-[#27272A] rounded-xl"
             >
               <div className="shrink-0 w-12 h-12 bg-[#27272A] rounded-xl flex items-center justify-center">
-                <practice.icon className="w-6 h-6 text-cyan-400" />
+                <practice.icon className="w-6 h-6 text-orange-400" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white mb-1">{practice.title}</h3>
                 <p className="text-sm text-[#A1A1AA] mb-2">{practice.description}</p>
-                <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-xs text-cyan-400">
+                <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-orange-400/20 rounded text-xs text-orange-400">
                   {practice.tip}
                 </div>
               </div>
@@ -89,11 +89,11 @@ export default function BestPractices() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-12 p-8 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-xl"
+          className="text-center mt-12 p-8 bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-xl"
         >
           <h3 className="text-xl font-bold text-white mb-2">Mets ces règles en pratique</h3>
           <p className="text-[#A1A1AA] mb-4">Génère des miniatures optimisées en un clic avec Minia IA.</p>
-          <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-400 transition-colors">
             
               Ouvrir le générateur
               <ArrowRight className="w-4 h-4" />

@@ -158,7 +158,7 @@ export default function AbTest() {
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
                       <h3 className="text-sm font-medium">{test.title}</h3>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${test.status === "finished" ? "bg-emerald-500/20 text-emerald-400" : "bg-cyan-500/20 text-cyan-400"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${test.status === "finished" ? "bg-emerald-500/20 text-emerald-400" : "bg-cyan-500/20 text-orange-400"}`}>
                         {test.status === "finished" ? "Terminé" : "En cours"}
                       </span>
                       {test.autoClosed ? (
@@ -174,7 +174,7 @@ export default function AbTest() {
                       <div className="relative">
                         <button
                           onClick={() => setShareMenuId(shareMenuId === test.id ? null : test.id)}
-                          className="text-muted-foreground hover:text-cyan-400"
+                          className="text-muted-foreground hover:text-orange-400"
                           title="Partager (lien public lecture seule)"
                         >
                           <Share2 size={14} />
@@ -226,7 +226,7 @@ export default function AbTest() {
                           <div className="p-2.5 bg-zinc-900 space-y-2">
                             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                               <span className="font-bold text-white text-xs">V{side}</span> Variante {side}
-                              <span className="ml-auto text-cyan-400 font-medium">CTR {ctr}%</span>
+                              <span className="ml-auto text-orange-400 font-medium">CTR {ctr}%</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
@@ -359,7 +359,7 @@ export default function AbTest() {
                       <button
                         key={t.id}
                         onClick={() => setVariantAId(t.id)}
-                        className={`relative aspect-video rounded overflow-hidden border-2 transition-colors ${variantAId === t.id ? "border-cyan-400" : "border-transparent"}`}
+                        className={`relative aspect-video rounded overflow-hidden border-2 transition-colors ${variantAId === t.id ? "border-orange-400" : "border-transparent"}`}
                       >
                         <img src={t.imageUrl || ""} alt="" className="w-full h-full object-cover" />
                       </button>
@@ -375,7 +375,7 @@ export default function AbTest() {
                     <button
                       key={t.id}
                       onClick={() => setVariantBId(t.id)}
-                      className={`relative aspect-video rounded overflow-hidden border-2 transition-colors ${variantBId === t.id ? "border-pink-500" : "border-transparent"}`}
+                      className={`relative aspect-video rounded overflow-hidden border-2 transition-colors ${variantBId === t.id ? "border-green-500" : "border-transparent"}`}
                     >
                       <img src={t.imageUrl || ""} alt="" className="w-full h-full object-cover" />
                     </button>

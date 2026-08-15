@@ -48,11 +48,11 @@ export default function FAQSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
+          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-orange-400 mb-4 block">
             / FAQ
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
-            Questions <span className="text-cyan-400">Fréquentes</span>
+            Questions <span className="text-orange-400">Fréquentes</span>
           </h2>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
             Tout ce que tu veux savoir avant de te lancer.
@@ -72,7 +72,7 @@ export default function FAQSection() {
                 value={`item-${i}`}
                 className="border border-border rounded-lg bg-card/70 px-6"
               >
-                <AccordionTrigger className="text-left text-white hover:text-cyan-400 font-medium py-5 no-underline">
+                <AccordionTrigger className="text-left text-white hover:text-orange-400 font-medium py-5 no-underline">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-zinc-400 leading-relaxed pb-5">

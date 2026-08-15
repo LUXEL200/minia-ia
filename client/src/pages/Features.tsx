@@ -7,7 +7,7 @@ const features = [
     icon: Zap,
     title: "Génération en 30 secondes",
     description: "L'IA analyse ta description et produit des miniatures optimisées pour le clic en moins d'une minute. Pas de file d'attente, pas de freelancer à attendre.",
-    color: "from-cyan-400 to-cyan-600",
+    color: "from-orange-400 to-orange-600",
   },
   {
     icon: Layers,
@@ -19,7 +19,7 @@ const features = [
     icon: Palette,
     title: "6 styles professionnels",
     description: "Viral, MrBeast, Minimaliste, Dramatique, Tech, Retro. Chaque style est optimisé pour les algorithmes YouTube.",
-    color: "from-purple-400 to-purple-600",
+    color: "from-green-400 to-green-600",
   },
   {
     icon: Clock,
@@ -65,12 +65,12 @@ export default function Features() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Zap className="w-4 h-4 text-cyan-400" />
+            <Zap className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Toutes les fonctionnalités</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Tout ce qu'il faut pour{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               performer
             </span>
           </h1>
@@ -88,7 +88,7 @@ export default function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="group p-6 bg-[#18181B] border border-[#27272A] rounded-xl hover:border-cyan-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/5"
+              className="group p-6 bg-[#18181B] border border-[#27272A] rounded-xl hover:border-orange-400/20 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/5"
             >
               <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} mb-4`}>
                 <feature.icon className="w-6 h-6 text-white" />

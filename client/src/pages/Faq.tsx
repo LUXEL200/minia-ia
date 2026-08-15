@@ -60,12 +60,12 @@ export default function Faq() {
           className="text-center max-w-3xl mx-auto mb-12"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <HelpCircle className="w-4 h-4 text-cyan-400" />
+            <HelpCircle className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Questions fréquentes</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             On répond à{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               tout
             </span>
           </h1>

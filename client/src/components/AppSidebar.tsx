@@ -156,7 +156,7 @@ export function AppSidebar({
         <div className="p-4 border-b border-border">
           <button
             onClick={() => { onClose(); navigate("/dashboard"); }}
-            className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 text-black text-sm font-bold flex items-center justify-center gap-2 glow-btn"
+            className="w-full py-3 rounded-full bg-gradient-to-r from-orange-400 to-green-400 text-black text-sm font-bold flex items-center justify-center gap-2 glow-btn"
           >
             <Plus className="w-4 h-4" />
             Créer une miniature
@@ -266,7 +266,7 @@ export function AppSidebar({
             <p className="text-xs text-foreground font-medium mb-1">Passez à la version Pro</p>
             <p className="text-[10px] text-muted-foreground mb-3">Débloquez toutes les fonctionnalités et améliorez vos vignettes.</p>
             <Link href="/pricing" onClick={onClose}
-              className="block w-full py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 text-black text-xs font-bold text-center glow-btn">
+              className="block w-full py-2.5 rounded-full bg-gradient-to-r from-orange-400 to-green-400 text-black text-xs font-bold text-center glow-btn">
               <Zap className="w-3 h-3 inline mr-1" />
               Mise à niveau
             </Link>
@@ -279,7 +279,7 @@ export function AppSidebar({
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors text-left"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-green-400 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
               {user?.name?.charAt(0)?.toUpperCase() || "U"}
             </div>
             <div className="min-w-0 flex-1">
@@ -302,7 +302,7 @@ export function AppSidebar({
               <div className="py-1">
                 <Link href="/pricing" onClick={onClose}
                   className="flex items-center gap-3 px-4 py-2.5 text-xs text-foreground hover:bg-muted transition-colors">
-                  <Zap className="w-4 h-4 text-pink-500" />
+                  <Zap className="w-4 h-4 text-green-500" />
                   <span className="font-medium">Passez à la version Pro</span>
                 </Link>
               </div>
@@ -373,7 +373,7 @@ export function AppSidebar({
                             navigate("/notifications");
                             onClose();
                           }}
-                          className="text-[9px] text-cyan-400 hover:text-cyan-300"
+                          className="text-[9px] text-orange-400 hover:text-orange-300"
                         >
                           Ouvrir tout
                         </button>
@@ -424,14 +424,14 @@ export function AppSidebar({
                     <div className="absolute left-full top-0 ml-1 w-64 bg-card border border-border rounded-xl shadow-2xl p-4 z-80 text-center">
                       <Bell className="w-5 h-5 text-muted-foreground/70 mx-auto mb-1.5" />
                       <p className="text-[11px] text-zinc-400">Aucun rappel de planification</p>
-                      <Link href="/notifications" onClick={onClose} className="text-[10px] text-cyan-400 hover:text-cyan-300 mt-1 inline-block">Voir toutes les notifications</Link>
+                      <Link href="/notifications" onClick={onClose} className="text-[10px] text-orange-400 hover:text-orange-300 mt-1 inline-block">Voir toutes les notifications</Link>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Admin link — visible only to admins */}
-              {user?.role === "admin" && (
+              {/* Admin link — visible only to the verified owner account */}
+              {user?.isAdminOwner === true && (
                 <div className="py-1 border-t border-border">
                   <Link href="/admin" onClick={onClose}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
@@ -490,11 +490,11 @@ export function AppSidebar({
                 key={acc.id}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
                   isCurrent
-                    ? "border-cyan-500/40 bg-cyan-500/10"
+                    ? "border-orange-400/40 bg-orange-400/10"
                     : "border-border bg-muted hover:bg-white/5"
                 }`}
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-green-400 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                   {acc.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -502,7 +502,7 @@ export function AppSidebar({
                   <p className="text-[10px] text-muted-foreground/70 truncate">{acc.email}</p>
                 </div>
                 {isCurrent ? (
-                  <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full">Actuel</span>
+                  <span className="text-[10px] font-bold text-orange-400 bg-orange-400/15 border border-orange-400/30 px-2 py-0.5 rounded-full">Actuel</span>
                 ) : (
                   <button
                     onClick={() => {
@@ -529,7 +529,7 @@ export function AppSidebar({
               toast.info("Connecte-toi avec un autre compte pour l'ajouter à la liste.");
               setTimeout(() => startLogin(), 300);
             }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 text-black text-black text-xs font-bold glow-btn"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-gradient-to-r from-orange-400 to-green-400 text-black text-black text-xs font-bold glow-btn"
           >
             <ImagePlus className="w-3.5 h-3.5" /> Créer un nouveau compte
           </button>
@@ -573,7 +573,7 @@ export function AppHeader({
     <header className="sticky top-0 z-50 glass border-b border-border">
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={openSidebar} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted/60">
+          <button onClick={openSidebar} data-tour="hamburger" className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-muted/60">
             <LayoutDashboard className="w-5 h-5" />
           </button>
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
@@ -582,8 +582,8 @@ export function AppHeader({
         <div className="flex items-center gap-3">
           {children}
           {showCredits && (
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/15 to-violet-500/15 border border-primary/20 text-xs text-foreground font-medium">
-              <CreditCard className="w-3.5 h-3.5 text-cyan-400" />
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-400/15 to-green-400/15 border border-primary/20 text-xs text-foreground font-medium">
+              <CreditCard className="w-3.5 h-3.5 text-orange-400" />
               {creditsCount} crédit{creditsCount !== 1 ? "s" : ""}
             </button>
           )}

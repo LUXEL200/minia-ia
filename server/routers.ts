@@ -134,6 +134,11 @@ import {
   getThumbnailByIdWithCheck,
   listCreditPackPurchases,
   createCreditPackPurchase,
+  listApprovedTestimonials,
+  listAllTestimonials,
+  createTestimonial,
+  setTestimonialVerified,
+  deleteTestimonial as dbDeleteTestimonial,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
 
@@ -179,7 +184,7 @@ export const templatesRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const isAdmin = ctx.user.role === "admin";
+      const isAdmin = ctx.user.isAdminOwner;
       await deleteTemplate(input.id, ctx.user.id, isAdmin);
       return { success: true } as const;
     }),
@@ -1111,7 +1116,7 @@ export const appRouter = router({
   // === Image Models (for admin) ===
   imageModels: router({
     list: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== "admin") {
+      if (!ctx.user.isAdminOwner) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
       }
       return listImageModels();
@@ -1479,6 +1484,48 @@ export const appRouter = router({
         const updated = await getUserCredits(ctx.user.id);
         return { success: true, credits: updated?.credits ?? 0, purchase } as const;
       }),
+  }),
+  // === Testimonials (real user reviews — collected via feedback form, moderated by admins) ===
+  testimonials: router({
+    /** Public list — only admin-approved reviews are displayed (never fabricated) */
+    approved: publicProcedure.query(async () => listApprovedTestimonials()),
+    /** Submit or resubmit a real review from a connected user (goes into moderation) */
+    create: protectedProcedure
+      .input(z.object({
+        content: z.string().min(10).max(1000),
+        rating: z.number().min(1).max(5).int(),
+        authorName: z.string().max(128).optional(),
+        authorChannel: z.string().max(128).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const existing = (await listApprovedTestimonials()).find(r => r.userId === ctx.user.id);
+        if (existing) await setTestimonialVerified(existing.id, "pending");
+        const t = await createTestimonial({
+          userId: ctx.user.id,
+          content: input.content.trim(),
+          rating: input.rating,
+          authorName: input.authorName || ctx.user.name || undefined,
+          authorChannel: input.authorChannel || undefined,
+          verified: "pending",
+        });
+        return { success: true, testimonial: t } as const;
+      }),
+    /** Admin moderation */
+    setVerified: adminProcedure
+      .input(z.object({ id: z.number(), verified: z.enum(["pending", "approved", "rejected"]) }))
+      .mutation(async ({ input }) => {
+        await setTestimonialVerified(input.id, input.verified);
+        return { success: true } as const;
+      }),
+    /** Admin deletion */
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await dbDeleteTestimonial(input.id);
+        return { success: true } as const;
+      }),
+    /** Admin moderation list — all reviews including pending */
+    list: adminProcedure.query(async () => listAllTestimonials()),
   }),
   // === Organization ===
   org: orgRouter,

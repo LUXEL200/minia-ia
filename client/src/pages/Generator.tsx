@@ -17,12 +17,12 @@ export default function Generator() {
           className="text-center max-w-3xl mx-auto mb-12"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Zap className="w-4 h-4 text-cyan-400" />
+            <Zap className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Générateur de miniatures</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Génère ta miniature{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               en 30 secondes
             </span>
           </h1>
@@ -36,7 +36,7 @@ export default function Generator() {
           <div className="bg-[#18181B] border border-[#27272A] rounded-2xl p-8 text-center">
             <div className="w-16 h-16 mx-auto mb-6 bg-[#27272A] rounded-2xl flex items-center justify-center">
               {isAuthenticated ? (
-                <Zap className="w-8 h-8 text-cyan-400" />
+                <Zap className="w-8 h-8 text-orange-400" />
               ) : (
                 <Lock className="w-8 h-8 text-[#71717A]" />
               )}
@@ -46,7 +46,7 @@ export default function Generator() {
               <>
                 <h3 className="text-xl font-bold text-white mb-2">Accès au générateur</h3>
                 <p className="text-[#A1A1AA] mb-6">Rends-toi sur le dashboard pour générer tes miniatures.</p>
-                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-400 transition-colors">
                   
                     Ouvrir le dashboard
                     <ArrowRight className="w-4 h-4" />
@@ -76,7 +76,7 @@ export default function Generator() {
               { label: "30 sec", sublabel: "en moyenne" },
             ].map((item) => (
               <div key={item.label} className="text-center p-4 bg-[#18181B] border border-[#27272A] rounded-xl">
-                <div className="text-lg font-bold text-cyan-400">{item.label}</div>
+                <div className="text-lg font-bold text-orange-400">{item.label}</div>
                 <div className="text-xs text-[#71717A]">{item.sublabel}</div>
               </div>
             ))}

@@ -40,7 +40,7 @@ const plans = [
     cta: "Passer Pro",
     ctaHref: "/dashboard",
     popular: true,
-    color: "border-cyan-500/30 shadow-lg shadow-cyan-500/10",
+    color: "border-orange-400/30 shadow-lg shadow-orange-400/10",
   },
   {
     name: "Max",
@@ -77,12 +77,12 @@ export default function Pricing() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Star className="w-4 h-4 text-cyan-400" />
+            <Star className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Tarifs transparents</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Un plan pour chaque{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               créateur
             </span>
           </h1>
@@ -104,14 +104,14 @@ export default function Pricing() {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="px-3 py-1 bg-cyan-500 text-black text-xs font-bold rounded-full">
+                  <span className="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
                     POPULAIRE
                   </span>
                 </div>
               )}
 
               <div className="mb-6">
-                <plan.icon className={`w-8 h-8 mb-3 ${plan.popular ? "text-cyan-400" : "text-[#71717A]"}`} />
+                <plan.icon className={`w-8 h-8 mb-3 ${plan.popular ? "text-orange-400" : "text-[#71717A]"}`} />
                 <h3 className="text-xl font-bold text-white">{plan.name}</h3>
                 <p className="text-sm text-[#A1A1AA] mt-1">{plan.description}</p>
               </div>
@@ -124,7 +124,7 @@ export default function Pricing() {
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-sm text-[#D4D4D8]">
-                    <Check className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                    <Check className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -132,7 +132,7 @@ export default function Pricing() {
 
               <Link href={plan.ctaHref} className={`flex items-center justify-center gap-2 w-full py-3 rounded-lg font-semibold transition-all duration-200 ${
                 plan.popular
-                  ? "bg-cyan-500 text-black hover:bg-cyan-400"
+                  ? "bg-orange-500 text-white hover:bg-orange-400"
                   : "bg-[#27272A] text-white hover:bg-[#3F3F46]"
               }`}>
                 {plan.cta}
@@ -155,7 +155,7 @@ export default function Pricing() {
             <Link href="/faq" className="px-5 py-2.5 bg-[#27272A] text-white rounded-lg hover:bg-[#3F3F46] transition-colors text-sm font-medium">
               Voir la FAQ
             </Link>
-            <Link href="/contact" className="px-5 py-2.5 bg-cyan-500 text-black rounded-lg hover:bg-cyan-400 transition-colors text-sm font-medium">
+            <Link href="/contact" className="px-5 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-400 transition-colors text-sm font-medium">
               Nous contacter
             </Link>
           </div>

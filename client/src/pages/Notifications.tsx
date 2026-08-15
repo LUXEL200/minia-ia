@@ -174,7 +174,7 @@ export default function NotificationsPage() {
                     <Link
                       href={`/editor?imageId=${getThumbId(n.metadata)}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+                      className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-orange-400 hover:text-orange-300 transition-colors"
                     >
                       <ImageIcon className="w-3.5 h-3.5" /> Voir la miniature à publier
                     </Link>

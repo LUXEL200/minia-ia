@@ -19,7 +19,7 @@ export default function Footer() {
                   <Zap className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-display text-lg font-bold text-white">
-                  Minia<span className="text-cyan-400">IA</span>
+                  Minia<span className="text-orange-400">IA</span>
                 </span>
               </div>
               <p className="text-sm text-zinc-500">

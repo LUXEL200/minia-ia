@@ -47,11 +47,11 @@ export default function SolutionSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
+          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-orange-400 mb-4 block">
             / La Solution
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
-            Ton Minia Maker IA <span className="text-cyan-400">personnel</span>
+            Ton Minia Maker IA <span className="text-orange-400">personnel</span>
           </h2>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
             Moins de 3 minutes pour générer une miniature qui te ressemble.

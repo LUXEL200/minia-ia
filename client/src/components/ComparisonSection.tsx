@@ -20,13 +20,13 @@ const comparisonData = [
 function CellContent({ value, isMinia }: { value: boolean | string; isMinia: boolean }) {
   if (typeof value === "boolean") {
     return value ? (
-      <Check className={`w-4 h-4 mx-auto ${isMinia ? "text-cyan-400" : "text-zinc-500"}`} />
+      <Check className={`w-4 h-4 mx-auto ${isMinia ? "text-orange-400" : "text-zinc-500"}`} />
     ) : (
       <X className="w-4 h-4 mx-auto text-zinc-700" />
     );
   }
   return (
-    <span className={`text-sm font-medium ${isMinia ? "text-cyan-400" : "text-zinc-400"}`}>
+    <span className={`text-sm font-medium ${isMinia ? "text-orange-400" : "text-zinc-400"}`}>
       {value}
     </span>
   );
@@ -42,12 +42,12 @@ export default function ComparisonSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
+          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-orange-400 mb-4 block">
             / Comparaison
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
             Minia IA vs{" "}
-            <span className="text-cyan-400">la concurrence</span>
+            <span className="text-orange-400">la concurrence</span>
           </h2>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
             La comparaison est sans appel.
@@ -66,8 +66,8 @@ export default function ComparisonSection() {
                 <th className="text-left py-4 px-4 text-xs font-medium text-zinc-500 uppercase tracking-wider"></th>
                 <th className="text-center py-4 px-4 w-28">
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-cyan-400 font-display font-bold text-sm">Minia IA</span>
-                    <Zap className="w-3 h-3 text-cyan-400" />
+                    <span className="text-orange-400 font-display font-bold text-sm">Minia IA</span>
+                    <Zap className="w-3 h-3 text-orange-400" />
                   </div>
                 </th>
                 <th className="text-center py-4 px-4 w-24">

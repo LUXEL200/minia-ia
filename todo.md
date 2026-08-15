@@ -219,3 +219,47 @@
 - [x] Pages internes : harmonisation tokens (AppSidebar/AppHeader/Navbar, Miniatures, Personnes, Editor, AbTest, Admin, ShareAbTest)
 - [x] Logo : nouveau logo Minia IA (style miniature/play) généré + favicon
 - [x] Tests vitest 72/72 + tsc 0 erreur + vérifs light/dark + checkpoint
+
+## Vague v15 (demande utilisateur — 15/08)
+
+- [ ] Palette : bleu de nuit (base), orange léger (accent), vert léger, opacité 6 % sur effets subtils — tokens index.css (dark + light)
+- [ ] Palette : recalibrer classes v14 (gradient-text, glow-btn, badge-pulse, feature-edge) vers la nouvelle palette
+- [ ] Palette : vérifier la lisibilité light/dark sur toutes les pages critiques
+- [ ] Onboarding : tutoriel pas à pas Dashboard (steps : créer miniature, planifier, calendrier, favoris/poubelle, recherche, menu) — overlay + highlight + Next/Skip/terminé
+- [ ] Onboarding : marque de complétion (localStorage) pour ne rejouer qu'à la première connexion, bouton « Rejouer la visite » accessible
+- [ ] Backend : table `testimonials` (nom, email optionnel, texte, note, statut pending/approved, createdAt) + procédures submit/approve/list
+- [ ] Frontend : formulaire de témoignage (page compte ? + modal dashboard) + section témoignages avec statut approuvé uniquement
+- [ ] Frontend : aucun faux témoignage seed (conformité) — section vide state propre si 0 avis
+- [ ] Tests vitest + tsc + vérifs light/dark + checkpoint
+
+## État V15 (sauvegarde contexte — 15/08 13:19)
+- [x] Palette bleu de nuit/orange/vert APPLIQUÉE : tokens dark (background oklch 0.14 0.028 262, primary orange 0.75 0.13 60) + light (background pâle teinté, primary 0.7 0.14 60) + classes v14 recalibrées (gradient-text orange→vert, glow 6 %) + tous cyan/violet/pink/purple remplacés en orange-400/500 + green-400/500/600 dans components/*.tsx + pages/*.tsx. tsc 0 erreur. Vérifs visuelles dark/light OK (landing + dashboard light confirmés).
+- [ ] Onboarding : composant OnboardingTour.tsx CRÉÉ (7 steps avec data-tour selectors : stats, create, calendar, recent, search, hamburger). RESTE : ajouter data-tour attributs dans Dashboard.tsx + AppSidebar.tsx, monter <OnboardingTour /> dans Dashboard, bouton "Rejouer la visite", vérif visuelle.
+- [ ] Testimonials : backend (table testimonials + router) + frontend (formulaire dans Notifications? ou dashboard + section landing) — PAS ENCORE FAIT.
+- [ ] Tests vitest + vérifs + checkpoint final.
+NOTE : localStorage key = "minia-onboarding-done-v1". Palette : orange accent, green success, fond bleu nuit.
+
+## Avancement V15 (13:22)
+- Palette appliquée dark+light (orange/vert/bleu nuit), tsc OK, vérifs dark+light OK.
+- OnboardingTour.tsx créé + data-tour (stats, create, calendar, recent, hamburger) + bouton Galerie ajouté floating nav. Vérifié visuellement en dark et light : tour fonctionne.
+- RESTE : testimonials réels (table + router testimonials + formulaire dans dashboard + section landing publique), puis tests + checkpoint.
+
+## Avancement V15 (13:25)
+Backend testimonials TERMINÉ : table testimonials créée + migration appliquée, helpers db (listApprovedTestimonials/createTestimonial/setTestimonialVerified/deleteTestimonial), router testimonials (approved public, create protected, setVerified/delete admin). Frontend : TestimonialsSection.tsx réécrit (avis réels + formulaire + état vide honnête, toastRich "success"/variant).
+RESTE : (1) panneau admin pour modérer les avis pending (admin panel existe — chercher où ajouter onglet/modération, grep "admin" pages/Admin.tsx) ; (2) vitest v15 tests (create/approved/setVerified) ; (3) vérifs visuelles landing + checkpoint.
+Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour vérifié dark+light. tsc 0 erreur.
+
+## État V15 (13:32) — tout en place, reste tests + visuel + checkpoint
+- Palette v15 appliquée : bleu nuit (bg tokens), orange léger accent, vert léger, opacité 6% sur effets. Classes v14 recalibrées (orange/green). tsc 0.
+- Onboarding tour : client/src/components/OnboardingTour.tsx monté dans Dashboard.tsx (data-tour: hamburger, create, stats, calendar, recent, search). Vérifié dark+light.
+- Testimonials : table BDD créée + helpers db + router testimonials (approved public, create protected, setVerified/delete/list admin). TestimonialsSection.tsx réécrit (avis réels + formulaire + état vide honnête). Admin.tsx : onglet "Avis" avec modération pending/approved/rejected.
+- Test vitest v15 écrit (mock db pattern, 9 tests) — À LANCER.
+- RESTE : (1) pnpm test complet ; (2) screenshots /, /dashboard light+dark ; (3) cocher items v15 dans todo.md ; (4) webdev_save_checkpoint.
+
+## Vague v16 (demande utilisateur — 15/08)
+
+- [x] Animations de survol subtiles sur les cartes de témoignages de la landing page (lift + glow + transition)
+- [x] Retirer l'accès admin direct depuis les paramètres (lien sidebar/admin panel basés sur isAdminOwner)
+- [x] Accès super admin conditionnel : uniquement si l'utilisateur est le compte propriétaire autorisé (OWNER_OPEN_ID) — flag isAdminOwner injecté au contexte tRPC, adminProcedure, guards frontend, badges, endpoints
+- [x] Tests vitest mis à jour et verts (81/81, makeCaller avec isAdminOwner)
+- [x] Vérification visuelle + checkpoint + publication

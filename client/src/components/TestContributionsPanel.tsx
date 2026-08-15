@@ -79,7 +79,7 @@ export function TestContributionsPanel({
                 </div>
                 <div className="bg-black border border-white/5 rounded-lg p-2.5">
                   <p className="text-[9px] uppercase tracking-wider text-zinc-500 mb-0.5">Écart CTR agrégé</p>
-                  <p className="text-sm font-semibold text-cyan-400">
+                  <p className="text-sm font-semibold text-orange-400">
                     {aggregated && ((aggregated.ctrA - aggregated.ctrB) >= 0 ? "+" : "")}{((aggregated?.ctrA ?? 0) - (aggregated?.ctrB ?? 0)).toFixed(1)} pts
                   </p>
                   <p className="text-[10px] text-zinc-500">{aggregated?.contributionCount ?? 0} contribution{(aggregated?.contributionCount ?? 0) > 1 ? "s" : ""} d'équipe</p>
@@ -155,7 +155,7 @@ export function TestContributionsPanel({
               )}
               {(contributions ?? []).map((c: any) => (
                 <div key={c.id} className="flex items-center gap-2 bg-black border border-white/5 rounded px-2.5 py-1.5">
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.variant === "a" ? "border-cyan-500/30 text-cyan-300" : "border-pink-500/30 text-pink-300"}`}>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.variant === "a" ? "border-orange-400/30 text-orange-300" : "border-green-400/30 text-pink-300"}`}>
                     {c.variant.toUpperCase()}
                   </span>
                   <span className="text-[10px] text-zinc-300 flex-1 min-w-0">

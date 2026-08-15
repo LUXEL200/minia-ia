@@ -159,7 +159,7 @@ export default function TemplateEditor() {
 
   const renderElement = (el: EditorElement) => {
     const isSelected = el.id === selectedId;
-    const base = "absolute select-none cursor-move" + (isSelected ? " ring-2 ring-cyan-400" : "");
+    const base = "absolute select-none cursor-move" + (isSelected ? " ring-2 ring-orange-400" : "");
     if (el.type === "shape") {
       let shape: React.CSSProperties = { backgroundColor: el.bg || "#ff0050" };
       if (el.content === "rect") Object.assign(shape, { width: "22%", height: "22%", left: `${el.x}%`, top: `${el.y}%`, transform: "translate(-50%,-50%)", borderRadius: 12 });
@@ -301,7 +301,7 @@ export default function TemplateEditor() {
                       max={selected.type === "emoji" ? 300 : 220}
                       value={selected.fontSize}
                       onChange={(e) => updateSelected({ fontSize: Number(e.target.value) })}
-                      className="flex-1 accent-cyan-400"
+                      className="flex-1 accent-orange-400"
                     />
                   </div>
                   {selected.type === "text" && (
@@ -321,7 +321,7 @@ export default function TemplateEditor() {
                       <div className="grid grid-cols-10 gap-1.5">
                         {presetColors.map((c) => (
                           <button key={c} onClick={() => { updateSelected({ color: c }); setShowColors(false); }}
-                            className={`w-6 h-6 rounded border ${selected.color === c ? "border-cyan-400 ring-1 ring-cyan-400" : "border-white/20"}`}
+                            className={`w-6 h-6 rounded border ${selected.color === c ? "border-orange-400 ring-1 ring-orange-400" : "border-white/20"}`}
                             style={{ backgroundColor: c }} />
                         ))}
                       </div>
@@ -373,7 +373,7 @@ export default function TemplateEditor() {
                 <div className="grid grid-cols-10 gap-1.5">
                   {presetColors.map((c) => (
                     <button key={c} onClick={() => setBackgroundColor(c)}
-                      className={`w-6 h-6 rounded border ${backgroundColor === c ? "border-cyan-400 ring-1 ring-cyan-400" : "border-white/20"}`}
+                      className={`w-6 h-6 rounded border ${backgroundColor === c ? "border-orange-400 ring-1 ring-orange-400" : "border-white/20"}`}
                       style={{ backgroundColor: c }} />
                   ))}
                 </div>

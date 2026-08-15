@@ -13,7 +13,7 @@ export default function Privacy() {
           className="text-center max-w-3xl mx-auto mb-12"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Shield className="w-4 h-4 text-cyan-400" />
+            <Shield className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Politique de confidentialité</span>
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold">
@@ -49,7 +49,7 @@ export default function Privacy() {
 
           <div>
             <h2 className="text-lg font-bold text-white mb-3">6. Vos droits (RGPD)</h2>
-            <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et de portabilité de vos données. Pour exercer ces droits, contactez-nous via la page <a href="/contact" className="text-cyan-400 hover:underline">Contact</a>.</p>
+            <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de suppression et de portabilité de vos données. Pour exercer ces droits, contactez-nous via la page <a href="/contact" className="text-orange-400 hover:underline">Contact</a>.</p>
           </div>
 
           <div>
@@ -59,7 +59,7 @@ export default function Privacy() {
 
           <div>
             <h2 className="text-lg font-bold text-white mb-3">8. Contact</h2>
-            <p>Pour toute question relative à la confidentialité, contactez-nous via la page <a href="/contact" className="text-cyan-400 hover:underline">Contact</a>.</p>
+            <p>Pour toute question relative à la confidentialité, contactez-nous via la page <a href="/contact" className="text-orange-400 hover:underline">Contact</a>.</p>
           </div>
 
           <div className="pt-6 border-t border-[#27272A]">

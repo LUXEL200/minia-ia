@@ -52,12 +52,12 @@ export default function Models() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Brain className="w-4 h-4 text-cyan-400" />
+            <Brain className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Modèles IA</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Nos{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               modèles IA
             </span>
           </h1>
@@ -74,7 +74,7 @@ export default function Models() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="bg-[#18181B] border border-[#27272A] rounded-xl p-6 hover:border-cyan-500/20 transition-all duration-300"
+              className="bg-[#18181B] border border-[#27272A] rounded-xl p-6 hover:border-orange-400/20 transition-all duration-300"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>

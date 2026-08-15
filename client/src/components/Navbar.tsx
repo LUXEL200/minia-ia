@@ -125,7 +125,7 @@ export default function Navbar() {
               </Button>
               <Button
                 onClick={startLogin}
-                className="bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 text-black font-semibold text-sm px-5 rounded-full glow-btn"
+                className="bg-gradient-to-r from-orange-400 to-green-400 hover:from-cyan-400 hover:to-violet-400 text-black font-semibold text-sm px-5 rounded-full glow-btn"
               >
                 Essayer gratuitement
               </Button>

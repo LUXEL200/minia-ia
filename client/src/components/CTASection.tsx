@@ -22,7 +22,7 @@ export default function CTASection() {
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight mb-6">
             Arrête de perdre des vues à cause de{" "}
-            <span className="text-cyan-400">miniatures médiocres</span>.
+            <span className="text-orange-400">miniatures médiocres</span>.
           </h2>
           <p className="text-lg text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             Miniatures virales en 30 secondes. Meilleur CTR. Production plus rapide. Sans frais de minia maker.

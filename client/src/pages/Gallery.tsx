@@ -81,9 +81,9 @@ export default function Gallery() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden pt-32 pb-16">
-          <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
-          <div className="absolute top-20 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute top-40 right-1/4 w-64 h-64 bg-pink-500/8 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-400/5 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-orange-400/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute top-40 right-1/4 w-64 h-64 bg-green-400/8 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="container relative">
             <motion.div
@@ -93,7 +93,7 @@ export default function Gallery() {
               className="text-center max-w-3xl mx-auto"
             >
               <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <Sparkles className="w-4 h-4 text-orange-400" />
                 <span className="text-sm text-[#A1A1AA]">
                   {stats?.total ? `${stats.total.toLocaleString("fr-FR")}` : "0"} miniatures générées
                 </span>
@@ -101,7 +101,7 @@ export default function Gallery() {
 
               <h1 className="font-display text-5xl md:text-6xl font-bold tracking-tight mb-4">
                 Galerie{" "}
-                <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
                   Communautaire
                 </span>
               </h1>
@@ -126,8 +126,8 @@ export default function Gallery() {
                   onClick={() => setSelectedStyle(style.key)}
                   className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     selectedStyle === style.key
-                      ? "bg-cyan-500 text-black shadow-lg shadow-cyan-500/25"
-                      : "bg-[#18181B] text-[#A1A1AA] border border-[#27272A] hover:border-cyan-500/30 hover:text-white"
+                      ? "bg-orange-500 text-white shadow-lg shadow-orange-400/25"
+                      : "bg-[#18181B] text-[#A1A1AA] border border-[#27272A] hover:border-orange-400/30 hover:text-white"
                   }`}
                 >
                   {style.label}
@@ -141,7 +141,7 @@ export default function Gallery() {
             <button
               onClick={() => setSortBy("recent")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                sortBy === "recent" ? "bg-cyan-500/20 text-cyan-400" : "text-[#71717A] hover:text-white"
+                sortBy === "recent" ? "bg-cyan-500/20 text-orange-400" : "text-[#71717A] hover:text-white"
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -150,7 +150,7 @@ export default function Gallery() {
             <button
               onClick={() => setSortBy("popular")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                sortBy === "popular" ? "bg-pink-500/20 text-pink-400" : "text-[#71717A] hover:text-white"
+                sortBy === "popular" ? "bg-green-500/20 text-green-400" : "text-[#71717A] hover:text-white"
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5" />
@@ -175,7 +175,7 @@ export default function Gallery() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="group relative aspect-video rounded-xl overflow-hidden bg-[#18181B] border border-[#27272A] hover:border-cyan-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
+                  className="group relative aspect-video rounded-xl overflow-hidden bg-[#18181B] border border-[#27272A] hover:border-orange-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-orange-400/10"
                 >
                   {thumb.imageUrl ? (
                     <img
@@ -194,13 +194,13 @@ export default function Gallery() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="inline-block px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded text-xs text-cyan-400 font-medium">
+                        <span className="inline-block px-2 py-1 bg-cyan-500/20 border border-orange-400/30 rounded text-xs text-orange-400 font-medium">
                           {STYLE_LABELS[thumb.style ?? "viral"]}
                         </span>
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={(e) => { e.stopPropagation(); handleLike(thumb.id); }}
-                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-pink-500/20 transition-colors"
+                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-green-400/20 transition-colors"
                             title="Ajouter aux favoris"
                           >
                             <Heart className="w-4 h-4 text-white" />
@@ -260,13 +260,13 @@ export default function Gallery() {
                       onClick={(e) => { e.stopPropagation(); handleLike(thumb.id); }}
                       className={`absolute top-3 right-3 p-1.5 rounded-full backdrop-blur-sm transition-all ${
                         likedThumbs[thumb.id]?.liked
-                          ? "bg-pink-500/30 hover:bg-pink-500/50"
+                          ? "bg-green-500/30 hover:bg-green-500/50"
                           : "bg-black/40 hover:bg-black/60"
                       }`}
                     >
                       <Heart className={`w-4 h-4 transition-all ${
                         likedThumbs[thumb.id]?.liked
-                          ? "text-pink-500 fill-pink-500 scale-110"
+                          ? "text-green-500 fill-green-500 scale-110"
                           : "text-white"
                       }`} />
                     </button>
@@ -275,7 +275,7 @@ export default function Gallery() {
                   {/* Like count badge */}
                   {likedThumbs[thumb.id] && likedThumbs[thumb.id].count > 0 && (
                     <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-full">
-                      <Heart className={`w-3 h-3 ${likedThumbs[thumb.id].liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
+                      <Heart className={`w-3 h-3 ${likedThumbs[thumb.id].liked ? "text-green-500 fill-green-500" : "text-white"}`} />
                       <span className="text-xs text-white">{likedThumbs[thumb.id].count}</span>
                     </div>
                   )}
@@ -297,12 +297,12 @@ export default function Gallery() {
                   : `Aucune miniature de style "${STYLE_LABELS[selectedStyle]}" pour le moment.`}
               </p>
               {isAuthenticated ? (
-                <Link href="/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                <Link href="/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-400 transition-colors">
                   <Sparkles className="w-4 h-4" />
                   Générer des miniatures
                 </Link>
               ) : (
-                <Link href="/" className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                <Link href="/" className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-400 transition-colors">
                   Essayer gratuitement
                   <span className="text-lg">→</span>
                 </Link>
@@ -313,12 +313,12 @@ export default function Gallery() {
 
         {/* CTA */}
         <section className="container pb-24">
-          <div className="relative bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-2xl p-8 md:p-12 text-center">
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 rounded-2xl" />
+          <div className="relative bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-2xl p-8 md:p-12 text-center">
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/5 to-green-400/5 rounded-2xl" />
             <div className="relative">
               <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
                 Prêt à créer ta propre{" "}
-                <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
                   miniature virale
                 </span>
                 ?
@@ -328,11 +328,11 @@ export default function Gallery() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 {isAuthenticated ? (
-                  <Link href="/dashboard" className="px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                  <Link href="/dashboard" className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-400 transition-colors">
                     Ouvrir le Dashboard →
                   </Link>
                 ) : (
-                  <Link href="/" className="px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+                  <Link href="/" className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-400 transition-colors">
                     Essayer gratuitement →
                   </Link>
                 )}

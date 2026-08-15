@@ -173,7 +173,7 @@ export default function Personnes() {
                       <p className="text-[10px] text-muted-foreground">{user.email || ""}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/80 text-foreground">Moi · {user.role === "admin" ? "Admin" : "Membre"}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted/80 text-foreground">Moi · {user.isAdminOwner === true ? "Admin" : "Membre"}</span>
                 </div>
               )}
               {members.length === 0 && !user && (
@@ -192,7 +192,7 @@ export default function Personnes() {
             {/* Inviter */}
             <div className="bg-zinc-950 border border-border rounded-xl p-4">
               <h3 className="text-xs font-medium text-white mb-3 flex items-center gap-2">
-                <Mail size={14} className="text-pink-500" /> Inviter un collaborateur
+                <Mail size={14} className="text-green-500" /> Inviter un collaborateur
               </h3>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input

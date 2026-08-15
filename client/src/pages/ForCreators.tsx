@@ -53,12 +53,12 @@ export default function ForCreators() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 bg-[#18181B] border border-[#27272A] rounded-full px-4 py-2 mb-6">
-            <Users className="w-4 h-4 text-cyan-400" />
+            <Users className="w-4 h-4 text-orange-400" />
             <span className="text-sm text-[#A1A1AA]">Pour les créateurs</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Fait pour{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 to-green-400 bg-clip-text text-transparent">
               chaque niche
             </span>
           </h1>
@@ -75,14 +75,14 @@ export default function ForCreators() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="p-6 bg-[#18181B] border border-[#27272A] rounded-xl hover:border-cyan-500/20 transition-all duration-300 group"
+              className="p-6 bg-[#18181B] border border-[#27272A] rounded-xl hover:border-orange-400/20 transition-all duration-300 group"
             >
               <div className="w-12 h-12 bg-[#27272A] rounded-xl flex items-center justify-center mb-4">
-                <niche.icon className="w-6 h-6 text-cyan-400" />
+                <niche.icon className="w-6 h-6 text-orange-400" />
               </div>
               <h3 className="text-lg font-bold text-white mb-2">{niche.name}</h3>
               <p className="text-sm text-[#A1A1AA] mb-4">{niche.description}</p>
-              <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-xs text-cyan-400 font-medium">
+              <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-orange-400/20 rounded text-xs text-orange-400 font-medium">
                 {niche.stats}
               </div>
             </motion.div>
@@ -93,11 +93,11 @@ export default function ForCreators() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-16 p-8 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-xl"
+          className="text-center mt-16 p-8 bg-gradient-to-r from-orange-400/10 to-green-400/10 border border-orange-400/20 rounded-xl"
         >
           <h3 className="text-xl font-bold text-white mb-2">Rejoins la communauté</h3>
           <p className="text-[#A1A1AA] mb-4">Plus de 2 800 créateurs utilisent déjà Minia IA.</p>
-          <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-400 transition-colors">
             
               Essayer gratuitement
               <ArrowRight className="w-4 h-4" />

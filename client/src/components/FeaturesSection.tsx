@@ -51,12 +51,12 @@ export default function FeaturesSection() {
       <div className="container">
         <AnimatedSection animation="fade-up">
           <div className="text-center mb-16">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-cyan-400 mb-4 block">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-orange-400 mb-4 block">
               / Fonctionnalités
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
               Conçu pour les{" "}
-              <span className="text-cyan-400">créateurs</span>.
+              <span className="text-orange-400">créateurs</span>.
             </h2>
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
               Puissant là où ça compte. Simple partout ailleurs.

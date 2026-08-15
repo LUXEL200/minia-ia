@@ -59,7 +59,7 @@ export default function ShareAbTest() {
       <header className="sticky top-0 z-50 glass border-b border-border">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-cyan-500" />
+            <Activity className="w-4 h-4 text-orange-500" />
             <span className="text-sm font-semibold text-white">Minia IA · Test A/B partagé</span>
           </div>
           <button

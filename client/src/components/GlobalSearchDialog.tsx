@@ -106,7 +106,7 @@ export function GlobalSearchDialog({ open, onClose }: { open: boolean; onClose: 
               />
               <ResultSection
                 title="Galerie publique"
-                icon={<GalleryHorizontalEnd className="w-3.5 h-3.5 text-cyan-400" />}
+                icon={<GalleryHorizontalEnd className="w-3.5 h-3.5 text-orange-400" />}
                 items={(results.gallery ?? []).map((t: any) => ({ id: t.id, imageUrl: t.imageUrl, prompt: t.prompt }))}
                 empty={false}
                 emptyAll
