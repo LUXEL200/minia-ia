@@ -32,6 +32,8 @@ import Trash from "./pages/Trash";
 import Notifications from "./pages/Notifications";
 import Account from "./pages/Account";
 import ApiKeys from "./pages/ApiKeys";
+import Organization from "./pages/Organization";
+import Invitations from "./pages/Invitations";
 import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
 import ThumbnailPreview from "./pages/ThumbnailPreview";
@@ -76,6 +78,8 @@ function Router() {
       <Route path={"/notifications"} component={Notifications} />
       <Route path={"/account"} component={Account} />
       <Route path={"/api-keys"} component={ApiKeys} />
+      <Route path={"/organisation"} component={Organization} />
+      <Route path={"/invitations"} component={Invitations} />
       <Route path={"/settings"} component={Settings} />
       <Route path={"/billing"} component={Billing} />
       <Route path={"/preview"} component={ThumbnailPreview} />

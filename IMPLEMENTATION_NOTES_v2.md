@@ -269,3 +269,144 @@ Checkpoint précédent : fee7db39 (v5). Tests 20/20.
 
 ## v6 — Test dialog multi-comptes (10:05)
 Le dialog s'ouvre depuis la sidebar (overlay z-[90] avec « Comptes / Basculer entre tes comptes / Démo / demo@example.com / Utiliser / Créer un nouveau compte »). Le bouton « Utiliser » ferme le dialog et le compte seed est présent. « Créer un nouveau compte » lance le login OAuth (startLogin) avec un toast. La sécurité du navigateur a refusé la lecture localStorage après la navigation OAuth interne, mais le mécanisme est vérifié côté DOM. Le bouton Compte de la section Plate-forme ouvre désormais le dialog (edit fait à 10:04).
+
+
+## V7 — Organisations & Équipes (15/08, captures d'écran Youthumb)
+
+Source: 6 captures utilisateur (upload/IMG_9342..9348). Titre → à implémenter :
+1. Cartes miniature boutons rapides: éditer / œil (aperçu) / télécharger (flèche vers le bas) / étoile orange favori (actif jaune)
+2. Clés API: page avec carte « Gestion des clés API », bouton rouge « + Créer une clé API », tableau Nom/Créé/Expire/Actes, état vide « Aucune clé API trouvée. Créez votre première clé API pour commencer. »
+3. Invitations: deux cartes — « Invitations reçues » (Organisation/Inviteur/Rôle/Actes) et « Invitations envoyées par l'organisation de X » (E-mail/Rôle/Actes)
+4. Modifier l'organisation: upload logo (drag & drop, WebP/JPEG/PNG), Nom, Limace (slug, minuscules/chiffres/tirets + note), Description, bouton rouge « Économiser »; section « membres de l'organisation » avec tableau Avatar/Nom/Rôle/Action (transférer propriétaire, révoquer en rouge)
+5. Profil organisation: carte (logo initiales, nom, @slug, description, créé le, X membre), « Usage » (barres Crédits x/2 verte vs rouge si épuisé, Personnes 2/2, Modèles 0/100, badge GRATUIT, période du..au.., prochain renouvellement), « membres de l'équipe » (avatar + nom + rôle), « Informations détaillées » (Identifiant unique UUID, Identifiant de l'organisation = slug, Dernière mise à jour), « Actes » (bouton rouge « Quitter l'organisation »)
+
+### Backend (fait)
+- schema: organizations (id, ownerId unique, name, slug unique, description, logoUrl, createdAt, updatedAt) + teamInvitations (id, orgId, email, role enum member/admin, status enum pending/accepted/declined, invitedBy, invitedTo, createdAt, expiresAt)
+- apiKeys table EXISTE déjà: id, userId, name, key, isActive (active/revoked), createdAt — manque expiresAt (ajouté plus bas si besoin)
+- Migration 0006 appliquée via SQL
+- À FAIRE: db.ts helpers (getOrCreateOrg, updateOrg, orgUsage, members, invite/accept/decline, api keys CRUD), routers.ts procédures, seed auto-org pour users existants sans org, pages frontend (Organisation via FloatingMenu), tests
+
+### Notes techniques
+- userCredits.planType free=2 crédits, pro 100, max 500 (approx — vérifier). Personnes: plan limite membres.
+- Limace = slug dérivé du nom + random suffix (ex: mfoumouluxel30-p6az)
+- Quitter l'organisation: le propriétaire ne peut pas quitter (dissoudre ou transférer)
+
+
+## V7 Frontend — état (15/08)
+
+### Backend DONE
+- Tables organizations + teamInvitations créées (SQL appliqué), apiKeys.expiresAt ajouté
+- db.ts: slugify, getOrCreateOrganization, updateOrganization, getOrgMembers, removeOrgMember, sendOrgInvitation, getSentInvitations, getReceivedInvitations, acceptInvitation, declineInvitation, cancelSentInvitation
+- orgRouter complet (me, update, members, removeMember, invite, sentInvitations, cancelInvitation, receivedInvitations, acceptInvitation, declineInvitation, usage) enregistré dans appRouter sous org.
+- tsc OK (18→0 erreurs)
+
+### Frontend TODO
+1. Créer client/src/pages/Organization.tsx — layout inspiré des captures:
+   - Carte profil org (avatar initiales "LU", nom, @slug, description, date création, N membres)
+   - Usage: barres Crédits x/2 (verte, rouge si 0), Personnes 2/2 (rouge si plein), Modèles 0/100, badge GRATUIT, période du..au.. prochain renouvellement
+   - Membres de l'équipe (avatar, nom, email, badge rôle)
+   - Informations détaillées (ID unique, identifiant org = slug, dernière mise à jour)
+   - Actes: bouton rouge "Quitter l'organisation" (propriétaire: message)
+   - Onglet "Modifier l'organisation": upload logo (input file b64 → storagePut côté client frontend? utiliser VITE_FORGE storage ou b64 direct), Nom, Limace (regex minuscules/chiffres/tirets + note), Description, bouton rouge "Économiser" (sauvegarder), section membres (tableau Avatar/Nom/Rôle/Action: révoquer rouge)
+   - Utiliser trpc.org.*
+   - Utiliser storagePut ? → template static non-server? NON: projet web-db-user, server OK. Le frontend peut utiliser la route existante de storage (avatars utilise upload). Vérifier storage.ts / routes existantes pour upload image.
+2. Invitations.tsx — deux cartes: "Invitations reçues" (tableau Organisation/Inviteur/Rôle/Actes: Accepter rouge + Refuser) et "Invitations envoyées par l'organisation de X" (E-mail/Rôle/Actes: annuler). + bouton "Inviter un membre" avec e-mail + rôle (member/admin) → trpc.org.invite
+3. ApiKeys.tsx — refonte style capture: carte "Gestion des clés API" avec description, bouton rouge plein " + Créer une clé API", tableau Nom/Créé/Expire/Actes, état vide "Aucune clé API trouvée. Créez votre première clé API pour commencer."
+4. Dashboard.tsx — cartes miniatures: boutons rapides au hover: éditer (Crayon, va vers /editor?image=...), œil (aperçu), télécharger (flèche vers le bas, force download), étoile (favori; jaune/actif). Actuellement boutons: favori, supprimer, partager, valider, modifier — ajouter aperçu + téléchargement, garder style bouton sombre arrondi.
+5. FloatingMenu.tsx — ajouter liens "Organisation" (logo org + nom + @slug) + "Invitations" (+ badge non lues) + "Clés API". Vérifier la structure actuelle du FloatingMenu.
+6. App.tsx routes: /organisation, /invitations (ApiKeys existe déjà).
+7. Tests: ajouter tests vitest org router (invite, accept, usage...) dans server/features.v2.test.ts ou nouveau fichier org.test.ts → puis pnpm test, tsc, screenshot, checkpoint.
+
+### Design
+- Palette: fond noir #000 / cartes #0a0a0a border-zinc-800/900, accent rouge #ff0050 (boutons), boutons rapides sombre arrondi-xl.
+- PageHeader pattern: title + subtitle + breadcrumb (déjà composant existant client/src/components/PageHeader.tsx).
+- Barres de progression: div h-2 rounded, width %, bg-green-500 ou red-500 quand épuisé.
+
+
+## V7 — détails d'intégration (15/08)
+
+### AppSidebar.tsx (structure connue, L1-330)
+- Blocs: org info header (L110), CTA créer miniature (L126), Plate-forme/Compte (L137), section Minia IA (L152: Dashboard, #miniatures, #equipe, /templates), Outils supplémentaires (L189: /editor, /ab-test, /avatars, /preview, /endcards, /favorites, /trash), Upgrade CTA (L224), profil dropdown (L237: Pro, Mode clair/sombre, Compte, /api-keys, /settings, /billing, /notifications, déconnexion ~L317).
+- À FAIRE: ajouter dans la section "Outils supplémentaires" → <Link href="/organisation"> <Building2/> Organisation</Link> et <Link href="/invitations"> <Mail/> Invitations</Link> (importer Building2, Mail depuis lucide-react, ligne L8-12).
+
+### App.tsx routes (L49-82 connus): ajouter après /api-keys: /organisation → Organization, /invitations → Invitations. Importer les composants.
+
+### Upload logo (stockage client→serveur)
+- routers.ts ligne ~856: procedure thumbnail.saveFromBase64(b64, mime) utilise storagePut("edited/${id}/${fileKey}", b64, mime) → retourne url. Réutiliser cette procédure pour le logo org (b64).
+- Frontend: input type=file → FileReader readAsDataURL → split base64, passer à saveFromBase64.
+
+### Dashboard cartes: hover overlay existant avec favori/supprimer/partager/valider/modifier. Ajouter: Aperçu (Eye, /preview?id=...) et Télécharger (Download, fetch url puis blob anchor click).
+
+### Routes existantes: /ab-test (page AbTest), /dashboard, /gallery, /api-keys (ApiKeysPage), /favorites, /trash, /editor, /templates.
+
+
+## V7 — RÉSUMÉ État (15/08 10:24) — lire AVANT toute modification
+
+### FAIT
+- Backend orgRouter complet, enregistré dans appRouter (org). Tables organizations, teamInvitations en BDD. tsc OK backend.
+- App.tsx: routes /organisation (Organization) et /invitations (Invitations) ajoutées.
+- AppSidebar: liens Organisation + Invitations ajoutés (section "Espace de travail"), imports Building2/Mail OK.
+- Organization.tsx créé (page overview/edit complète, style capture d'écran : cartes #0a0a0a border-zinc-800, bouton rouge #ff0050 "Économiser").
+- org.me maintenant retourne {...org, role:"owner", members:[], plan:"free|pro|max"}.
+
+### org.me retour actuel
+{id, ownerId, name, slug, description, logoUrl, createdAt, updatedAt, role, members:[{userId,name,email,role}], plan}
+org.usage procédure séparée : {planType, credits, creditsLimit, memberCount, membersLimit}
+
+### ERREURS TS actuelles (à corriger dans Organization.tsx)
+- L221-225: org?.usage?.* n'existe pas → utiliser trpc.org.usage.useQuery() séparé (usage.credits, usage.creditsLimit, usage.memberCount, usage.membersLimit, usage.planType). Barre modèles → usage.templates non dispo : retirer ou utiliser 0/100 statique via plan ? SIMPLIFIER: montrer Crédits/Personnes seulement, remplacer Modèles par 0/100 (templates créés par user).
+- org?.periodStart/periodEnd/nextRenewal n'existent pas → retirer le paragraphe période OU le garder sans périodes réelles.
+- L237-240 membres: utiliser (org?.members ?? []) — devrait marcher avec members ajouté.
+- updateOrg.mutate input logoUrl: le paramètre attend logoUrl string nullable → saveFromBase64 ? NON: je passe le dataUrl directement (backend stocke l'URL reçue). Mais backend updateOrganization met logoUrl tel quel en BDD → il faut d'abord uploader le logo en S3 côté FRONT via trpc.thumbnail.saveFromBase64({b64, mime}) pour obtenir l'URL, puis update. À implémenter: si logoDataUrl changé (état dirty), appeler saveFromBase64, puis update avec url.
+
+### TODO restant
+1. Corriger Organization.tsx (usage query séparée, upload logo via saveFromBase64, retirer période).
+2. Créer Invitations.tsx (2 cartes reçues/envoyées + inviter par e-mail/rôle, trpc.org.receivedInvitations/sentInvitations/invite/cancelInvitation/acceptInvitation/declineInvitation).
+3. Dashboard.tsx : boutons rapides hover sur cartes (Aperçu Eye + Télécharger Download) en plus des existants.
+4. ApiKeys.tsx : refonte style capture (carte "Gestion des clés API", bouton rouge plein "+ Créer une clé API", tableau Nom/Créé/Expire/Actes, empty state "Aucune clé API trouvée...").
+5. Tests vitest org router dans server/org.test.ts (invite/accept/sent/received/usage/me).
+6. pnpm test, tsc, screenshots, checkpoint.
+
+### Style pages (références)
+- Fond page: bg-black text-white, max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6.
+- Cartes: bg-[#0a0a0a] border border-zinc-800 rounded-2xl p-5.
+- Boutons primaires: bg-[#ff0050] hover:bg-[#e60048] rounded-lg.
+- PageHeader composant: title, subtitle, breadcrumb[{label,href?}], right.
+- Tableaux: thead text-[10px] uppercase text-zinc-500 border-b border-zinc-800.
+
+## V7 STATE (captures Youthumb.ai — organisations) — AJOUTÉ 15/08
+### Déjà fait
+- Tables organizations, teamInvitations (migration 0006 appliquée), apiKeys.expiresAt ajoutés en BDD
+- Backend : orgRouter complet dans routers.ts : me (org+members), usage (credits/creditsLimit/memberCount/membersLimit), update, members, removeMember (FORBIDDEN si self=owner), invite (email+role), sentInvitations, receivedInvitations, cancelInvitation, acceptInvitation, declineInvitation — tous importés de ./db (removeOrgMember, sendOrgInvitation, getSentInvitations, cancelSentInvitation, getReceivedInvitations, acceptInvitation, declineInvitation) et enregistrés dans appRouter
+- Frontend : Organization.tsx (profile/edit tabs, logo upload via thumbnail.saveFromBase64 + thumbnail.get pour l'URL, usage bars, team members w/ rôles, detailed info ids + copyText + Last update, bouton Quitter = toast.info actuellement), Invitations.tsx (/invitations : received + sent + invite form par userId), App.tsx routes /organisation et /invitations ajoutées, AppSidebar + FloatingMenu liens Organisation/Invitations ajoutés
+- Dashboard.tsx overlays (2 vues) : Aperçu (previewTarget + dialog z-100 fait), Télécharger, Favori Star orange (likedThumbs état existant remplacé Heart→Star dans overlays), Partager, Planifier, Valider, Modifier, Supprimer. setPreviewTarget déclaré ligne ~274, dialog en fin de composant
+
+### Restant à faire (V7)
+1. [IMPORTANT] leaveOrg : mutation org.leaveOrg permettant à un MEMBRE non-propriétaire de quitter (appel removeOrgMember(org.ownerId, selfId) côté serveur) + relier bouton Quitter dans Organization.tsx (remplacer toast.info) — attention removeMember actuel : `if (input.userId === ctx.user.id) throw FORBIDDEN` → leaveOrg doit contourner
+2. ApiKeys.tsx : refaire page style Youthumb — bouton rouge « Créer une clé API » (dialog : nom + durée d'expiration), tableau Nom/Créé/Expire/Actes (copy clé/révoquer), état vide « Aucune clé API trouvée. Créez votre première clé API pour commencer. » — vérifier procédures apiKey.create/list/revoke existantes côté backend (apiKeys router existe déjà)
+3. Tests vitest (features.v2.test.ts — 20/20 passent actuellement) + nouveaux tests org si besoin
+4. Screenshots (organisation, invitations, api-keys) + responsive + checkpoint final
+
+### Points techniques
+- removeOrgMember(org.ownerId, userId) supprime un membre de l'org du owner
+- saveFromBase64 retourne { id } → récupérer imageUrl via utils.thumbnail.get.fetch({ id })
+- org.me retourne { id, name, slug, description, logoUrl, plan, role, createdAt, updatedAt, members: [{userId,name,email,avatarUrl,role}] }
+- apiKeys existants : check server/routers.ts "apiKey" procedures (create/list/revoke)
+
+## V7 PROGRESS UPDATE (15/08, suite)
+### Fait en plus (depuis dernier état)
+- ApiKeys.tsx refait style Youthumb : AppHeader pageLabel="Api-keys" showCredits, bouton rouge plein "Créer une clé API", tableau Nom/Créé/Expire/Actes (copy/révoquer), état vide exact, modal création (nom + durée 1/3/6/12 mois), modal clé générée. Icône Key importée de lucide (non utilisée? — vérifier si non utilisé il faut la retirer de l'import ou l'utiliser quelque part)
+- Backend : apiKeys.create accepte expiryMonths (optionnel) → expiresAt calculé (mois × 30j). leaveOrg ajouté à orgRouter (membre non-propriétaire peut quitter, owner → FORBIDDEN)
+
+### Reste à faire
+1. Revoir le bouton "Quitter l'organisation" dans Organization.tsx (ligne ~317) : appeler trpc.org.leaveOrg.useMutation() avec toast.success + refetch
+2. Vérifier import Key inutilisé dans ApiKeys.tsx (TS pourrait ne pas erreur si mode strict désactivé — tsc disait 1 erreur liée à expiryMonths, vérifier après)
+3. tsc + pnpm test (20/20 actuellement)
+4. Screenshots /organisation, /invitations, /api-keys (desktop + mobile 375)
+5. todo.md v7 : cocher Clés API + tests, puis checkpoint + message final
+
+## V7 VERIFICATION (15/08)
+Desktop : /organisation OK (profil, usage bars, membres, détails, quitter), /invitations OK (2 tableaux + invite form), /api-keys OK (style Youthumb fidèle, bouton rouge + tableau + état vide exact).
+Mobile 375 : /organisation OK mais chevauchement header : bouton "Modifier" rose collisionne avec le bouton "Retour" (top-right), Menu hamburger collisionne avec bouton Retour sur /organisation — CORRIGER : masquer bouton Retour/Modifier sur mobile ou placer correctement (PageHeader right collisionne avec Menu hamburger en fixed top-right sur mobile). /invitations mobile OK (inviter bouton tronqué → overflow hidden, acceptable mais vérifier). /api-keys mobile OK.
+tsc : 0 erreurs. Tests : 20/20 passent.
+Reste : corriger collision header mobile (le Menu hamburger fixed top-right entre en collision avec les boutons PageHeader right sur mobile dans Organization et Invitations), cocher todo.md v7, checkpoint, livrer.

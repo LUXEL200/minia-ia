@@ -9,6 +9,7 @@ import {
   LayoutDashboard, Image, UserRound, Grid3X3, Plus, XCircle,
   ChevronRight, Zap,   Sun, Moon, Key, TrendingUp, Settings, Bell, LogOut, Users, ImagePlus,
   Type, Shield, CreditCard, Eye, RectangleHorizontal, Star, Trash,
+  Building2, Mail,
 } from "lucide-react";
 
 /**
@@ -216,6 +217,21 @@ export function AppSidebar({
             <Link href="/trash" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
               <Trash className="w-4 h-4" /> Poubelle
+            </Link>
+          </nav>
+        </div>
+
+        {/* Workspace section */}
+        <div className="px-4 py-3 border-t border-white/5">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Espace de travail</p>
+          <nav className="space-y-1">
+            <Link href="/organisation" onClick={onClose}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
+              <Building2 className="w-4 h-4" /> Organisation
+            </Link>
+            <Link href="/invitations" onClick={onClose}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-300 hover:bg-[#181818] hover:text-white transition-colors">
+              <Mail className="w-4 h-4" /> Invitations
             </Link>
           </nav>
         </div>

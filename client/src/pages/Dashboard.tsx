@@ -271,6 +271,8 @@ export default function Dashboard() {
     setPlanTitle("");
   };
 
+  const [previewTarget, setPreviewTarget] = useState<{ id: number; imageUrl: string; prompt: string } | null>(null);
+
   const handleShare = async (thumbnailId: number, imageUrl: string, prompt: string) => {
     const shareUrl = `${window.location.origin}/gallery`;
     try {
@@ -470,11 +472,14 @@ export default function Dashboard() {
                     </div>
                     {/* Actions overlay */}
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <button onClick={() => setPreviewTarget(thumb)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Aperçu">
+                        <Eye className="w-4 h-4 text-white" />
+                      </button>
                       <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Télécharger">
                         <Download className="w-4 h-4 text-white" />
                       </button>
                       <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
-                        <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
+                        <Star className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-yellow-400 fill-yellow-400" : "text-white"}`} />
                       </button>
                       <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Partager">
                         <Share2 className="w-4 h-4 text-white" />
@@ -1023,6 +1028,9 @@ export default function Dashboard() {
                 </p>
               </div>
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                <button onClick={() => setPreviewTarget(thumb)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Aperçu">
+                  <Eye className="w-4 h-4 text-white" />
+                </button>
                 <button onClick={() => handleDownload(thumb.imageUrl)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Télécharger">
                   <Download className="w-4 h-4 text-white" />
                 </button>
@@ -1030,7 +1038,7 @@ export default function Dashboard() {
                   <CalendarClock className={`w-4 h-4 ${thumb.youtubeStatus === "planned" ? "text-cyan-400" : "text-white"}`} />
                 </button>
                 <button onClick={() => handleLike(thumb.id)} className="p-2 rounded-full bg-white/10 hover:bg-pink-500/20 transition-colors" title="Favori">
-                  <Heart className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-pink-500 fill-pink-500" : "text-white"}`} />
+                  <Star className={`w-4 h-4 ${likedThumbs[thumb.id]?.liked ? "text-yellow-400 fill-yellow-400" : "text-white"}`} />
                 </button>
                 <button onClick={() => handleShare(thumb.id, thumb.imageUrl || "", thumb.prompt)} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Partager">
                   <Share2 className="w-4 h-4 text-white" />
@@ -1219,6 +1227,48 @@ export default function Dashboard() {
                 <Button variant="outline" onClick={() => setShowInviteModal(false)} className="border-white/5 text-zinc-400 rounded-xl text-sm">
                   Annuler
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview dialog (icône Aperçu sur les cartes) */}
+      {previewTarget && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setPreviewTarget(null)}
+        >
+          <div
+            className="relative max-w-2xl w-full bg-[#0a0a0a] border border-zinc-800 rounded-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewTarget.imageUrl}
+              alt={previewTarget.prompt}
+              className="w-full aspect-video object-cover"
+            />
+            <div className="p-4">
+              <p className="text-sm text-white/90 line-clamp-2">{previewTarget.prompt}</p>
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={() => handleDownload(previewTarget.imageUrl)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" /> Télécharger
+                </button>
+                <button
+                  onClick={() => navigate(`/editor?image=${encodeURIComponent(previewTarget.imageUrl || "")}`)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white transition-colors"
+                >
+                  <Type className="w-3.5 h-3.5" /> Modifier
+                </button>
+                <button
+                  onClick={() => setPreviewTarget(null)}
+                  className="ml-auto px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-300 transition-colors"
+                >
+                  Fermer
+                </button>
               </div>
             </div>
           </div>

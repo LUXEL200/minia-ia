@@ -213,6 +213,7 @@ export const apiKeys = mysqlTable("apiKeys", {
   name: varchar("name", { length: 255 }).notNull(),
   key: varchar("key", { length: 255 }).notNull(),
   isActive: mysqlEnum("isActive", ["active", "revoked"]).default("active").notNull(),
+  expiresAt: timestamp("expiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index("apikey_user_idx").on(table.userId),
@@ -283,6 +284,47 @@ export const imageVersions = mysqlTable("imageVersions", {
 
 export type ImageVersion = typeof imageVersions.$inferSelect;
 export type InsertImageVersion = typeof imageVersions.$inferInsert;
+
+/**
+ * Organizations — one per user by default, team collaboration hub
+ */
+export const organizations = mysqlTable("organizations", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerId: int("ownerId").notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  description: text("description"),
+  logoUrl: text("logoUrl"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  ownerIdx: index("org_owner_idx").on(table.ownerId),
+  slugIdx: index("org_slug_idx").on(table.slug),
+}));
+
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = typeof organizations.$inferInsert;
+
+/**
+ * Team invitations — received / sent invitation management
+ */
+export const teamInvitations = mysqlTable("teamInvitations", {
+  id: int("id").autoincrement().primaryKey(),
+  orgId: int("orgId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  role: mysqlEnum("role", ["member", "admin"]).default("member").notNull(),
+  status: mysqlEnum("status", ["pending", "accepted", "declined"]).default("pending").notNull(),
+  invitedBy: int("invitedBy").notNull(),
+  invitedTo: int("invitedTo"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+}, (table) => ({
+  orgIdx: index("inv_org_idx").on(table.orgId),
+  emailIdx: index("inv_email_idx").on(table.email),
+}));
+
+export type TeamInvitation = typeof teamInvitations.$inferSelect;
+export type InsertTeamInvitation = typeof teamInvitations.$inferInsert;
 
 /**
  * A/B tests — two thumbnail variants compared on declared CTR

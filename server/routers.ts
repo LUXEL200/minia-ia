@@ -107,6 +107,16 @@ import {
   setAbTestShareToken,
   getThumbnailsByUserIdFiltered,
   setThumbnailYoutube,
+  getOrCreateOrganization,
+  updateOrganization,
+  getOrgMembers,
+  removeOrgMember,
+  sendOrgInvitation,
+  getSentInvitations,
+  cancelSentInvitation,
+  getReceivedInvitations,
+  acceptInvitation,
+  declineInvitation,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
 
@@ -556,9 +566,10 @@ export const apiKeysRouter = router({
   }),
 
   create: protectedProcedure
-    .input(z.object({ name: z.string().min(1).max(255) }))
+    .input(z.object({ name: z.string().min(1).max(255), expiryMonths: z.number().min(1).max(24).optional() }))
     .mutation(async ({ ctx, input }) => {
-      return createApiKey(ctx.user.id, input.name);
+      const key = await createApiKey(ctx.user.id, input.name, input.expiryMonths);
+      return key;
     }),
 
   revoke: protectedProcedure
@@ -567,6 +578,123 @@ export const apiKeysRouter = router({
       await revokeApiKey(input.id, ctx.user.id);
       return { success: true } as const;
     }),
+});
+
+// === Organization Router ===
+export const orgRouter = router({
+  me: protectedProcedure.query(async ({ ctx }) => {
+    const org = await getOrCreateOrganization(ctx.user.id);
+    if (!org) return null;
+    const [members, credits] = await Promise.all([
+      getOrgMembers(org),
+      getUserCredits(ctx.user.id),
+    ]);
+    return {
+      ...org,
+      role: "owner" as const,
+      members,
+      plan: credits?.planType || "free",
+    };
+  }),
+
+  update: protectedProcedure
+    .input(z.object({
+      name: z.string().min(1).max(255).optional(),
+      slug: z.string().regex(/^[a-z0-9-]+$/, "Lettres minuscules, chiffres et tirets uniquement").min(3).max(128).optional(),
+      description: z.string().max(2000).optional(),
+      logoUrl: z.string().nullable().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await updateOrganization(ctx.user.id, input);
+      return { success: true } as const;
+    }),
+
+  members: protectedProcedure.query(async ({ ctx }) => {
+    const org = await getOrCreateOrganization(ctx.user.id);
+    if (!org) return [];
+    return getOrgMembers(org);
+  }),
+
+  removeMember: protectedProcedure
+    .input(z.object({ userId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.userId === ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Le propriétaire ne peut pas se retirer" });
+      const org = await getOrCreateOrganization(ctx.user.id);
+      if (!org) throw new TRPCError({ code: "NOT_FOUND" });
+      await removeOrgMember(org.ownerId, input.userId);
+      return { success: true } as const;
+    }),
+
+  // Permet à un membre (non-propriétaire) de quitter son organisation
+  leaveOrg: protectedProcedure.mutation(async ({ ctx }) => {
+    const org = await getOrCreateOrganization(ctx.user.id);
+    if (!org) throw new TRPCError({ code: "NOT_FOUND" });
+    if (org.ownerId === ctx.user.id) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Le propriétaire ne peut pas quitter l'organisation" });
+    }
+    await removeOrgMember(org.ownerId, ctx.user.id);
+    return { success: true } as const;
+  }),
+
+  invite: protectedProcedure
+    .input(z.object({ email: z.string().email(), role: z.enum(["member", "admin"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const org = await getOrCreateOrganization(ctx.user.id);
+      if (!org) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const ok = await sendOrgInvitation({ orgId: org.id, orgOwner: ctx.user.id, email: input.email, role: input.role });
+      if (!ok) throw new TRPCError({ code: "CONFLICT", message: "Une invitation est déjà en attente pour cet e-mail" });
+      return { success: true } as const;
+    }),
+
+  sentInvitations: protectedProcedure.query(async ({ ctx }) => {
+    return getSentInvitations(ctx.user.id);
+  }),
+
+  cancelInvitation: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const ok = await cancelSentInvitation(input.id, ctx.user.id);
+      if (!ok) throw new TRPCError({ code: "NOT_FOUND" });
+      return { success: true } as const;
+    }),
+
+  receivedInvitations: protectedProcedure.query(async ({ ctx }) => {
+    return getReceivedInvitations(ctx.user.id);
+  }),
+
+  acceptInvitation: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await acceptInvitation(input.id, ctx.user.id);
+      if (!result.ok) throw new TRPCError({ code: "CONFLICT", message: result.error });
+      return { success: true } as const;
+    }),
+
+  declineInvitation: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await declineInvitation(input.id, ctx.user.id);
+      return { success: true } as const;
+    }),
+
+  usage: protectedProcedure.query(async ({ ctx }) => {
+    const credits = await getUserCredits(ctx.user.id);
+    const members = await getOrgMembers({ id: -1, ownerId: ctx.user.id });
+    const planType = credits?.planType || "free";
+    const limits: Record<string, { credits: number; members: number }> = {
+      free: { credits: 2, members: 2 },
+      pro: { credits: 100, members: 5 },
+      max: { credits: 500, members: 10 },
+    };
+    const limit = limits[planType] ?? limits.free;
+    return {
+      planType,
+      credits: credits?.credits ?? 0,
+      creditsLimit: limit.credits,
+      memberCount: members.length,
+      membersLimit: limit.members,
+    };
+  }),
 });
 
 export const notificationsRouter = router({
@@ -1114,6 +1242,9 @@ export const appRouter = router({
 
   // === Notifications ===
   notifications: notificationsRouter,
+
+  // === Organization ===
+  org: orgRouter,
 
   // === Admin ===
   admin: adminRouter,

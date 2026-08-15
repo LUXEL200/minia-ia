@@ -43,6 +43,13 @@
       "when": 1786786487081,
       "tag": "0005_loose_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1786789214894,
+      "tag": "0006_chemical_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

@@ -140,5 +140,19 @@
 - [x] Corriger le doublon « Créer une miniature / Miniatures / Personnes » dans le menu flottant (AppSidebar : 3 liens distincts vers /dashboard, /dashboard#miniatures, /dashboard#equipe + deep-linking hash dans Dashboard.tsx)
 - [x] Bouton « Compte » : popup multi-comptes (AccountsDialog, store localStorage minia-accounts, basculer via « Utiliser », créer via OAuth, bouton Plate-forme + item profil)
 - [x] Corriger le basculeur mode sombre/clair (thème clair complet dans index.css + override global .light sur éléments hardcodés + classe sur <html>, libellé/icône dynamiques, état persisté localStorage)
-- [ ] Mettre à jour la skill saas-replica avec les apprentissages
+- [x] Mettre à jour la skill saas-replica (nouvelle phase 6 « Fonctionnalités avancées » + référence advanced-features.md : menu global unique, thèmes, multi-comptes, éditeur, A/B, filigrane, export YouTube ; validation passée)
 - [x] Tests + vérifications (tsc OK, 20/20 vitest, mode clair testé au navigateur, dialog comptes vérifié)
+
+## Vague v7 (captures d'écran utilisateur — organisations & équipes)
+
+- [x] Cartes miniature : boutons rapides style Youthumb (éditer, aperçu avec dialog, télécharger, favori en étoile orange, partager, valider, supprimer)
+- [x] Backend : tables organizations et teamInvitations (migration 0006 appliquée)
+- [x] Backend : apiKeys enrichi (expiresAt ajouté en BDD)
+- [x] Backend : procédures tRPC — org.me/usage/update/members/invite/sentInvitations/receivedInvitations/acceptInvitation/declineInvitation/cancelInvitation/removeMember (orgRouter enregistré dans appRouter)
+- [x] Frontend : page /organisation « Modifier l'organisation » (logo upload via saveFromBase64, nom, limace, description, Économiser)
+- [x] Frontend : panneau Usage (crédits/personnes/modèles, barres, badge plan)
+- [x] Frontend : membres de l'équipe avec rôles + actions (retirer)
+- [x] Frontend : informations détaillées (identifiant unique, identifiant organisation, dernière mise à jour) + bouton « Quitter l'organisation »
+- [x] Frontend : page /invitations (invitations reçues / envoyées + formulaire Inviter par e-mail)
+- [x] Frontend : page Clés API (bouton créer plein rouge, tableau Nom/Créé/Expire/Actes, état vide fidèle Youthumb)
+- [x] Tests vitest (20/20) + vérifications responsive (collision header mobile corrigée via hidden sm:flex)

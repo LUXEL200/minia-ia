@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lte, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, InsertTemplateCustomization, InsertImageVersion, InsertAbTest } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 
@@ -521,11 +521,12 @@ export async function getApiKeysByUserId(userId: number) {
   return db.select().from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt));
 }
 
-export async function createApiKey(userId: number, name: string) {
+export async function createApiKey(userId: number, name: string, expiryMonths?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const key = `minia-${crypto.randomUUID().replace(/-/g, "").slice(0, 32)}`;
-  const [result] = await db.insert(apiKeys).values({ userId, name, key, isActive: "active" });
+  const expiresAt = expiryMonths ? new Date(Date.now() + expiryMonths * 30 * 24 * 3600 * 1000) : null;
+  const [result] = await db.insert(apiKeys).values({ userId, name, key, isActive: "active", expiresAt });
   return { id: result.insertId, key };
 }
 
@@ -786,4 +787,157 @@ export async function setThumbnailYoutube(id: number, userId: number, data: { yo
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
   await db.update(thumbnails).set(data).where(and(eq(thumbnails.id, id), eq(thumbnails.userId, userId)));
+}
+
+// === Organizations ===
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+export async function getOrCreateOrganization(ownerId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  let org = await db.select().from(organizations).where(eq(organizations.ownerId, ownerId)).limit(1);
+  if (org.length === 0) {
+    const owner = (await db.select().from(users).where(eq(users.id, ownerId)).limit(1))[0];
+    const baseName = owner?.name || owner?.email?.split("@")[0] || "Mon organisation";
+    const baseSlug = slugify(baseName) || `org-${ownerId}`;
+    const rand = Math.random().toString(36).slice(2, 8);
+    const slug = `${baseSlug}-${rand}`;
+    const [result] = await db.insert(organizations).values({
+      ownerId,
+      name: baseName,
+      slug,
+      description: `Organisation pour ${owner?.email || "le compte"}`,
+    });
+    const created = await db.select().from(organizations).where(eq(organizations.id, result.insertId)).limit(1);
+    org = created;
+  }
+  return org[0];
+}
+
+export async function updateOrganization(ownerId: number, data: { name?: string; slug?: string; description?: string; logoUrl?: string | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(organizations).set(data).where(eq(organizations.ownerId, ownerId));
+}
+
+export async function getOrgMembers(org: { id: number; ownerId: number }) {
+  const db = await getDb();
+  if (!db) return [];
+  const owner = await db.select().from(users).where(eq(users.id, org.ownerId)).limit(1);
+  const members = await db.select().from(teamMembers).where(eq(teamMembers.ownerId, org.ownerId));
+  const rows = [];
+  rows.push({
+    userId: org.ownerId,
+    name: owner[0]?.name || owner[0]?.email || "Propriétaire",
+    email: owner[0]?.email,
+    role: "propriétaire" as const,
+  });
+  for (const m of members) {
+    const u = (await db.select().from(users).where(eq(users.id, m.userId)).limit(1))[0];
+    rows.push({
+      userId: m.userId,
+      name: u?.name || u?.email || "Membre",
+      email: u?.email,
+      role: m.role as "member" | "admin",
+    });
+  }
+  return rows;
+}
+
+export async function removeOrgMember(orgOwner: number, targetId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(teamMembers).where(and(eq(teamMembers.ownerId, orgOwner), eq(teamMembers.userId, targetId)));
+  return true;
+}
+
+// === Team invitations ===
+
+export async function sendOrgInvitation(data: { orgId: number; orgOwner: number; email: string; role: "member" | "admin" }) {
+  const db = await getDb();
+  if (!db) return false;
+  const org = (await db.select().from(organizations).where(eq(organizations.ownerId, data.orgOwner)).limit(1))[0];
+  if (!org) return false;
+  const existing = await db.select().from(teamInvitations)
+    .where(and(eq(teamInvitations.email, data.email.toLowerCase()), eq(teamInvitations.status, "pending")))
+    .limit(1);
+  if (existing.length > 0) return false;
+  const target = (await db.select().from(users).where(eq(users.email, data.email.toLowerCase())).limit(1))[0];
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await db.insert(teamInvitations).values({
+    orgId: org.id,
+    email: data.email.toLowerCase(),
+    role: data.role,
+    invitedBy: data.orgOwner,
+    invitedTo: target?.id ?? null,
+    expiresAt,
+  });
+  return true;
+}
+
+export async function getReceivedInvitations(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const user = (await db.select().from(users).where(eq(users.id, userId)).limit(1))[0];
+  if (!user?.email) return [];
+  const invites = await db.select().from(teamInvitations)
+    .where(and(eq(teamInvitations.email, user.email.toLowerCase()), eq(teamInvitations.status, "pending")));
+  const enriched = [];
+  for (const inv of invites) {
+    const org = (await db.select().from(organizations).where(eq(organizations.id, inv.orgId)).limit(1))[0];
+    const inviter = (await db.select().from(users).where(eq(users.id, inv.invitedBy)).limit(1))[0];
+    if (org) enriched.push({ ...inv, orgName: org.name, orgSlug: org.slug, inviterName: inviter?.name || inviter?.email || "Quelqu'un" });
+  }
+  return enriched;
+}
+
+export async function getSentInvitations(orgOwner: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const org = (await db.select().from(organizations).where(eq(organizations.ownerId, orgOwner)).limit(1))[0];
+  if (!org) return [];
+  const invites = await db.select().from(teamInvitations).where(eq(teamInvitations.orgId, org.id)).orderBy(teamInvitations.createdAt);
+  return invites.map(inv => ({ ...inv, orgName: org.name }));
+}
+
+export async function acceptInvitation(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return { ok: false, error: "" };
+  const invite = (await db.select().from(teamInvitations).where(eq(teamInvitations.id, id)).limit(1))[0];
+  if (!invite) return { ok: false, error: "Invitation introuvable" };
+  if (invite.status !== "pending") return { ok: false, error: "Invitation déjà traitée" };
+  if (invite.expiresAt < new Date()) return { ok: false, error: "Invitation expirée" };
+  const org = (await db.select().from(organizations).where(eq(organizations.id, invite.orgId)).limit(1))[0];
+  if (!org) return { ok: false, error: "Organisation introuvable" };
+  // Join the org team
+  await db.insert(teamMembers).values({ ownerId: org.ownerId, userId, role: invite.role }).onDuplicateKeyUpdate({ set: { role: invite.role } });
+  await db.update(teamInvitations).set({ status: "accepted" }).where(eq(teamInvitations.id, id));
+  return { ok: true };
+}
+
+export async function declineInvitation(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(teamInvitations).set({ status: "declined" }).where(eq(teamInvitations.id, id));
+  return true;
+}
+
+export async function cancelSentInvitation(id: number, orgOwner: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const invite = (await db.select().from(teamInvitations).where(eq(teamInvitations.id, id)).limit(1))[0];
+  if (!invite) return false;
+  const org = (await db.select().from(organizations).where(eq(organizations.ownerId, orgOwner)).limit(1))[0];
+  if (!org || invite.orgId !== org.id) return false;
+  await db.update(teamInvitations).set({ status: "declined" }).where(eq(teamInvitations.id, id));
+  return true;
 }
