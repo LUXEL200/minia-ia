@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Download, Loader2, ImageIcon, Sparkles, Filter, Heart, TrendingUp, Clock } from "lucide-react";
+import { Download, Loader2, ImageIcon, Sparkles, Filter, Heart, TrendingUp, Clock, Pencil } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 
@@ -193,22 +193,31 @@ export default function Gallery() {
                   {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="inline-block px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded text-xs text-cyan-400 font-medium">
                           {STYLE_LABELS[thumb.style ?? "viral"]}
                         </span>
-                        <a
-                          href={thumb.imageUrl || "#"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            if (!thumb.imageUrl) e.preventDefault();
-                          }}
-                          className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors"
-                          title="Télécharger"
-                        >
-                          <Download className="w-4 h-4 text-white" />
-                        </a>
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/editor?image=${encodeURIComponent(thumb.imageUrl || "")}`}
+                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors"
+                            title="Modifier avec l'éditeur"
+                          >
+                            <Pencil className="w-4 h-4 text-white" />
+                          </Link>
+                          <a
+                            href={thumb.imageUrl || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              if (!thumb.imageUrl) e.preventDefault();
+                            }}
+                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors"
+                            title="Télécharger"
+                          >
+                            <Download className="w-4 h-4 text-white" />
+                          </a>
+                        </div>
                       </div>
                       {thumb.prompt && (
                         <p className="mt-2 text-xs text-white/70 line-clamp-2">

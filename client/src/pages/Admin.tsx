@@ -132,8 +132,8 @@ export default function AdminPage() {
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
-        <div className="w-56 border-r border-white/10 min-h-[calc(100vh-73px)] p-3">
+        {/* Sidebar — hidden on mobile, shown as drawer via Sheet */}
+        <div className="hidden md:block w-56 border-r border-white/10 min-h-[calc(100vh-73px)] p-3">
           <nav className="space-y-1">
             {tabs.map(tab => (
               <button
@@ -152,8 +152,26 @@ export default function AdminPage() {
           </nav>
         </div>
 
+        {/* Mobile tab selector */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur border-t border-white/10">
+          <div className="flex overflow-x-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-col items-center gap-0.5 px-3 py-2 min-w-fit flex-1 text-[10px] transition-colors ${
+                  activeTab === tab.id ? "text-cyan-400" : "text-gray-500"
+                }`}
+              >
+                {tab.icon}
+                <span className="truncate">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Content */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 pb-24 md:pb-6">
           {/* Dashboard Tab */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">

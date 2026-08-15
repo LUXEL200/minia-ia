@@ -72,15 +72,22 @@
  - [x] Lien admin dans le sidebar (visible uniquement pour les admins)
 
 - [x] Composant PageHeader partagé (titre + breadcrumb + retour)
-- [ ] Rendre Templates responsive (desktop/tablet/mobile)
-- [ ] Rendre Avatars responsive (desktop/tablet/mobile)
-- [ ] Rendre EndCards responsive (desktop/tablet/mobile)
-- [ ] Rendre Favorites responsive (desktop/tablet/mobile)
-- [ ] Rendre Trash responsive (desktop/tablet/mobile)
-- [ ] Rendre Notifications responsive (desktop/tablet/mobile)
-- [ ] Rendre Account responsive (desktop/tablet/mobile)
-- [ ] Rendre ApiKeys responsive (desktop/tablet/mobile)
-- [ ] Rendre Settings responsive (desktop/tablet/mobile)
-- [ ] Rendre Billing responsive (desktop/tablet/mobile)
-- [ ] Rendre ThumbnailPreview responsive (desktop/tablet/mobile)
-- [ ] Rendre Admin responsive (desktop/tablet/mobile)
+- [x] Rendre Templates responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Avatars responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre EndCards responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Favorites responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Trash responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Notifications responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Account responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre ApiKeys responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Settings responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Billing responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre ThumbnailPreview responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+- [x] Rendre Admin responsive (desktop/tablet/mobile) — PageHeader partagé appliqué
+
+- [ ] Seed templates — templates pré-remplis dans la BDD (viral, minimaliste, dramatic, tech, retro, MrBeast)
+- [x] Galerie — bouton "Modifier" sur chaque miniature qui ouvre l'éditeur Canva (image en fond du canevas via paramètre URL)
+- [x] Éditeur — export SVG incluant l'image de fond avec calque textuel par-dessus
+
+- [x] Rendre Admin réellement responsive : sidebar latérale sur desktop/tablette, barre d'onglets fixe en bas sur mobile (6 onglets admin)
+- [x] Éditeur — export PNG production-grade 1280×720 via html-to-image avec repli SVG

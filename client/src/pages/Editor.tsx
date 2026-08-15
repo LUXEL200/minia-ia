@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { toPng } from "html-to-image";
+import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -52,10 +53,23 @@ type EditorElement = EditorTextElement | EditorShapeElement | EditorImageElement
 
 export default function Editor() {
   const [location, navigate] = useLocation();
+  const search = useSearch();
   const canvasRef = useRef<HTMLDivElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   const [elements, setElements] = useState<EditorElement[]>([]);
+
+  // Parse `image` URL param (e.g. from the gallery "Edit" button)
+  const [bgImageUrl, setBgImageUrl] = useState<string | null>(() => {
+    const params = new URLSearchParams(search);
+    const raw = params.get("image") || params.get("img") || params.get("url");
+    if (!raw) return null;
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -143,6 +157,14 @@ export default function Editor() {
     toast.success("Arrière-plan ajouté — utilise l'outil Couleur pour le changer");
   };
 
+  const removeBgImage = () => {
+    setBgImageUrl(null);
+    // Reset URL param without triggering a re-render loop (wouter Path is always a string)
+    const pathname = location.split("?")[0];
+    window.history.replaceState(null, "", pathname);
+    toast.success("Image de fond retirée");
+  };
+
   const updateElement = (id: string, updates: Record<string, unknown>) => {
     const newElements = elements.map(el => el.id === id ? { ...el, ...updates } : el);
     setElements(newElements);
@@ -197,26 +219,42 @@ export default function Editor() {
     };
   }, [isDragging, selectedId, dragStart, dragElStart, zoom, elements, pushHistory]);
 
-  const exportCanvas = () => {
-    // Use html2canvas-like approach: create a canvas from the div
-    const container = canvasContainerRef.current;
-    if (!container) return;
-
-    // Simple approach: show instructions for now
-    toast.success("Miniature exportée ! (Utilise le bouton Télécharger de droite)");
-
-    // In production, use html-to-image or canvas-based rendering
-    const link = document.createElement("a");
-    link.href = "data:image/svg+xml," + encodeURIComponent(getSVGExport());
-    link.download = "minia-ia-edited.png";
-    link.click();
+  const exportCanvas = async () => {
+    if (!canvasRef.current) return;
+    try {
+      const dataUrl = await toPng(canvasRef.current, {
+        width: 1280,
+        height: 720,
+        pixelRatio: 1,
+        backgroundColor: bgTransparent && !bgImageUrl ? undefined : bgColor,
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "minia-ia-editee.png";
+      link.click();
+      toast.success(bgImageUrl ? "Miniature exportée en PNG (1280×720) !" : "Miniature exportée en PNG (1280×720) !");
+    } catch (err) {
+      console.error("Export PNG échoué, repli SVG", err);
+      // Fallback: SVG export still works offline
+      const link = document.createElement("a");
+      link.href = "data:image/svg+xml," + encodeURIComponent(getSVGExport());
+      link.download = "minia-ia-editee.svg";
+      link.click();
+      toast.error("Export PNG indisponible — fichier SVG téléchargé à la place");
+    }
   };
 
   const getSVGExport = () => {
     const w = 1280;
     const h = 720;
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
-    svg += `<rect width="${w}" height="${h}" fill="${bgTransparent ? "transparent" : bgColor}" />`;
+    if (bgImageUrl) {
+      svg += `<image href="${bgImageUrl}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice" />`;
+      svg += `<rect width="${w}" height="${h}" fill="${bgTransparent ? "transparent" : bgColor}" opacity="0.35" />`;
+    } else {
+      svg += `<rect width="${w}" height="${h}" fill="${bgTransparent ? "transparent" : bgColor}" />`;
+    }
 
     for (const el of elements) {
       const sx = w / 640;
@@ -559,7 +597,11 @@ export default function Editor() {
             style={{
               width: 640 * zoom,
               height: 360 * zoom,
-              backgroundColor: bgTransparent ? "transparent" : bgColor,
+              backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
+              backgroundImage: bgImageUrl ? `url("${bgImageUrl}")` : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
               transform: `scale(${zoom})`,
               transformOrigin: "top left",
               position: "relative",
@@ -576,9 +618,14 @@ export default function Editor() {
               />
             )}
 
+            {bgImageUrl && (
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Background image preview overlay (rendered via CSS on parent) */}
+              </div>
+            )}
             {elements.map(renderElement)}
 
-            {elements.length === 0 && (
+            {elements.length === 0 && !bgImageUrl && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-zinc-700 text-sm">Ajoute des éléments avec le bouton + à gauche</p>
               </div>
