@@ -39,11 +39,11 @@ export default function PodcastSection() {
             <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#EC4899] mb-4 block">
               / Mode Podcast
             </span>
-            <h2 className="text-3xl sm:text-4xl font-display font-bold text-white leading-tight mb-6">
+            <h2 className="text-3xl sm:text-4xl font-display font-bold text-foreground leading-tight mb-6">
               Même identité. Nouveau visage.{" "}
               <span className="text-[#F97316]">À chaque épisode.</span>
             </h2>
-            <p className="text-lg text-zinc-400 mb-10 leading-relaxed max-w-lg">
+            <p className="text-lg text-muted-foreground mb-10 leading-relaxed max-w-lg">
               Verrouillez l'identité visuelle de votre podcast une seule fois. Pour chaque nouvel épisode, changez juste l'invité — votre style reste cohérent, à chaque fois.
             </p>
             
@@ -51,10 +51,10 @@ export default function PodcastSection() {
             <div className="flex items-center gap-4">
               {["EP1", "EP2", "EP3", "EP4"].map((ep, i) => (
                 <div key={ep} className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-[#18181B] border border-[#27272A] flex items-center justify-center text-xs font-bold text-[#F97316] font-mono">
+                  <div className="w-12 h-12 rounded-lg bg-card border border-border flex items-center justify-center text-xs font-bold text-[#F97316] font-mono">
                     {ep}
                   </div>
-                  {i < 3 && <ArrowRight className="w-4 h-4 text-[#27272A]" />}
+                  {i < 3 && <ArrowRight className="w-4 h-4 text-border" />}
                 </div>
               ))}
             </div>

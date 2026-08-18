@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ActionEffectsProvider } from "./components/ActionEffects";
 
 // Pages
 import Home from "./pages/Home";
@@ -105,11 +106,13 @@ function App() {
         defaultTheme={(typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("theme") === "light" ? "light" : "dark")) as "light" | "dark"}
         switchable={true}
       >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-          <FloatingMenu />
-        </TooltipProvider>
+        <ActionEffectsProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+            <FloatingMenu />
+          </TooltipProvider>
+        </ActionEffectsProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

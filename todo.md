@@ -291,3 +291,11 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Backend notifications : rappels J-5 (colonne remindedJ5 + getJ5RemindersToFire/markScheduleJ5Reminded + handler /api/scheduled/fireJ5Reminders) et alerte crédits bas (seuil 5, notifiedLowCredit pour ne pas spammer + handler /api/scheduled/fireLowCreditAlerts) — migration drizzle/0012_same_morlocks.sql
 - [x] Heartbeat : 2 crons créés — weekly-j5-reminders (0 0 8 * * *, task_uid=RjLMQdmJsLmptpQZpXkhrw) et daily-low-credit-alerts (0 0 9 * * *, task_uid=Wtg7s82VKHWuuCM9LJKwLg)
 - [x] Tests vitest 81/81 + tsc OK + vérifs visuelles + checkpoint + publication
+
+## Vague v21 (demande utilisateur — 16/08)
+
+- [ ] Thème clair uniformisé : sidebar de l'éditeur (Editor.tsx — FORMAT, Ajustement du fond, Couleurs, Calques, Versions, Générer avec IA) passe en blanc/orange-soft en light (actuellement bg noir forcé)
+- [ ] Thème clair uniformisé : blocs sombres landing (Aperçu communautaire, section Démo produit, autres sections home) — overrides .light ou composants theme-aware
+- [ ] Créer la page Notifications (/notifications) : toutes les notifs (planification, rappels J-5/J-1, crédits, achats, avis) avec marquage lu/suppression + route dans App.tsx + entrée dans le menu hamburger/dropdown
+- [ ] Animations d'effets spéciaux sur les actions : activer/supprimer/modifier/enregistrer/sauvegarder/télécharger — composant Confetti/Flash/Pop intégré aux toasts et boutons d'action
+- [ ] Tests vitest + tsc + vérifs visuelles light/mobile + checkpoint + publication

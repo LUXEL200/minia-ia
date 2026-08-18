@@ -45,20 +45,20 @@ export function GlobalSearchDialog({ open, onClose }: { open: boolean; onClose: 
   return (
     <div className="fixed inset-0 z-[120] flex items-start justify-center bg-black/70 backdrop-blur-sm p-4 pt-[10vh]" onClick={onClose}>
       <div
-        className="w-full max-w-lg bg-[#181818] border border-white/5 rounded-2xl shadow-2xl shadow-black/50 flex flex-col max-h-[70vh] overflow-hidden"
+        className="w-full max-w-lg bg-popover border border-border rounded-2xl shadow-2xl flex flex-col max-h-[70vh] overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 px-4 border-b border-white/5">
-          <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+        <div className="flex items-center gap-2 px-4 border-b border-border">
+          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Rechercher dans toutes tes miniatures, favoris, galerie et poubelle…"
-            className="flex-1 py-3.5 bg-transparent text-sm text-white placeholder:text-zinc-600 outline-none"
+            className="flex-1 py-3.5 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           />
           {query && (
-            <button onClick={() => setQuery("")} className="text-zinc-500 hover:text-white p-1">
+            <button onClick={() => setQuery("")} className="text-muted-foreground hover:text-foreground p-1">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -68,16 +68,16 @@ export function GlobalSearchDialog({ open, onClose }: { open: boolean; onClose: 
         <div className="flex-1 overflow-y-auto p-4 space-y-5">
           {!debouncedQuery && (
             <div className="text-center py-10">
-              <Search className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-              <p className="text-xs text-zinc-500">Tape au moins un caractère pour rechercher partout.</p>
-              <p className="text-[10px] text-zinc-600 mt-1">Historique · Favoris · Galerie publique · Poubelle</p>
+              <Search className="w-8 h-8 text-muted-foreground/70 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Tape au moins un caractère pour rechercher partout.</p>
+              <p className="text-[10px] text-muted-foreground/70 mt-1">Historique · Favoris · Galerie publique · Poubelle</p>
             </div>
           )}
 
           {debouncedQuery && count === 0 && !isLoading && (
             <div className="text-center py-10">
-              <Search className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-              <p className="text-xs text-zinc-500">Aucun résultat pour « {debouncedQuery} »</p>
+              <Search className="w-8 h-8 text-muted-foreground/70 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">Aucun résultat pour « {debouncedQuery} »</p>
             </div>
           )}
 
@@ -117,7 +117,7 @@ export function GlobalSearchDialog({ open, onClose }: { open: boolean; onClose: 
               />
               <ResultSection
                 title="Poubelle"
-                icon={<Trash2 className="w-3.5 h-3.5 text-zinc-500" />}
+                icon={<Trash2 className="w-3.5 h-3.5 text-muted-foreground" />}
                 items={(results.trash ?? []).map((t: any) => ({ id: t.id, imageUrl: t.imageUrl, prompt: t.prompt }))}
                 empty={false}
                 emptyAll
@@ -155,21 +155,21 @@ function ResultSection({
     if (emptyAll) return null; // pas de section vide (0 favoris = pas de bloc)
     return (
       <div>
-        <h3 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-zinc-500 mb-2">
+        <h3 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
           {icon} {title}
         </h3>
-        <p className="text-[11px] text-zinc-600 text-center py-3">Rien ici</p>
+        <p className="text-[11px] text-muted-foreground/70 text-center py-3">Rien ici</p>
       </div>
     );
   }
   return (
     <div>
-      <h3 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-zinc-500 mb-2">
-        {icon} {title} <span className="text-zinc-700 ml-auto">{items.length}</span>
+      <h3 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+        {icon} {title} <span className="text-muted-foreground/70 ml-auto">{items.length}</span>
       </h3>
       <div className="grid grid-cols-2 gap-2">
         {items.slice(0, 6).map(item => (
-          <div key={item.id} className="group relative aspect-video rounded-lg overflow-hidden bg-[#09090B] border border-white/5">
+          <div key={item.id} className="group relative aspect-video rounded-lg overflow-hidden bg-muted border border-border">
             {item.imageUrl ? (
               <>
                 <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -184,11 +184,11 @@ function ResultSection({
               </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-4 h-4 text-zinc-600 animate-spin" />
+                <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
               </div>
             )}
             {item.prompt && (
-              <p className="absolute bottom-0 left-0 right-0 text-[9px] text-white/80 bg-black/70 px-1.5 py-1 line-clamp-1">{item.prompt}</p>
+              <p className="absolute bottom-0 left-0 right-0 text-[9px] text-foreground/90 bg-background/90 backdrop-blur px-1.5 py-1 line-clamp-1">{item.prompt}</p>
             )}
           </div>
         ))}

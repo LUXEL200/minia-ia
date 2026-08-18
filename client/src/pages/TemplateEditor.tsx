@@ -230,7 +230,7 @@ export default function TemplateEditor() {
   const imageLoaded = templateLoading ? false : !!currentTemplate;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
           <Link href="/templates" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -261,7 +261,7 @@ export default function TemplateEditor() {
       ) : (
         <div className="flex-1 flex flex-col lg:flex-row min-h-0">
           {/* Canvas */}
-          <div className="flex-1 flex items-center justify-center p-2 sm:p-4 bg-zinc-950 min-h-[400px]">
+          <div className="flex-1 flex items-center justify-center p-2 sm:p-4 bg-background min-h-[400px]">
             <div
               ref={canvasRef}
               className="relative w-full max-w-[1000px] aspect-video overflow-hidden select-none"
@@ -290,7 +290,7 @@ export default function TemplateEditor() {
                     <input
                       value={selected.content}
                       onChange={(e) => updateSelected({ content: e.target.value })}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm mb-2"
+                      className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm mb-2"
                     />
                   )}
                   <div className="flex items-center gap-2 mb-2">
@@ -307,7 +307,7 @@ export default function TemplateEditor() {
                   {selected.type === "text" && (
                     <button
                       onClick={() => updateSelected({ bold: !selected.bold })}
-                      className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected.bold ? "bg-muted/80 border-white/20" : "border-zinc-800 text-muted-foreground"}`}
+                      className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected.bold ? "bg-muted/80 border-white/20" : "border-border text-muted-foreground"}`}
                     >
                       <Bold size={12} /> Gras
                     </button>
@@ -341,13 +341,13 @@ export default function TemplateEditor() {
               <div>
                 <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><Plus size={12} /> Ajouter</p>
                 <div className="grid grid-cols-3 gap-2 mb-3">
-                  <button onClick={addText} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
+                  <button onClick={addText} className="flex flex-col items-center gap-1 bg-card hover:bg-muted border border-border rounded-lg py-2 text-xs text-foreground">
                     <Type size={16} /> Texte
                   </button>
-                  <button onClick={() => addEmoji("🔥")} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
+                  <button onClick={() => addEmoji("🔥")} className="flex flex-col items-center gap-1 bg-card hover:bg-muted border border-border rounded-lg py-2 text-xs text-foreground">
                     <Smile size={16} /> Emoji
                   </button>
-                  <button onClick={() => addShape("rect", "#ff0050")} className="flex flex-col items-center gap-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
+                  <button onClick={() => addShape("rect", "#ff0050")} className="flex flex-col items-center gap-1 bg-card hover:bg-muted border border-border rounded-lg py-2 text-xs text-foreground">
                     <Square size={16} /> Forme
                   </button>
                 </div>
@@ -360,7 +360,7 @@ export default function TemplateEditor() {
                 {/* Shapes */}
                 <div className="grid grid-cols-3 gap-2">
                   {presetShapes.map((s) => (
-                    <button key={s.name} onClick={() => addShape(s.shape, s.color)} className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg py-2 text-xs text-foreground">
+                    <button key={s.name} onClick={() => addShape(s.shape, s.color)} className="bg-card hover:bg-muted border border-border rounded-lg py-2 text-xs text-foreground">
                       {s.name}
                     </button>
                   ))}

@@ -9,7 +9,7 @@ interface SubPageLayoutProps {
 
 export default function SubPageLayout({ children, noPadding }: SubPageLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#09090B] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className={noPadding ? "" : "pt-28 pb-20"}>
         {children}

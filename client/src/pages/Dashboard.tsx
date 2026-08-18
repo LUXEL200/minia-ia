@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useActionEffect } from "@/components/ActionEffects";
 import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
@@ -49,6 +50,7 @@ function getDateFromPeriod(period: string): string | undefined {
 
 export default function Dashboard() {
   const { user, loading: authLoading, isAuthenticated, logout } = useAuth();
+  const { triggerConfetti, triggerFlash, triggerShake, triggerPop } = useActionEffect();
   const [, navigate] = useLocation();
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState<string>("viral");
@@ -132,6 +134,7 @@ export default function Dashboard() {
   };
   const planMutation = trpc.thumbnail.planYoutube.useMutation({
     onSuccess: () => {
+      triggerFlash();
       refetchThumbs();
       refetchSchedules();
       utils.schedules.list.invalidate();
@@ -169,6 +172,7 @@ export default function Dashboard() {
   const batchMutation = trpc.batch.generate.useMutation();
   const deleteMutation = trpc.thumbnail.delete.useMutation({
     onSuccess: (_data, vars) => {
+      triggerShake();
       refetchThumbs();
       refetchCredits();
       toastRich("success", "Miniature supprimée", {
@@ -193,13 +197,14 @@ export default function Dashboard() {
   });
   const likeMutation = trpc.likes.toggle.useMutation({
     onSuccess: (data, vars) => {
+      if (data.liked) triggerPop();
       setLikedThumbs(prev => ({ ...prev, [vars.thumbnailId]: { count: data.count, liked: data.liked } }));
       toastRich(data.liked ? "success" : "info", data.liked ? "Ajouté aux favoris" : "Retiré des favoris");
     },
     onError: () => toastRich("error", "Impossible de mettre à jour le favori"),
   });
   const inviteMutation = trpc.team.invite.useMutation({
-    onSuccess: () => { refetchTeam(); setShowInviteModal(false); setInviteEmail(""); toastRich("success", "Membre invité !", { description: "L'invitation a été envoyée par e-mail." }); },
+    onSuccess: () => { triggerFlash(); refetchTeam(); setShowInviteModal(false); setInviteEmail(""); toastRich("success", "Membre invité !", { description: "L'invitation a été envoyée par e-mail." }); },
     onError: (err) => toastRich("error", "Invitation échouée", { description: err.message || "Une erreur est survenue" }),
   });
   const removeMutation = trpc.team.remove.useMutation({
@@ -212,6 +217,7 @@ export default function Dashboard() {
   });
   const updateTaskMutation = trpc.team.updateTask.useMutation({
     onSuccess: (_d, vars) => {
+      if (vars.status === "approved") triggerConfetti();
       refetchTasks();
       const labels = { pending: "En attente", reviewing: "En revue", approved: "Validée", rejected: "Refusée", cancelled: "Annulée" } as const;
       toastRich(vars.status === "approved" ? "success" : vars.status === "rejected" || vars.status === "cancelled" ? "warning" : "info", `Statut : ${labels[vars.status]}`);
@@ -257,6 +263,7 @@ export default function Dashboard() {
             })()
           : {}),
       });
+      triggerConfetti();
       toast.success(`${result.successful} miniature(s) générée(s) !`);
       setPrompt("");
       refetchThumbs();
@@ -286,6 +293,7 @@ export default function Dashboard() {
         prompts,
         style: style as any,
       });
+      triggerConfetti();
       toast.success(`${result.successful} sur ${prompts.length} miniatures générées !`);
       setBatchPrompts("");
       refetchThumbs();
@@ -306,6 +314,7 @@ export default function Dashboard() {
     link.download = `minia-ia.png`;
     link.target = "_blank";
     link.click();
+    triggerConfetti();
   };
 
   const handleLike = (thumbnailId: number) => {

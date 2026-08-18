@@ -11,7 +11,7 @@ export default function GalleryPreviewSection() {
   return (
     <section className="relative py-24 overflow-hidden">
       {/* Subtle background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#09090B] via-[#0F0F12] to-[#09090B]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/40 to-background" />
 
       <div className="container relative">
         {/* Section header */}
@@ -24,7 +24,7 @@ export default function GalleryPreviewSection() {
             className="inline-flex items-center gap-2 bg-card/70 border border-border rounded-full px-4 py-2 mb-4"
           >
             <Eye className="w-4 h-4 text-orange-400" />
-            <span className="text-sm text-[#A1A1AA]">Aperçu communautaire</span>
+            <span className="text-sm text-muted-foreground">Aperçu communautaire</span>
           </motion.div>
 
           <motion.h2
@@ -45,7 +45,7 @@ export default function GalleryPreviewSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-[#A1A1AA] max-w-lg mx-auto"
+            className="text-muted-foreground max-w-lg mx-auto"
           >
             Des milliers de créateurs génèrent leurs miniatures avec Minia IA chaque jour.
             Explore la galerie complète.
@@ -72,8 +72,8 @@ export default function GalleryPreviewSection() {
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#18181B] to-[#27272A]">
-                    <Sparkles className="w-8 h-8 text-[#3F3F46]" />
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/60">
+                    <Sparkles className="w-8 h-8 text-muted-foreground/50" />
                   </div>
                 )}
               </motion.div>
@@ -89,8 +89,8 @@ export default function GalleryPreviewSection() {
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="relative aspect-video rounded-[20px] overflow-hidden bg-card/70 border border-border"
               >
-                <div className="w-full h-full bg-gradient-to-br from-[#18181B] to-[#27272A] flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 text-[#3F3F46] animate-pulse" />
+                <div className="w-full h-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-muted-foreground/50 animate-pulse" />
                 </div>
               </motion.div>
             ))
@@ -105,7 +105,7 @@ export default function GalleryPreviewSection() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center"
         >
-          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-card/70 border border-border rounded-lg text-white font-medium hover:border-orange-400/30 hover:bg-[#1F1F23] transition-all duration-300 group">
+          <Link href="/gallery" className="inline-flex items-center gap-2 px-6 py-3 bg-card/70 border border-border rounded-lg text-foreground font-medium hover:border-orange-400/30 hover:bg-muted transition-all duration-300 group">
             <Eye className="w-4 h-4 text-orange-400" />
             Voir la galerie complète
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

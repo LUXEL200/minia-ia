@@ -195,7 +195,7 @@ export default function HeroSection() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2 + i * 0.1, type: "spring", stiffness: 300 }}
-                    className="w-6 h-6 rounded-full bg-gradient-to-br from-[#F97316] to-[#EC4899] border-2 border-[#09090B] flex items-center justify-center text-[10px] text-white font-bold"
+                    className="w-6 h-6 rounded-full bg-gradient-to-br from-[#F97316] to-[#EC4899] border-2 border-background flex items-center justify-center text-[10px] text-white font-bold"
                   >
                     {String.fromCharCode(64 + i)}
                   </motion.div>

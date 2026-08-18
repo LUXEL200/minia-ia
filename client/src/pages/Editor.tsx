@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useActionEffect } from "@/components/ActionEffects";
 import { toPng } from "html-to-image";
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation, useSearch } from "wouter";
@@ -61,6 +62,7 @@ export default function Editor() {
   const [location, navigate] = useLocation();
   const search = useSearch();
   const canvasRef = useRef<HTMLDivElement>(null);
+  const { triggerConfetti, triggerFlash, triggerShake } = useActionEffect();
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   const [elements, setElements] = useState<EditorElement[]>([]);
@@ -145,6 +147,8 @@ export default function Editor() {
       { thumbnailId, name, imageUrl: dataUrl, elements },
       {
         onSuccess: () => {
+          triggerFlash();
+          triggerConfetti();
           toast.success(`Version « ${name} » enregistrée`);
           setVersionName("");
           utilsVersions.imageVersions.list.invalidate({ thumbnailId });
@@ -159,6 +163,7 @@ export default function Editor() {
       { versionId: version.id, thumbnailId },
       {
         onSuccess: () => {
+          triggerFlash();
           // Restore visual state from the version snapshot
           const el = version.elements as EditorElement[];
           if (Array.isArray(el)) {
@@ -457,7 +462,8 @@ export default function Editor() {
       link.href = finalDataUrl;
       link.download = "minia-ia-editee.png";
       link.click();
-      toast.success(bgImageUrl ? "Miniature exportée en PNG (1280×720) !" : "Miniature exportée en PNG (1280×720) !");
+      triggerConfetti();
+      toast.success("Miniature exportée en PNG (1280×720) !");
     } catch (err) {
       console.error("Export PNG échoué, repli SVG", err);
       // Fallback: SVG export still works offline
@@ -734,7 +740,7 @@ export default function Editor() {
   ];
 
   const renderLeftPanel = () => (
-    <aside className="w-64 shrink-0 border-r border-border bg-[#0c0d12] flex flex-col overflow-y-auto">
+    <aside className="w-64 shrink-0 border-r border-border bg-background flex flex-col overflow-y-auto">
       {/* Format */}
       <div className="p-3 border-b border-border">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Format</p>
@@ -747,8 +753,8 @@ export default function Editor() {
                 onClick={() => setCanvasSize({ w: f.w, h: f.h })}
                 className={`aspect-square rounded-lg border text-[10px] font-medium flex items-center justify-center transition-colors ${
                   active
-                    ? "border-orange-400 bg-orange-400/15 text-orange-300"
-                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-white/20"
+                    ? "border-orange-400 bg-orange-400/15 text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-border"
                 }`}
                 title={f.label}
               >
@@ -765,13 +771,13 @@ export default function Editor() {
         <div className="flex gap-1.5">
           <button
             onClick={() => setBgFit("cover")}
-            className={`flex-1 text-[11px] rounded-lg px-2 py-1.5 transition-colors ${bgFit === "cover" ? "bg-orange-500/20 text-orange-300" : "bg-card text-muted-foreground hover:text-foreground"}`}
+            className={`flex-1 text-[11px] rounded-lg px-2 py-1.5 transition-colors ${bgFit === "cover" ? "bg-orange-500/20 text-foreground" : "bg-card text-muted-foreground hover:text-foreground"}`}
           >
             Couvrir
           </button>
           <button
             onClick={() => setBgFit("contain")}
-            className={`flex-1 text-[11px] rounded-lg px-2 py-1.5 transition-colors ${bgFit === "contain" ? "bg-orange-500/20 text-orange-300" : "bg-card text-muted-foreground hover:text-foreground"}`}
+            className={`flex-1 text-[11px] rounded-lg px-2 py-1.5 transition-colors ${bgFit === "contain" ? "bg-orange-500/20 text-foreground" : "bg-card text-muted-foreground hover:text-foreground"}`}
           >
             Contenir
           </button>
@@ -805,7 +811,7 @@ export default function Editor() {
           ))}
           <button
             onClick={() => setBgTransparent(true)}
-            className={`w-7 h-7 rounded-full border text-[9px] font-bold transition-colors ${bgTransparent && !bgImageUrl ? "border-orange-400 text-orange-300" : "border-border text-muted-foreground"}`}
+            className={`w-7 h-7 rounded-full border text-[9px] font-bold transition-colors ${bgTransparent && !bgImageUrl ? "border-orange-400 text-foreground" : "border-border text-muted-foreground"}`}
             title="Fond transparent"
           >
             ∅
@@ -825,7 +831,7 @@ export default function Editor() {
           </button>
           <button
             onClick={insertImageAsLayer as any}
-            className="flex items-center justify-center gap-1.5 bg-card hover:bg-card/80 border border-border text-xs text-orange-300 rounded-lg px-2 py-2 transition-colors"
+            className="flex items-center justify-center gap-1.5 bg-card hover:bg-card/80 border border-border text-xs text-foreground rounded-lg px-2 py-2 transition-colors"
           >
             <Move className="w-3.5 h-3.5" /> Calque
           </button>
@@ -868,7 +874,7 @@ export default function Editor() {
   const renderVersionsPanel = () => {
     if (!showVersions) return null;
     return (
-      <div className="absolute left-3 bottom-16 bg-[#0c0d12] border border-border rounded-xl shadow-2xl z-50 w-72 p-3">
+      <div className="absolute left-3 bottom-16 bg-background border border-border rounded-xl shadow-2xl z-50 w-72 p-3">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Versions d'image</p>
         {thumbnailId <= 0 && (
           <p className="text-xs text-muted-foreground mb-2">Ouvre l'éditeur depuis une miniature de ton tableau de bord pour enregistrer des versions.</p>
@@ -907,7 +913,7 @@ export default function Editor() {
                   <RotateCcw size={14} />
                 </button>
                 <button
-                  onClick={() => deleteVersion.mutate({ id: v.id, thumbnailId }, { onSuccess: () => utilsVersions.imageVersions.list.invalidate({ thumbnailId }) })}
+                  onClick={() => { triggerShake(); deleteVersion.mutate({ id: v.id, thumbnailId }, { onSuccess: () => utilsVersions.imageVersions.list.invalidate({ thumbnailId }) }); }}
                   className="text-muted-foreground hover:text-red-400"
                   title="Supprimer"
                 >
@@ -1224,7 +1230,7 @@ export default function Editor() {
       {/* Zone centrale : topbar + canvas + variantes */}
       <div className="flex-1 flex flex-col min-w-0 z-10">
         {/* Topbar pro */}
-        <div className="h-14 shrink-0 border-b border-border bg-[#0c0d12] flex items-center px-3 gap-2 relative pr-20">
+        <div className="h-14 shrink-0 border-b border-border bg-background flex items-center px-3 gap-2 relative pr-20">
           <Link
             href="/dashboard"
             className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"

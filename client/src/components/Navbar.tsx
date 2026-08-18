@@ -85,30 +85,30 @@ export default function Navbar() {
         {/* Desktop Auth Area */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
           {loading ? (
-            <div className="w-8 h-8 rounded-full bg-[#27272A] animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
           ) : isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                  <Avatar className="w-8 h-8 border border-[#27272A]">
+                  <Avatar className="w-8 h-8 border border-border">
                     <AvatarFallback className="bg-gradient-to-br from-[#F97316] to-[#EC4899] text-white text-xs font-bold">
                       {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm text-zinc-300 hidden xl:block max-w-[120px] truncate">
+                  <span className={`text-sm hidden xl:block max-w-[120px] truncate ${isLight ? "text-muted-foreground" : "text-zinc-300"}`}>
                     {user.name || user.email}
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#18181B] border-[#27272A] text-white">
+              <DropdownMenuContent align="end" className="bg-popover border-border text-popover-foreground">
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
                     <LayoutDashboard className="w-4 h-4" />
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-[#27272A]" />
-                <DropdownMenuItem onClick={() => logout()} className="flex items-center gap-2 cursor-pointer text-zinc-400 hover:text-white">
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={() => logout()} className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground">
                   <LogOut className="w-4 h-4" />
                   Déconnexion
                 </DropdownMenuItem>
@@ -119,7 +119,7 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 onClick={startLogin}
-                className="text-zinc-400 hover:text-white hover:bg-white/5 text-sm"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent text-sm"
               >
                 Connexion
               </Button>
@@ -154,11 +154,11 @@ export default function Navbar() {
               </Link>
             ))}
             {isAuthenticated ? (
-              <div className="flex flex-col gap-2 pt-4 border-t border-[#27272A]">
-                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={`font-medium py-1.5 text-sm ${isLight ? "text-[#0891B2]" : "text-[#F97316]"}`}>
+              <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={`font-medium py-1.5 text-sm ${isLight ? "text-orange-600" : "text-orange-400"}`}>
                   Dashboard
                 </Link>
-                <Button variant="outline" onClick={() => { logout(); setMobileOpen(false); }} className="border-[#27272A] text-zinc-400 text-sm w-full justify-start">
+                <Button variant="outline" onClick={() => { logout(); setMobileOpen(false); }} className="border-border text-muted-foreground text-sm w-full justify-start">
                   <LogOut className="w-4 h-4 mr-2" />
                   Déconnexion
                 </Button>

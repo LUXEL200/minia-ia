@@ -62,7 +62,7 @@ export default function PricingSection() {
               Moins cher qu'une{" "}
               <span className="text-orange-400">miniature freelance</span>
             </h2>
-            <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4 mb-8">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4 mb-8">
               1 miniature freelance = 30€ en moyenne. Fais le calcul.
             </p>
 
@@ -74,7 +74,7 @@ export default function PricingSection() {
               <motion.button
                 onClick={() => setIsYearly(false)}
                 className={`px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  !isYearly ? "bg-[#27272A] text-white" : "text-zinc-500"
+                  !isYearly ? "bg-muted text-foreground" : "text-muted-foreground"
                 }`}
                 whileTap={{ scale: 0.95 }}
               >
@@ -83,7 +83,7 @@ export default function PricingSection() {
               <motion.button
                 onClick={() => setIsYearly(true)}
                 className={`px-5 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                  isYearly ? "bg-[#27272A] text-white" : "text-zinc-500"
+                  isYearly ? "bg-muted text-foreground" : "text-muted-foreground"
                 }`}
                 whileTap={{ scale: 0.95 }}
               >
@@ -128,7 +128,7 @@ export default function PricingSection() {
                     <h3 className="text-lg font-display font-bold text-white mb-1">
                       {plan.name}
                     </h3>
-                    <p className="text-xs text-zinc-500">{plan.description}</p>
+                    <p className="text-xs text-muted-foreground">{plan.description}</p>
                   </div>
 
                   <div className="mb-8">
@@ -142,7 +142,7 @@ export default function PricingSection() {
                       <span className="text-4xl font-display font-bold text-orange-400">
                         {isYearly ? plan.priceYearly : plan.priceMonthly}$
                       </span>
-                      <span className="text-sm text-zinc-500">
+                      <span className="text-sm text-muted-foreground">
                         /{isYearly ? "an" : "mois"}
                       </span>
                     </motion.div>
@@ -160,7 +160,7 @@ export default function PricingSection() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: j * 0.1 }}
-                        className="flex items-center gap-3 text-sm text-zinc-300"
+                        className="flex items-center gap-3 text-sm text-foreground/80"
                       >
                         <Check className="w-4 h-4 flex-shrink-0 text-orange-400" />
                         {item}
@@ -172,7 +172,7 @@ export default function PricingSection() {
                     className={`w-full rounded-lg font-semibold magnetic-btn ${
                       plan.popular
                         ? "bg-[#F97316] hover:bg-[#F97316]/90 text-black"
-                        : "bg-[#27272A] text-white hover:bg-[#3F3F46]"
+                        : "bg-muted text-foreground hover:bg-muted/80"
                     }`}
                   >
                     {plan.cta}

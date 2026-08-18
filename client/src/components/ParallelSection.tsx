@@ -16,11 +16,11 @@ export default function ParallelSection() {
             <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#F97316] mb-4 block">
               / Génération Parallèle
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-foreground leading-tight">
               N'attendez plus.{" "}
               <span className="text-[#F97316]">Générez en parallèle.</span>
             </h2>
-            <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
               Les autres outils génèrent les miniatures une par une. Minia IA les lance toutes simultanément — 4 miniatures en le temps qu'il faut aux autres pour en faire une.
             </p>
           </div>
@@ -36,12 +36,12 @@ export default function ParallelSection() {
         >
           {/* Competitors — slow */}
           <motion.div
-            className="p-8 rounded-xl bg-[#18181B] border border-[#27272A] hover:border-[#27272A] transition-colors duration-300"
+            className="p-8 rounded-xl bg-card border border-border hover:border-border transition-colors duration-300"
             whileHover={{ y: -2 }}
           >
             <div className="flex items-center gap-3 mb-8">
               <Clock className="w-5 h-5 text-zinc-500" />
-              <span className="text-sm font-medium text-zinc-400 uppercase tracking-wider">Les autres outils</span>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Les autres outils</span>
             </div>
             <div className="space-y-5">
               {[1, 2, 3, 4].map((i) => (
@@ -62,7 +62,7 @@ export default function ParallelSection() {
                 </div>
               ))}
             </div>
-            <div className="mt-8 pt-6 border-t border-[#27272A]">
+            <div className="mt-8 pt-6 border-t border-border">
               <p className="text-2xl font-display font-bold text-zinc-500">
                 ~160<span className="text-sm text-zinc-600 ml-1">secondes</span>
               </p>
@@ -71,7 +71,7 @@ export default function ParallelSection() {
 
           {/* Minia IA — fast */}
           <motion.div
-            className="p-8 rounded-xl bg-[#18181B] border border-[#F97316]/30 relative overflow-hidden transition-all duration-300 hover:border-[#F97316]/50 hover:shadow-lg hover:shadow-[#F97316]/10"
+            className="p-8 rounded-xl bg-card border border-[#F97316]/30 relative overflow-hidden transition-all duration-300 hover:border-[#F97316]/50 hover:shadow-lg hover:shadow-[#F97316]/10"
             whileHover={{ y: -2 }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#F97316]/5 to-transparent" />
@@ -91,7 +91,7 @@ export default function ParallelSection() {
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="relative">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-zinc-300">Miniature {i}</span>
+                      <span className="text-sm text-foreground/80">Miniature {i}</span>
                       <span className="text-sm text-[#F97316] font-mono font-bold">simultané</span>
                     </div>
                     <div className="h-1.5 bg-[#27272A] rounded-full overflow-hidden">

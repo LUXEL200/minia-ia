@@ -19,7 +19,7 @@ export default function FounderSection() {
             / Créateur
           </span>
           
-          <h2 className="text-3xl sm:text-4xl font-display font-bold text-white leading-tight mb-10">
+          <h2 className="text-3xl sm:text-4xl font-display font-bold text-foreground leading-tight mb-10">
             J'avais le même problème.{" "}
             <span className="text-[#F97316]">Alors j'ai créé la solution.</span>
           </h2>
@@ -33,16 +33,16 @@ export default function FounderSection() {
               />
             </div>
             
-            <blockquote className="text-lg sm:text-xl text-zinc-300 leading-relaxed max-w-xl font-light">
+            <blockquote className="text-lg sm:text-xl text-foreground/80 leading-relaxed max-w-xl font-light">
               "Je suis YouTubeur. Je payais un minia maker. Les allers-retours me tuaient. Alors j'ai créé l'outil que j'aurais voulu avoir — et je l'utilise chaque semaine pour ma propre chaîne."
             </blockquote>
 
             <div className="flex items-center gap-4 mt-2">
               <div className="text-right">
-                <p className="text-white font-medium text-sm">Mike Codeur</p>
+                <p className="text-foreground font-medium text-sm">Mike Codeur</p>
                 <p className="text-xs text-zinc-500">Fondateur de Minia IA</p>
               </div>
-              <div className="h-8 w-px bg-[#27272A]" />
+              <div className="h-8 w-px bg-muted" />
               <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                 <Youtube className="w-3.5 h-3.5 text-[#EF4444]" />
                 <span>Chaîne YouTube</span>

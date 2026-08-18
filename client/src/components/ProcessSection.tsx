@@ -44,11 +44,11 @@ export default function ProcessSection() {
           <span className="text-xs font-mono font-semibold uppercase tracking-widest text-orange-400 mb-4 block">
             / Processus
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-foreground leading-tight">
             3 étapes. Le même processus que tu{" "}
             <span className="text-orange-400">connais</span>.
           </h2>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto mt-4">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
             Tu donnes des inspirations à ton minia maker ? C'est exactement pareil. Sans l'attente.
           </p>
         </motion.div>
@@ -67,7 +67,7 @@ export default function ProcessSection() {
                 {/* Connector arrow */}
                 {i < 2 && (
                   <div className="hidden md:flex absolute top-8 right-0 translate-x-1/2 z-10 items-center">
-                    <div className="w-8 h-px bg-gradient-to-r from-[#27272A] to-[#F97316]/30" />
+                    <div className="w-8 h-px bg-gradient-to-r from-border to-orange-400/30" />
                   </div>
                 )}
                 
@@ -81,10 +81,10 @@ export default function ProcessSection() {
                   >
                     <step.icon className="w-6 h-6" style={{ color: step.color }} />
                   </div>
-                  <h3 className="text-base font-display font-bold text-white mb-2">
+                  <h3 className="text-base font-display font-bold text-foreground mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
                 </div>
