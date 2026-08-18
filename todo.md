@@ -325,15 +325,15 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 
 ## Vague V25 (demande utilisateur — 18/08, captures laptop + mobile)
 
-- [ ] Compteur 0→100 % continu pendant la génération (ne pas rester bloqué si l'API prend plus que l'animation)
-- [ ] Son « plouf » discret à la fin de l'animation ours IA, désactivable dans les paramètres
-- [ ] Panneau « Réessaie » si toutes les générations échouent (l'ours revient avec le bouton réessayer)
-- [ ] Erreur OAuth laptop : « code and state are required » au callback + « Paramètres OAuth introuvables » — diagnostic et correction
-- [ ] Bouton Menu visible sur la landing (ne devrait pas apparaître) — le cacher sur /
-- [ ] Interface Canvas non responsive — vérifier et corriger le rendu mobile/tablette de l'éditeur
-- [ ] Boutons Calque et Fond font la même chose (upload image) — clarifier leurs rôles distincts
-- [ ] Styles de génération cohérents avec le choix de l'utilisateur (prompt aligné sur le style sélectionné)
-- [ ] Pastille des switches qui déborde dans les paramètres — corriger l'overflow
-- [ ] Recherche globale non responsive + pas de bouton retour — responsive tous appareils + bouton retour
-- [ ] Impossible de supprimer une clé API créée — corriger la suppression (apiKeys.delete)
-- [ ] Tous les toasts de l'application animés / avec effets
+- [x] Compteur 0→100 % continu pendant la génération (respiration BREATH_MS 2,6 s, stuckAtFullRef + useEffect séparé)
+- [x] Son « plouf » Web Audio à la fin (playPlouf), prop disableSound dans runGenerate, switch « Sons d'animation » dans Paramètres (minia-anim-sound, branché dans l'overlay Dashboard)
+- [x] Panneau « Réessaie » après 30 s sans réponse (FAILURE_AFTER_MS) avec onRetry branché dans Dashboard (relance avec les mêmes params)
+- [x] OAuth tolérant : callback affiche page HTML propre avec bouton « Recommencer la connexion » au lieu du JSON brut ; échange relancé proprement sans state
+- [x] FloatingMenu retourne null sur la landing (location === "/")
+- [x] Canvas responsive : sidebar en Sheet sous 1024 px (bouton Menu topbar), zoomEffectif auto-fit mobile (0.4–1), panneau Propriétés caché en narrow, container pleine hauteur mobile, drag/poignées recalculés avec effectiveZoom
+- [x] Boutons renommés « Fond » (remplace l'arrière-plan) et « Élément » (calque par-dessus) + tooltips title explicatifs
+- [x] STYLE_DESCRIPTIONS sous le sélecteur de style dans le Dashboard + prompt batch complété (fullPrompt basé sur la description)
+- [x] Toggles custom remplacés par le Switch shadcn avec accent orange (overflow corrigé)
+- [x] Recherche globale : plein écran mobile (fixed inset-0 + p-3), bouton retour/fermer ajouté
+- [x] Suppression réelle : deleteApiKey côté serveur (apiKeys.delete), filtrage des révoquées dans list, AlertDialog de confirmation dans ApiKeys.tsx
+- [x] Toasts animés : keyframes toast-slide-in/out + animation sur [data-sonner-toast] (260 ms cubic-bezier), icône info orange
