@@ -299,3 +299,9 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Page Notifications (/notifications) : route + entrée menu hamburger (AppSidebar) + dropdown profil + cloche dashboard — thème-aware, icônes par type, badge J-1, tout vérifié
 - [x] Animations d'effets spéciaux sur les actions : Confetti/Flash/Shake/Pop intégrés dans Editor, Dashboard, Miniatures, Gallery et Templates
 - [x] Tests vitest 81/81 + tsc 0 erreur + vérifs visuelles light desktop/mobile (landing, dashboard, miniatures, templates, gallery, notifications, editor) + checkpoint + publication
+
+## Bug signalé utilisateur (18/08 — screenshots mobile)
+
+- [x] Toast « Mode sombre activé » plein écran sans animation sur mobile — durée réduite à 1.5s (toast sonner standard, discret, auto-dismiss)
+- [x] Clic « Notifications » dans le menu latéral = rien ne se passe — transformé en lien direct vers /notifications + suppression du dropdown bell mort
+- [x] Vérifier que les effets/feedback fonctionnent sur mobile — tests 81/81, tsc OK, screenshots mobile OK

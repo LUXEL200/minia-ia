@@ -50,32 +50,8 @@ export function AppSidebar({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAccountsDialog, setShowAccountsDialog] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [showBellMenu, setShowBellMenu] = useState(false);
-
-  // Cloche dynamique : compteur réel + rappels J-1
+  // Cloche dynamique : compteur réel des notifications non lues
   const { data: unreadCount } = trpc.notifications.unreadCount.useQuery(undefined, { enabled: !!user });
-  const { data: recentNotifs } = trpc.notifications.recent.useQuery(undefined, { enabled: !!user && showBellMenu });
-
-  const markReadMut = trpc.notifications.markRead.useMutation({
-    onSuccess: () => {
-      utils.notifications.unreadCount.invalidate();
-      utils.notifications.recent.invalidate();
-    },
-  });
-  const markAllReadMut = trpc.notifications.markAllRead.useMutation({
-    onSuccess: () => {
-      utils.notifications.unreadCount.invalidate();
-      utils.notifications.recent.invalidate();
-      utils.notifications.list.invalidate();
-      toast.success("Toutes les notifications marquées comme lues");
-    },
-  });
-
-  const markAllRecentRead = () => {
-    markAllReadMut.mutate();
-    setShowBellMenu(false);
-    onClose();
-  };
 
   const { data: credits } = trpc.thumbnail.credits.useQuery(undefined, {
     enabled: false, // never auto-fetch in the shared sidebar: pages fetch it themselves when authenticated
@@ -313,9 +289,7 @@ export function AppSidebar({
                     onClose();
                     if (toggleTheme) {
                       toggleTheme();
-                      toast.success(
-                        theme === "dark" ? "Mode clair activé" : "Mode sombre activé",
-                      );
+                      toast.success(theme === "dark" ? "Mode clair activé" : "Mode sombre activé", { duration: 1500 });
                     }
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
@@ -351,83 +325,17 @@ export function AppSidebar({
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                   <CreditCard className="w-4 h-4" /> Facturation
                 </Link>
-                {/* Cloche avec dropdown de rappels J-1 */}
-                <div className="relative">
-                  <button
-                    onClick={() => { setShowBellMenu(!showBellMenu); setShowAccountsDialog(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  >
-                    <Bell className="w-4 h-4" /> Notifications
-                    {unreadCount !== undefined && unreadCount > 0 && (
-                      <span className="ml-auto badge-pulse bg-red-600 text-white text-[10px] font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </button>
-                  {showBellMenu && recentNotifs && recentNotifs.length > 0 && (
-                    <div className="absolute left-full top-0 ml-1 w-72 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-80">
-                      <div className="p-2 border-b border-border flex items-center justify-between">
-                        <span className="text-[10px] font-semibold text-white">Rappels de planification</span>
-                        <button
-                          onClick={() => {
-                            navigate("/notifications");
-                            onClose();
-                          }}
-                          className="text-[9px] text-orange-400 hover:text-orange-300"
-                        >
-                          Ouvrir tout
-                        </button>
-                        <button
-                          onClick={markAllRecentRead}
-                          className="text-[9px] text-muted-foreground/70 hover:text-muted-foreground"
-                        >
-                          Tout marquer lu
-                        </button>
-                      </div>
-                      <div className="max-h-64 overflow-y-auto">
-                        {recentNotifs.map((n: any) => {
-                          const meta = (() => { try { return n.metadata ? JSON.parse(n.metadata) : {}; } catch { return {}; } })();
-                          const isReminder = meta.kind === "planning-reminder";
-                          return (
-                            <Link
-                              key={n.id}
-                              href={`/notifications`}
-                              onClick={async () => {
-                                await markReadMut.mutateAsync({ id: n.id });
-                                onClose();
-                              }}
-                              className="block p-2.5 hover:bg-muted transition-colors border-b border-border last:border-0 animate-in fade-in slide-in-from-right-1 duration-200"
-                            >
-                              <div className="flex items-start gap-2">
-                                {isReminder ? (
-                                  <span className="mt-0.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#EC4899]/15 text-[9px] font-bold text-[#EC4899] flex-shrink-0">
-                                    J-1
-                                  </span>
-                                ) : (
-                                  <span className="mt-0.5 w-4 flex-shrink-0" />
-                                )}
-                                <div>
-                                  <p className="text-[11px] text-white leading-snug">{n.title}</p>
-                                  <p className="text-[10px] text-zinc-400 leading-snug mt-0.5">{n.message}</p>
-                                  {n.createdAt && (
-                                    <p className="text-[9px] text-muted-foreground/70 mt-0.5">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: fr })}</p>
-                                  )}
-                                </div>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
+                {/* Cloche : clic direct vers la page Notifications (rappels J-1 visibles dedans) */}
+                <Link href="/notifications" onClick={onClose}
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
+                  <Bell className="w-4 h-4" /> Notifications
+                  {unreadCount !== undefined && unreadCount > 0 && (
+                    <span className="ml-auto badge-pulse bg-red-600 text-white text-[10px] font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
                   )}
-                  {showBellMenu && (!recentNotifs || recentNotifs.length === 0) && (
-                    <div className="absolute left-full top-0 ml-1 w-64 bg-card border border-border rounded-xl shadow-2xl p-4 z-80 text-center">
-                      <Bell className="w-5 h-5 text-muted-foreground/70 mx-auto mb-1.5" />
-                      <p className="text-[11px] text-zinc-400">Aucun rappel de planification</p>
-                      <Link href="/notifications" onClick={onClose} className="text-[10px] text-orange-400 hover:text-orange-300 mt-1 inline-block">Voir toutes les notifications</Link>
-                    </div>
-                  )}
-                </div>
+                </Link>
               </div>
 
               <div className="py-1 border-t border-border">
