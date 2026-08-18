@@ -2,12 +2,13 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Download, Loader2, ImageIcon, Sparkles, Filter, Heart, TrendingUp, Clock, Pencil, Share2 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useActionEffect } from "@/components/ActionEffects";
+import { useDownloadEffects } from "@/components/DownloadEffects";
 
 const STYLES = [
   { key: "all", label: "Tous" },
@@ -31,6 +32,21 @@ const STYLE_LABELS: Record<string, string> = {
 export default function Gallery() {
   const { isAuthenticated } = useAuth();
   const { triggerConfetti, triggerPop } = useActionEffect();
+  const { triggerDownload } = useDownloadEffects();
+  const galleryDownloadRef = useRef<HTMLAnchorElement>(null);
+
+  const handleGalleryDownload = (imageUrl: string) => {
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = "minia-ia.png";
+    link.target = "_blank";
+    galleryDownloadRef.current = link;
+    triggerDownload({ thumbnailUrl: imageUrl, title: "Miniature téléchargée", liquid: "multicolor" }, () => {
+      galleryDownloadRef.current?.click();
+      triggerConfetti();
+      toast.success("Miniature téléchargée !", { duration: 1800 });
+    });
+  };
   const [selectedStyle, setSelectedStyle] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"recent" | "popular">("recent");
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
@@ -228,19 +244,15 @@ export default function Gallery() {
                           >
                             <Pencil className="w-4 h-4 text-white" />
                           </Link>
-                          <a
-                            href={thumb.imageUrl || "#"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              if (!thumb.imageUrl) e.preventDefault();
-                              else triggerConfetti();
-                            }}
-                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors"
+                          <button
+                            type="button"
+                            onClick={() => handleGalleryDownload(thumb.imageUrl || "")}
+                            disabled={!thumb.imageUrl}
+                            className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors disabled:opacity-40"
                             title="Télécharger"
                           >
                             <Download className="w-4 h-4 text-white" />
-                          </a>
+                          </button>
                         </div>
                       </div>
                       {thumb.prompt && (

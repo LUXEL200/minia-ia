@@ -311,3 +311,9 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Toast corrigé : message synchronisé avec le thème réel, position top-right, style pill, durée 1.8s, emoji 🌙/☀️
 - [x] Animation de téléchargement « ours IA liquide » : rectangle se remplit de liquide multi-coloré (vagues animées), l'ours IA verse le liquide, puis s'enfuit en laissant la miniature (Editor « Exporter PNG »)
 - [x] Animation intégrée sur « Exporter PNG » de l'éditeur (téléchargement réel déclenché après la révélation) ; tests 81/81, tsc OK
+
+## Demandes utilisateur 18/08 (extension animation ours IA)
+
+- [x] Étendre l'animation ours IA à tous les téléchargements : Dashboard, /miniatures, /gallery + flash interactif sur le bouton Télécharger du mock hero de la landing
+- [x] Personnaliser le thème du liquide — choix de palette (Multi / Orange / Blanc) dans la sidebar de l'éditeur (section « Thème du liquide IA »)
+- [x] Raccourcir l'animation à 3 s sur mobile (<640 px) via getDuration() ; durée desktop 3,4 s conservée

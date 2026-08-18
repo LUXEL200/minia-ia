@@ -448,6 +448,7 @@ export default function Editor() {
   const { run: runDownload, isRunning: downloadRunning } = useDownloadAnimation();
   const [downloadState, setDownloadState] = useState<DownloadAnimationState | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+  const [liquidTheme, setLiquidTheme] = useState<"multicolor" | "orange" | "white">("multicolor");
 
   const exportCanvas = async () => {
     if (!canvasRef.current) return;
@@ -468,8 +469,8 @@ export default function Editor() {
       link.href = finalDataUrl;
       link.download = "minia-ia-editee.png";
       downloadLinkRef.current = link;
-      // Animation ours IA liquide, puis déclenchement réel du téléchargement
-      const state: DownloadAnimationState = { thumbnailUrl: finalDataUrl, title: "Miniature exportée" };
+      // Animation ours IA liquide (palette choisie dans la sidebar), puis téléchargement réel
+      const state: DownloadAnimationState = { thumbnailUrl: finalDataUrl, title: "Miniature exportée", liquid: liquidTheme };
       setDownloadState(state);
       runDownload(state);
     } catch (err) {
@@ -781,6 +782,34 @@ export default function Editor() {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* Thème du liquide (animation de téléchargement) */}
+      <div className="p-3 border-b border-border">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Thème du liquide IA</p>
+        <div className="flex gap-1.5">
+          {([
+            { id: "multicolor", label: "Multi", gradient: "linear-gradient(135deg,#ff7832,#c83cb4,#3c78ff)" },
+            { id: "orange", label: "Orange", gradient: "linear-gradient(135deg,#ffbe5a,#eb5a1e)" },
+            { id: "white", label: "Blanc", gradient: "linear-gradient(135deg,#ffffff,#c8d2e1)" },
+          ] as const).map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => setLiquidTheme(opt.id)}
+              className={`flex-1 text-[11px] rounded-lg px-2 py-1.5 transition-colors ${
+                liquidTheme === opt.id
+                  ? "bg-orange-500/20 text-foreground ring-1 ring-orange-400/50"
+                  : "bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span
+                className="inline-block w-2.5 h-2.5 rounded-full mr-1 align-middle"
+                style={{ background: opt.gradient }}
+              />
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 

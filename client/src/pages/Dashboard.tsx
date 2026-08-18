@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useActionEffect } from "@/components/ActionEffects";
+import { useDownloadEffects } from "@/components/DownloadEffects";
 import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
@@ -308,13 +309,21 @@ export default function Dashboard() {
 
   const handleDelete = (id: number) => deleteMutation.mutate({ id });
 
+  const { triggerDownload } = useDownloadEffects();
+  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+
   const handleDownload = (url: string) => {
+    // Animation ours IA liquide, puis déclenchement réel du téléchargement
     const link = document.createElement("a");
     link.href = url;
-    link.download = `minia-ia.png`;
+    link.download = "minia-ia.png";
     link.target = "_blank";
-    link.click();
-    triggerConfetti();
+    downloadLinkRef.current = link;
+    triggerDownload({ thumbnailUrl: url, title: "Miniature téléchargée", liquid: "multicolor" }, () => {
+      downloadLinkRef.current?.click();
+      triggerConfetti();
+      toast.success("Miniature téléchargée !", { duration: 1800 });
+    });
   };
 
   const handleLike = (thumbnailId: number) => {

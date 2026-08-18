@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ActionEffectsProvider } from "./components/ActionEffects";
+import { DownloadEffectsProvider } from "./components/DownloadEffects";
 
 // Pages
 import Home from "./pages/Home";
@@ -107,11 +108,13 @@ function App() {
         switchable={true}
       >
         <ActionEffectsProvider>
+          <DownloadEffectsProvider>
           <TooltipProvider>
             <Toaster />
             <Router />
             <FloatingMenu />
           </TooltipProvider>
+          </DownloadEffectsProvider>
         </ActionEffectsProvider>
       </ThemeProvider>
     </ErrorBoundary>

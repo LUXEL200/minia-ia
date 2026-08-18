@@ -1,6 +1,7 @@
 import { startLogin } from "@/const";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useActionEffect } from "@/components/ActionEffects";
+import { useDownloadEffects } from "@/components/DownloadEffects";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -34,6 +35,7 @@ function getDateFromPeriod(period: string): string | undefined {
 export default function Miniatures() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { triggerShake, triggerPop } = useActionEffect();
+  const { triggerDownload } = useDownloadEffects();
   const [, navigate] = useLocation();
 
   const [query, setQuery] = useState("");
@@ -118,12 +120,18 @@ export default function Miniatures() {
     );
   }
 
+  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+
   const handleDownload = (url: string) => {
     const link = document.createElement("a");
     link.href = url;
-    link.download = `minia-ia.png`;
+    link.download = "minia-ia.png";
     link.target = "_blank";
-    link.click();
+    downloadLinkRef.current = link;
+    triggerDownload({ thumbnailUrl: url, title: "Miniature téléchargée", liquid: "multicolor" }, () => {
+      downloadLinkRef.current?.click();
+      toast.success("Miniature téléchargée !", { duration: 1800 });
+    });
   };
 
   const handleShare = async (_id: number, imageUrl: string, prompt: string) => {

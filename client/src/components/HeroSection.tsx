@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Star, Sparkles, Clock, Zap, X, Minus, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import AnimatedSection from "@/components/AnimatedSection";
+import { useActionEffect } from "@/components/ActionEffects";
 import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -36,6 +37,7 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
 export default function HeroSection() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+  const { triggerFlash } = useActionEffect();
 
   const handleCTAClick = () => {
     if (isAuthenticated) {
@@ -146,7 +148,15 @@ export default function HeroSection() {
               <Clock className="w-3.5 h-3.5 text-orange-400" />
               4 miniatures générées en 2,4 secondes
             </div>
-            <Button size="sm" className="bg-orange-400 hover:bg-orange-500 text-black font-bold text-xs rounded-full px-4">
+            <Button
+              size="sm"
+              className="bg-orange-400 hover:bg-orange-500 text-black font-bold text-xs rounded-full px-4"
+              onClick={() => {
+                triggerFlash();
+                setHeroCollapsed(true);
+                setTimeout(() => setHeroCollapsed(false), 900);
+              }}
+            >
               Télécharger
             </Button>
           </motion.div>
