@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Download, Loader2, ImageIcon, Sparkles, Filter, Heart, TrendingUp, Clock, Pencil, Share2 } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
+import { useActionEffect } from "@/components/ActionEffects";
 
 const STYLES = [
   { key: "all", label: "Tous" },
@@ -29,6 +30,7 @@ const STYLE_LABELS: Record<string, string> = {
 
 export default function Gallery() {
   const { isAuthenticated } = useAuth();
+  const { triggerConfetti, triggerPop } = useActionEffect();
   const [selectedStyle, setSelectedStyle] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"recent" | "popular">("recent");
   const [likedThumbs, setLikedThumbs] = useState<Record<number, { count: number; liked: boolean }>>({});
@@ -49,6 +51,7 @@ export default function Gallery() {
 
   const likeMutation = trpc.likes.toggle.useMutation({
     onSuccess: (data, vars) => {
+      if (data.liked) triggerPop();
       setLikedThumbs(prev => ({ ...prev, [vars.thumbnailId]: { count: data.count, liked: data.liked } }));
       if (!data.liked) {
         toast.success("Like retiré");
@@ -231,6 +234,7 @@ export default function Gallery() {
                             rel="noopener noreferrer"
                             onClick={(e) => {
                               if (!thumb.imageUrl) e.preventDefault();
+                              else triggerConfetti();
                             }}
                             className="p-2 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors"
                             title="Télécharger"

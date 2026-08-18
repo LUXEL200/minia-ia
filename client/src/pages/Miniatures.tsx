@@ -1,5 +1,6 @@
 import { startLogin } from "@/const";
 import { useEffect, useMemo, useState } from "react";
+import { useActionEffect } from "@/components/ActionEffects";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -32,6 +33,7 @@ function getDateFromPeriod(period: string): string | undefined {
 
 export default function Miniatures() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { triggerShake, triggerPop } = useActionEffect();
   const [, navigate] = useLocation();
 
   const [query, setQuery] = useState("");
@@ -76,6 +78,7 @@ export default function Miniatures() {
   const utils = trpc.useUtils();
   const deleteMutation = trpc.thumbnail.delete.useMutation({
     onSuccess: (_data, vars) => {
+      triggerShake();
       refetchThumbs();
       toastRich("success", "Miniature supprimée", { description: "Elle est dans la Poubelle et peut être restaurée." });
     },
@@ -83,6 +86,7 @@ export default function Miniatures() {
   });
   const likeMutation = trpc.likes.toggle.useMutation({
     onSuccess: (data, vars) => {
+      if (data.liked) triggerPop();
       setLikedThumbs(prev => ({ ...prev, [vars.thumbnailId]: { count: data.count, liked: data.liked } }));
       toastRich(data.liked ? "success" : "info", data.liked ? "Ajouté aux favoris" : "Retiré des favoris");
     },

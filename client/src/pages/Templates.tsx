@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
+import { useActionEffect } from "@/components/ActionEffects";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ const categories = [
 
 export default function Templates() {
   const { user, isAuthenticated, loading } = useAuth();
+  const { triggerFlash, triggerShake } = useActionEffect();
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export default function Templates() {
       { title: title.trim(), imageUrl: imageUrl.trim(), source, category: uploadCategory },
       {
         onSuccess: () => {
+          triggerFlash();
           toast.success("Template ajouté !");
           setShowUpload(false);
           setTitle("");
@@ -72,6 +75,7 @@ export default function Templates() {
       { id },
       {
         onSuccess: () => {
+          triggerShake();
           toast.success("Template supprimé");
           refetch();
         },

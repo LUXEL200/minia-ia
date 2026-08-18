@@ -294,8 +294,8 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 
 ## Vague v21 (demande utilisateur — 16/08)
 
-- [ ] Thème clair uniformisé : sidebar de l'éditeur (Editor.tsx — FORMAT, Ajustement du fond, Couleurs, Calques, Versions, Générer avec IA) passe en blanc/orange-soft en light (actuellement bg noir forcé)
-- [ ] Thème clair uniformisé : blocs sombres landing (Aperçu communautaire, section Démo produit, autres sections home) — overrides .light ou composants theme-aware
-- [ ] Créer la page Notifications (/notifications) : toutes les notifs (planification, rappels J-5/J-1, crédits, achats, avis) avec marquage lu/suppression + route dans App.tsx + entrée dans le menu hamburger/dropdown
-- [ ] Animations d'effets spéciaux sur les actions : activer/supprimer/modifier/enregistrer/sauvegarder/télécharger — composant Confetti/Flash/Pop intégré aux toasts et boutons d'action
-- [ ] Tests vitest + tsc + vérifs visuelles light/mobile + checkpoint + publication
+- [x] Thème clair uniformisé : sidebar de l'éditeur passe en blanc/orange-soft en light
+- [x] Thème clair uniformisé : blocs sombres landing couverts par les overrides .light (vérification visuelle desktop + mobile OK, aucune zone illisible)
+- [x] Page Notifications (/notifications) : route + entrée menu hamburger (AppSidebar) + dropdown profil + cloche dashboard — thème-aware, icônes par type, badge J-1, tout vérifié
+- [x] Animations d'effets spéciaux sur les actions : Confetti/Flash/Shake/Pop intégrés dans Editor, Dashboard, Miniatures, Gallery et Templates
+- [x] Tests vitest 81/81 + tsc 0 erreur + vérifs visuelles light desktop/mobile (landing, dashboard, miniatures, templates, gallery, notifications, editor) + checkpoint + publication
