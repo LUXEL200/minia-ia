@@ -317,3 +317,8 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Étendre l'animation ours IA à tous les téléchargements : Dashboard, /miniatures, /gallery + flash interactif sur le bouton Télécharger du mock hero de la landing
 - [x] Personnaliser le thème du liquide — choix de palette (Multi / Orange / Blanc) dans la sidebar de l'éditeur (section « Thème du liquide IA »)
 - [x] Raccourcir l'animation à 3 s sur mobile (<640 px) via getDuration() ; durée desktop 3,4 s conservée
+
+## Demandes utilisateur 18/08 (visibilité + ours pendant génération)
+
+- [x] Vérifier que les mises à jour V21→V23 sont bien déployées en production — bundle prod contient liquidTheme/DownloadAnimation/ours IA ; explication cache navigateur fournie à l'utilisateur
+- [x] Animation ours IA pendant la génération de miniatures dans le dashboard (génération simple + lot) : rectangle se remplit pendant l'appel API, révélation de la première miniature réussie + confetti + toast ; tests 81/81, tsc OK

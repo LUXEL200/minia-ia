@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useActionEffect } from "@/components/ActionEffects";
 import { useDownloadEffects } from "@/components/DownloadEffects";
+import { useDownloadAnimation, DownloadAnimation } from "@/components/DownloadAnimation";
 import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
@@ -237,6 +238,10 @@ export default function Dashboard() {
     }
   }, [likesData]);
 
+  const { runGenerate, isRunning: genAnimationRunning, state: genAnimState } = useDownloadAnimation();
+  const [genAnimResultUrl, setGenAnimResultUrl] = useState<string | null>(null);
+  const [genAnimPhase, setGenAnimPhase] = useState<"reveal" | null>(null);
+
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim() || prompt.length < 10) {
       toast.error("Décris ta miniature en au moins 10 caractères");
@@ -248,6 +253,10 @@ export default function Dashboard() {
     }
 
     setIsGenerating(true);
+    // L'ours IA remplit le rectangle pendant la génération API
+    setGenAnimResultUrl(null);
+    setGenAnimPhase(null);
+    runGenerate();
     try {
       const result = await generateMutation.mutateAsync({
         prompt: prompt.trim(),
@@ -264,6 +273,10 @@ export default function Dashboard() {
             })()
           : {}),
       });
+      // Révéler la première miniature réussie dès la fin de l'API
+      const first = result.thumbnails?.find(t => t.status === "completed" && t.imageUrl);
+      setGenAnimResultUrl(first?.imageUrl ?? null);
+      setGenAnimPhase("reveal");
       triggerConfetti();
       toast.success(`${result.successful} miniature(s) générée(s) !`);
       setPrompt("");
@@ -275,7 +288,7 @@ export default function Dashboard() {
     } finally {
       setIsGenerating(false);
     }
-  }, [prompt, credits, quantity, style, generateMutation, refetchThumbs, refetchCredits]);
+  }, [prompt, credits, quantity, style, generateMutation, refetchThumbs, refetchCredits, runGenerate]);
 
   const handleBatchGenerate = useCallback(async () => {
     const prompts = batchPrompts.split("\n").filter(p => p.trim().length >= 10);
@@ -289,11 +302,17 @@ export default function Dashboard() {
     }
 
     setIsBatchGenerating(true);
+    setGenAnimResultUrl(null);
+    setGenAnimPhase(null);
+    runGenerate();
     try {
       const result = await batchMutation.mutateAsync({
         prompts,
         style: style as any,
       });
+      const first = result.thumbnails?.find(t => t.status === "completed" && t.imageUrl);
+      setGenAnimResultUrl(first?.imageUrl ?? null);
+      setGenAnimPhase("reveal");
       triggerConfetti();
       toast.success(`${result.successful} sur ${prompts.length} miniatures générées !`);
       setBatchPrompts("");
@@ -306,6 +325,8 @@ export default function Dashboard() {
       setIsBatchGenerating(false);
     }
   }, [batchPrompts, credits, style, batchMutation, refetchThumbs, refetchCredits]);
+
+  const genAnimActive = isGenerating || isBatchGenerating || genAnimationRunning;
 
   const handleDelete = (id: number) => deleteMutation.mutate({ id });
 
@@ -972,6 +993,19 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#000]">
       {renderHeader()}
+
+      {/* Animation ours IA pendant la génération */}
+      {genAnimActive && genAnimState && (
+        <DownloadAnimation
+          state={genAnimState}
+          resultUrl={genAnimResultUrl}
+          phaseForce={genAnimPhase}
+          onComplete={() => {
+            setGenAnimPhase(null);
+            setGenAnimResultUrl(null);
+          }}
+        />
+      )}
       <main className="pt-2">
         {activeView === "home" && renderHomeView()}
         {activeView === "generate" && renderGenerateView()}

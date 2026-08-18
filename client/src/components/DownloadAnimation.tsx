@@ -25,6 +25,13 @@ export type DownloadAnimationState = {
   thumbnailUrl?: string;
   title?: string;
   liquid?: LiquidTheme;
+  /**
+   * Mode « génération » : l'ours IA remplit le rectangle pendant que la
+   * miniature est créée côté API. Aucune révélation d'image avant que le
+   * dashboard appelle showResult(url) avec la vraie miniature. Pas de
+   * téléchargement automatique.
+   */
+  mode?: "download" | "generate";
 };
 
 const LIQUID_GRADIENTS: Record<LiquidTheme, string> = {
@@ -46,7 +53,18 @@ export function useDownloadAnimation() {
   const [isDone, setIsDone] = useState(false);
 
   const run = (next: DownloadAnimationState) => {
-    setState(next);
+    setState({ mode: "download", ...next });
+    setIsRunning(true);
+    setIsDone(false);
+  };
+
+  /**
+   * Mode « génération » : lance l'animation de remplissage pendant la création
+   * d'une miniature (API). Passer `resultUrl` / `phaseForce="reveal"` au
+   * composant <DownloadAnimation /> pour révéler la miniature quand l'API répond.
+   */
+  const runGenerate = () => {
+    setState({ mode: "generate" });
     setIsRunning(true);
     setIsDone(false);
   };
@@ -62,7 +80,7 @@ export function useDownloadAnimation() {
     return () => clearTimeout(t);
   }, [isRunning]);
 
-  return { run, isRunning, isDone, reset: () => { setIsRunning(false); setIsDone(false); setState(null); } };
+  return { run, runGenerate, state, isRunning, isDone, reset: () => { setIsRunning(false); setIsDone(false); setState(null); } };
 }
 
 export function getDuration() {
@@ -75,18 +93,29 @@ export function getDuration() {
 export function DownloadAnimation({
   state,
   onComplete,
+  resultUrl,
+  phaseForce,
 }: {
   state: DownloadAnimationState | null;
   onComplete?: () => void;
+  resultUrl?: string | null;
+  phaseForce?: "reveal" | null;
 }) {
   const [phase, setPhase] = useState<"fill" | "reveal">("fill");
   const [progress, setProgress] = useState(0); // 0..100
   const startRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
+  const [stuckAtFull, setStuckAtFull] = useState(false);
 
   const liquid: LiquidTheme = state?.liquid ?? "multicolor";
+  const genMode = state?.mode === "generate";
+  const revealUrl = resultUrl ?? state?.thumbnailUrl;
 
   useEffect(() => {
+    if (phaseForce === "reveal") {
+      setPhase("reveal");
+      return;
+    }
     const duration = getDuration();
     startRef.current = performance.now();
     const tick = (now: number) => {
@@ -96,14 +125,28 @@ export function DownloadAnimation({
       if (p < 100) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
-        setPhase("reveal");
-        const t = setTimeout(() => onComplete?.(), 750);
-        return () => clearTimeout(t);
+        if (genMode && !resultUrl) {
+          // Le rectangle reste plein (100 %) pendant que l'API génère la miniature
+          setStuckAtFull(true);
+        } else {
+          setPhase("reveal");
+          const t = setTimeout(() => onComplete?.(), 750);
+          return () => clearTimeout(t);
+        }
       }
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [onComplete]);
+  }, [onComplete, genMode, resultUrl, phaseForce]);
+
+  // En mode generate, passer en reveal dès que l'API renvoie la miniature
+  useEffect(() => {
+    if (genMode && stuckAtFull && resultUrl) {
+      setPhase("reveal");
+      const t = setTimeout(() => onComplete?.(), 750);
+      return () => clearTimeout(t);
+    }
+  }, [genMode, stuckAtFull, resultUrl, onComplete]);
 
   // L'ours s'enfuit après le remplissage
   const bearRun = phase === "reveal";
@@ -144,11 +187,11 @@ export function DownloadAnimation({
           )}
 
           {/* Miniature révélée */}
-          {phase === "reveal" && state?.thumbnailUrl && (
+          {phase === "reveal" && revealUrl && (
             <div className="reveal-img absolute inset-0 z-20">
               <img
-                src={state.thumbnailUrl}
-                alt={state.title || "Miniature"}
+                src={revealUrl}
+                alt={state?.title || "Miniature"}
                 className="w-full h-full object-cover rounded-xl"
               />
             </div>
@@ -166,17 +209,21 @@ export function DownloadAnimation({
 
         {/* Texte sous l'animation */}
         <p className="text-white/90 text-sm font-medium tracking-wide animate-in fade-in duration-300">
-          {phase === "fill" ? "L'ours IA prépare ta miniature…" : "Terminé ! Miniature prête"}
+          {phase === "fill"
+            ? genMode
+              ? "L'ours IA crée ta miniature…"
+              : "L'ours IA prépare ta miniature…"
+            : "Terminé ! Miniature prête"}
         </p>
 
         {/* L'ours qui s'enfuit (transition finale) */}
-        {bearRun && (
+        {bearRun && (genMode && !revealUrl ? null : (
           <img
             src={BEAR_RUN}
             alt=""
             className="bear-flee absolute -bottom-24 -right-8 w-28 h-28 pointer-events-none"
           />
-        )}
+        ))}
       </div>
     </div>
   );
