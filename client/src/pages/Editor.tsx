@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useActionEffect } from "@/components/ActionEffects";
+import { useDownloadAnimation, DownloadAnimation, type DownloadAnimationState } from "@/components/DownloadAnimation";
 import { toPng } from "html-to-image";
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation, useSearch } from "wouter";
@@ -444,6 +445,10 @@ export default function Editor() {
     };
   }, [isDragging, selectedId, dragStart, dragElStart, zoom, elements, pushHistory, resizeHandle, resizeStart]);
 
+  const { run: runDownload, isRunning: downloadRunning } = useDownloadAnimation();
+  const [downloadState, setDownloadState] = useState<DownloadAnimationState | null>(null);
+  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+
   const exportCanvas = async () => {
     if (!canvasRef.current) return;
     try {
@@ -458,12 +463,15 @@ export default function Editor() {
       if (isFreePlan) {
         finalDataUrl = await applyWatermark(dataUrl);
       }
+      // Stocker l'URL data pour le téléchargement réel après l'animation ours IA
       const link = document.createElement("a");
       link.href = finalDataUrl;
       link.download = "minia-ia-editee.png";
-      link.click();
-      triggerConfetti();
-      toast.success("Miniature exportée en PNG (1280×720) !");
+      downloadLinkRef.current = link;
+      // Animation ours IA liquide, puis déclenchement réel du téléchargement
+      const state: DownloadAnimationState = { thumbnailUrl: finalDataUrl, title: "Miniature exportée" };
+      setDownloadState(state);
+      runDownload(state);
     } catch (err) {
       console.error("Export PNG échoué, repli SVG", err);
       // Fallback: SVG export still works offline
@@ -474,6 +482,17 @@ export default function Editor() {
       toast.error("Export PNG indisponible — fichier SVG téléchargé à la place");
     }
   };
+
+  const onDownloadReady = useCallback(() => {
+    // Le fichier réel est stocké dans l'URL data ; on déclenche le clic de téléchargement
+    // après la révélation de la miniature par l'animation ours IA.
+    const el = downloadLinkRef.current;
+    if (el) {
+      el.click();
+      triggerConfetti();
+      toast.success("Miniature exportée en PNG (1280×720) !", { duration: 1800 });
+    }
+  }, [triggerConfetti]);
 
   /** Burn a "Minia IA" watermark into the bottom-right corner of the exported PNG */
   const applyWatermark = async (dataUrl: string): Promise<string> => {
@@ -1225,6 +1244,10 @@ export default function Editor() {
 
   return (
     <div className="min-h-screen bg-[#000] flex overflow-hidden">
+      {/* Animation de téléchargement « ours IA liquide » (overlay z-[150]) */}
+      {downloadRunning && (
+        <DownloadAnimation state={downloadState} onComplete={onDownloadReady} />
+      )}
       {renderLeftPanel()}
 
       {/* Zone centrale : topbar + canvas + variantes */}

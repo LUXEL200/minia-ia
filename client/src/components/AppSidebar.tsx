@@ -289,7 +289,26 @@ export function AppSidebar({
                     onClose();
                     if (toggleTheme) {
                       toggleTheme();
-                      toast.success(theme === "dark" ? "Mode clair activé" : "Mode sombre activé", { duration: 1500 });
+                      // Après toggle, le thème vient de basculer : afficher le NOUVEAU thème
+                      const next = theme === "dark" ? "light" : "dark";
+                      toast.success(next === "dark" ? "Mode sombre activé" : "Mode clair activé", {
+                        duration: 1800,
+                        position: "top-right",
+                        style: {
+                          borderRadius: 999,
+                          background: "var(--popover)",
+                          color: "var(--popover-foreground)",
+                          border: "1px solid var(--border)",
+                          boxShadow: "0 10px 40px rgba(0,0,0,.35)",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          minWidth: 180,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        },
+                        icon: next === "dark" ? "🌙" : "☀️",
+                      });
                     }
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"

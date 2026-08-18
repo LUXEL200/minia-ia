@@ -305,3 +305,9 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Toast « Mode sombre activé » plein écran sans animation sur mobile — durée réduite à 1.5s (toast sonner standard, discret, auto-dismiss)
 - [x] Clic « Notifications » dans le menu latéral = rien ne se passe — transformé en lien direct vers /notifications + suppression du dropdown bell mort
 - [x] Vérifier que les effets/feedback fonctionnent sur mobile — tests 81/81, tsc OK, screenshots mobile OK
+
+## Demandes utilisateur 18/08 (toast + animation ours IA)
+
+- [x] Toast corrigé : message synchronisé avec le thème réel, position top-right, style pill, durée 1.8s, emoji 🌙/☀️
+- [x] Animation de téléchargement « ours IA liquide » : rectangle se remplit de liquide multi-coloré (vagues animées), l'ours IA verse le liquide, puis s'enfuit en laissant la miniature (Editor « Exporter PNG »)
+- [x] Animation intégrée sur « Exporter PNG » de l'éditeur (téléchargement réel déclenché après la révélation) ; tests 81/81, tsc OK

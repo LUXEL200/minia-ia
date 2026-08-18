@@ -745,3 +745,46 @@ html.light .glow-btn:hover {
     animation: none !important;
   }
 }
+
+/* ===== Animation téléchargement « ours IA liquide » ===== */
+.liquid-waves {
+  background-repeat: repeat-x;
+  background-size: 50% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 64'%3E%3Cpath fill='rgba(255,255,255,0.35)' d='M0 32 C120 12,240 52,360 32 C480 12,600 52,720 32 C840 12,960 52,1080 32 C1200 12,1320 52,1440 32 V64 H0 Z'/%3E%3C/svg%3E");
+  animation: liquid-wave 1.6s linear infinite;
+}
+@keyframes liquid-wave {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.bear-pour {
+  animation: bear-pour-bob 1.2s ease-in-out infinite;
+}
+@keyframes bear-pour-bob {
+  0%, 100% { transform: translate(-50%, 0) rotate(-4deg); }
+  50% { transform: translate(-50%, -6px) rotate(2deg); }
+}
+
+.bear-flee {
+  animation: bear-flee-run 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+@keyframes bear-flee-run {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  40% { opacity: 1; transform: translate(-12px, 4px) scale(1.05); }
+  100% { opacity: 0; transform: translate(360px, -200px) scale(0.5); }
+}
+
+.reveal-img {
+  animation: reveal-pop 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+@keyframes reveal-pop {
+  0% { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-waves, .bear-pour, .bear-flee, .reveal-img {
+    animation: none;
+  }
+}
