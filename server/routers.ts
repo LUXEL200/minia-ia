@@ -84,6 +84,7 @@ import {
   getApiKeysByUserId,
   createApiKey,
   revokeApiKey,
+  deleteApiKey,
   getNotificationsByUserId,
   getUnreadCountByUserId,
   getRecentUnreadNotifications,
@@ -659,6 +660,13 @@ export const apiKeysRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       await revokeApiKey(input.id, ctx.user.id);
+      return { success: true } as const;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await deleteApiKey(input.id, ctx.user.id);
       return { success: true } as const;
     }),
 });

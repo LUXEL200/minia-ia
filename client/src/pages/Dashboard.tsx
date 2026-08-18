@@ -33,6 +33,15 @@ const STYLES = [
 
 const STYLE_LABELS: Record<string, string> = Object.fromEntries(STYLES.map(s => [s.id, s.label]));
 
+const STYLE_DESCRIPTIONS: Record<string, string> = {
+  viral: "Texte gros et lisible, couleurs vibrantes, composition percutante pour maximiser le taux de clic.",
+  mrbeast: "Expression faciale exagérée, couleurs saturées, texte géant, énergie maximale.",
+  minimalist: "Design épuré, fond en dégradé subtil, typographie élégante et moderne.",
+  dramatic: "Éclairage sombre et cinématique, couleurs intenses, rendu professionnel.",
+  tech: "Design futuriste, effets néon lumineux, éléments d'interface numérique.",
+  retro: "Palette vintage, grain de film, typographie nostalgique années 80/90.",
+};
+
 function getDateFromPeriod(period: string): string | undefined {
   const now = new Date();
   if (period === "today") {
@@ -919,6 +928,9 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
+        <p className="text-[11px] text-muted-foreground mt-2">
+          {STYLE_DESCRIPTIONS[style] ?? ""}
+        </p>
       </div>
 
       {/* Quantity */}
@@ -1004,6 +1016,16 @@ export default function Dashboard() {
             setGenAnimPhase(null);
             setGenAnimResultUrl(null);
           }}
+          onRetry={() => {
+            setGenAnimPhase(null);
+            setGenAnimResultUrl(null);
+            if (isBatchGenerating) {
+              void handleBatchGenerate();
+            } else {
+              void handleGenerate();
+            }
+          }}
+          disableSound={typeof window !== "undefined" && localStorage.getItem("minia-anim-sound") === "0"}
         />
       )}
       <main className="pt-2">

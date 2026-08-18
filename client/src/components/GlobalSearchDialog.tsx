@@ -43,12 +43,12 @@ export function GlobalSearchDialog({ open, onClose }: { open: boolean; onClose: 
     (results?.trash.length ?? 0);
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-start justify-center bg-black/70 backdrop-blur-sm p-4 pt-[10vh]" onClick={onClose}>
+    <div className="fixed inset-0 z-[120] flex items-start justify-center bg-black/70 backdrop-blur-sm p-3 pt-4 sm:p-4 sm:pt-[10vh]" onClick={onClose}>
       <div
-        className="w-full max-w-lg bg-popover border border-border rounded-2xl shadow-2xl flex flex-col max-h-[70vh] overflow-hidden"
+        className="w-full max-w-lg bg-popover border border-border rounded-2xl shadow-2xl flex flex-col max-h-[70vh] sm:max-h-[70vh] h-[92vh] sm:h-auto overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 px-4 border-b border-border">
+        <div className="flex items-center gap-2 px-3 sm:px-4 border-b border-border flex-shrink-0">
           <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <input
             ref={inputRef}
@@ -65,7 +65,7 @@ export function GlobalSearchDialog({ open, onClose }: { open: boolean; onClose: 
           {isLoading && <Loader2 className="w-4 h-4 text-zinc-400 animate-spin flex-shrink-0" />}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-5">
           {!debouncedQuery && (
             <div className="text-center py-10">
               <Search className="w-8 h-8 text-muted-foreground/70 mx-auto mb-2" />
@@ -167,7 +167,7 @@ function ResultSection({
       <h3 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
         {icon} {title} <span className="text-muted-foreground/70 ml-auto">{items.length}</span>
       </h3>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
         {items.slice(0, 6).map(item => (
           <div key={item.id} className="group relative aspect-video rounded-lg overflow-hidden bg-muted border border-border">
             {item.imageUrl ? (

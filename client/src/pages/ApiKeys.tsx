@@ -30,6 +30,8 @@ export default function ApiKeysPage() {
   const { data: apiKeys, isLoading, refetch } = trpc.apiKeys.list.useQuery();
   const createKey = trpc.apiKeys.create.useMutation();
   const revokeKey = trpc.apiKeys.revoke.useMutation();
+  const deleteKey = trpc.apiKeys.delete.useMutation();
+  const [keyToDelete, setKeyToDelete] = useState<number | null>(null);
 
   const handleCreate = () => {
     if (!keyName.trim()) {
@@ -59,6 +61,20 @@ export default function ApiKeysPage() {
         onSuccess: () => {
           toast.success("Clé révoquée");
           refetch();
+        },
+        onError: (err) => toast.error(err.message),
+      }
+    );
+  };
+
+  const handleDelete = (id: number) => {
+    deleteKey.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          toast.success("Clé API supprimée définitivement");
+          refetch();
+          setKeyToDelete(null);
         },
         onError: (err) => toast.error(err.message),
       }
@@ -172,8 +188,15 @@ export default function ApiKeysPage() {
                               </button>
                               <button
                                 onClick={() => handleRevoke(k.id)}
-                                className="text-zinc-400 hover:text-red-400 p-1.5 transition-colors"
+                                className="text-zinc-400 hover:text-orange-400 p-1.5 transition-colors"
                                 title="Révoquer la clé"
+                              >
+                                <X size={14} />
+                              </button>
+                              <button
+                                onClick={() => setKeyToDelete(k.id)}
+                                className="text-zinc-400 hover:text-red-400 p-1.5 transition-colors"
+                                title="Supprimer définitivement"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -210,6 +233,36 @@ export default function ApiKeysPage() {
             >
               <Copy size={14} /> Copier la clé
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {keyToDelete !== null && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Supprimer la clé</h2>
+              <button onClick={() => setKeyToDelete(null)} className="text-zinc-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-zinc-400 mb-5">Cette action est irréversible. La clé sera définitivement supprimée.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setKeyToDelete(null)}
+                className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(keyToDelete)}
+                disabled={deleteKey.isPending}
+                className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                {deleteKey.isPending ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
           </div>
         </div>
       )}

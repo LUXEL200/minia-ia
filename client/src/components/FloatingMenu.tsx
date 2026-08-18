@@ -5,11 +5,13 @@
  * tous les sous-menus (AppSidebar partagé).
  */
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { Menu, X } from "lucide-react";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function FloatingMenu({ pageLabel = "Minia IA" }: { pageLabel?: string }) {
+  const [location] = useLocation();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { theme } = useTheme();
@@ -29,6 +31,9 @@ export default function FloatingMenu({ pageLabel = "Minia IA" }: { pageLabel?: s
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Ne pas afficher le bouton Menu sur la landing page (la Navbar gère déjà la navigation publique)
+  if (location === "/") return null;
 
   return (
     <>

@@ -37,7 +37,7 @@ export function toastRich(
                 ? "text-red-400"
                 : variant === "warning"
                   ? "text-amber-400"
-                  : "text-cyan-400"
+                  : "text-orange-400"
           }`}
         />
         <span className="flex flex-col gap-0.5">

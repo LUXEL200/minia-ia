@@ -322,3 +322,18 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 
 - [x] Vérifier que les mises à jour V21→V23 sont bien déployées en production — bundle prod contient liquidTheme/DownloadAnimation/ours IA ; explication cache navigateur fournie à l'utilisateur
 - [x] Animation ours IA pendant la génération de miniatures dans le dashboard (génération simple + lot) : rectangle se remplit pendant l'appel API, révélation de la première miniature réussie + confetti + toast ; tests 81/81, tsc OK
+
+## Vague V25 (demande utilisateur — 18/08, captures laptop + mobile)
+
+- [ ] Compteur 0→100 % continu pendant la génération (ne pas rester bloqué si l'API prend plus que l'animation)
+- [ ] Son « plouf » discret à la fin de l'animation ours IA, désactivable dans les paramètres
+- [ ] Panneau « Réessaie » si toutes les générations échouent (l'ours revient avec le bouton réessayer)
+- [ ] Erreur OAuth laptop : « code and state are required » au callback + « Paramètres OAuth introuvables » — diagnostic et correction
+- [ ] Bouton Menu visible sur la landing (ne devrait pas apparaître) — le cacher sur /
+- [ ] Interface Canvas non responsive — vérifier et corriger le rendu mobile/tablette de l'éditeur
+- [ ] Boutons Calque et Fond font la même chose (upload image) — clarifier leurs rôles distincts
+- [ ] Styles de génération cohérents avec le choix de l'utilisateur (prompt aligné sur le style sélectionné)
+- [ ] Pastille des switches qui déborde dans les paramètres — corriger l'overflow
+- [ ] Recherche globale non responsive + pas de bouton retour — responsive tous appareils + bouton retour
+- [ ] Impossible de supprimer une clé API créée — corriger la suppression (apiKeys.delete)
+- [ ] Tous les toasts de l'application animés / avec effets

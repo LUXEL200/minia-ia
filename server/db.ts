@@ -518,7 +518,7 @@ export async function emptyTrash(userId: number) {
 export async function getApiKeysByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt));
+  return db.select().from(apiKeys).where(and(eq(apiKeys.userId, userId), eq(apiKeys.isActive, "active"))).orderBy(desc(apiKeys.createdAt));
 }
 
 export async function createApiKey(userId: number, name: string, expiryMonths?: number) {
@@ -534,6 +534,13 @@ export async function revokeApiKey(id: number, userId: number) {
   const db = await getDb();
   if (!db) return false;
   await db.update(apiKeys).set({ isActive: "revoked" }).where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)));
+  return true;
+}
+
+export async function deleteApiKey(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(apiKeys).where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)));
   return true;
 }
 

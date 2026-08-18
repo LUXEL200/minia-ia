@@ -14,6 +14,8 @@ import {
   Smartphone, Tablet, Youtube, X, Heart, Sparkles, UploadCloud,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/useMobile";
 
 
 interface EditorTextElement {
@@ -88,6 +90,9 @@ export default function Editor() {
   const [bgFit, setBgFit] = useState<"cover" | "contain">("cover");
   const [isDragging, setIsDragging] = useState(false);
   const [devicePreview, setDevicePreview] = useState<"none" | "phone" | "tablet" | "youtube">("none");
+  // Responsive : en mobile/tablette (<1024px), le panneau gauche devient un Sheet
+  const [showLeftPanel, setShowLeftPanel] = useState(false);
+  const isNarrow = useIsMobile();
 
   // === Format du canevas (dynamique selon le panneau gauche) ===
   const [canvasSize, setCanvasSize] = useState({ w: 640, h: 360 });
@@ -361,7 +366,7 @@ export default function Editor() {
 
   const handleElementMouseDown = (e: React.MouseEvent, elId: string) => {
     // Ignore drags that start on a resize handle (pointer-events-auto divs)
-    if ((e.target as HTMLElement).dataset.resize) return;
+        if ((e.target as HTMLElement).dataset.resize) return;
     e.stopPropagation();
     setSelectedId(elId);
     setIsDragging(true);
@@ -369,14 +374,29 @@ export default function Editor() {
     const el = elements.find(e => e.id === elId);
     if (el) setDragElStart({ x: el.x, y: el.y });
   };
-
+  // Auto-fit du canvas en mobile : zoom effectif capé pour tenir dans la fenêtre (déclaré avant le useEffect drag/resize qui l'utilise)
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+  useEffect(() => {
+    if (!isNarrow) return;
+    const el = canvasContainerRef.current;
+    if (!el) return;
+    const measure = () => setContainerWidth(el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isNarrow]);
+  const effectiveZoom = useMemo(
+    () => (isNarrow && containerWidth ? Math.min(1, Math.max(0.4, containerWidth / canvasSize.w)) : 1) * zoom,
+    [isNarrow, containerWidth, zoom, canvasSize.w]
+  );
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!selectedId) return;
       // --- Resize in progress
       if (resizeHandle && resizeStart) {
-        const dx = (e.clientX - resizeStart.clientX) / zoom;
-        const dy = (e.clientY - resizeStart.clientY) / zoom;
+        const dx = (e.clientX - resizeStart.clientX) / effectiveZoom;
+        const dy = (e.clientY - resizeStart.clientY) / effectiveZoom;
         const el = elements.find(x => x.id === selectedId);
         if (!el) return;
         const MIN = 20;
@@ -420,8 +440,8 @@ export default function Editor() {
       }
       // --- Drag in progress
       if (!isDragging) return;
-      const dx = (e.clientX - dragStart.x) / zoom;
-      const dy = (e.clientY - dragStart.y) / zoom;
+      const dx = (e.clientX - dragStart.x) / effectiveZoom;
+      const dy = (e.clientY - dragStart.y) / effectiveZoom;
       updateElement(selectedId, {
         x: Math.max(0, dragElStart.x + dx),
         y: Math.max(0, dragElStart.y + dy),
@@ -443,7 +463,7 @@ export default function Editor() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, selectedId, dragStart, dragElStart, zoom, elements, pushHistory, resizeHandle, resizeStart]);
+  }, [isDragging, selectedId, dragStart, dragElStart, effectiveZoom, elements, pushHistory, resizeHandle, resizeStart]);
 
   const { run: runDownload, isRunning: downloadRunning } = useDownloadAnimation();
   const [downloadState, setDownloadState] = useState<DownloadAnimationState | null>(null);
@@ -874,14 +894,16 @@ export default function Editor() {
           <button
             onClick={() => bgUploadInputRef.current?.click()}
             className="flex items-center justify-center gap-1.5 bg-card hover:bg-card/80 border border-border text-xs text-foreground rounded-lg px-2 py-2 transition-colors"
+            title="Remplace l'image de fond du canevas"
           >
             <Layers className="w-3.5 h-3.5" /> Fond
           </button>
           <button
             onClick={insertImageAsLayer as any}
             className="flex items-center justify-center gap-1.5 bg-card hover:bg-card/80 border border-border text-xs text-foreground rounded-lg px-2 py-2 transition-colors"
+            title="Ajoute une image comme calque déplaçable par-dessus"
           >
-            <Move className="w-3.5 h-3.5" /> Calque
+            <Move className="w-3.5 h-3.5" /> Élément
           </button>
           {bgImageUrl && (
             <button
@@ -1271,16 +1293,25 @@ export default function Editor() {
     return null;
   };
 
+  // Responsive : en mobile/tablette (<1024px), le panneau gauche devient un Sheet
   return (
     <div className="min-h-screen bg-[#000] flex overflow-hidden">
       {/* Animation de téléchargement « ours IA liquide » (overlay z-[150]) */}
       {downloadRunning && (
         <DownloadAnimation state={downloadState} onComplete={onDownloadReady} />
       )}
-      {renderLeftPanel()}
+      {isNarrow ? (
+        <Sheet open={showLeftPanel} onOpenChange={setShowLeftPanel}>
+          <SheetContent side="left" className="w-full sm:w-[85%] p-0 overflow-y-auto bg-background">
+            {renderLeftPanel()}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        renderLeftPanel()
+      )}
 
       {/* Zone centrale : topbar + canvas + variantes */}
-      <div className="flex-1 flex flex-col min-w-0 z-10">
+      <div className="flex-1 flex flex-col min-w-0 z-10 min-h-screen lg:min-h-0">
         {/* Topbar pro */}
         <div className="h-14 shrink-0 border-b border-border bg-background flex items-center px-3 gap-2 relative pr-20">
           <Link
@@ -1291,6 +1322,17 @@ export default function Editor() {
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden md:inline text-xs font-medium">Tableau de bord</span>
           </Link>
+
+          {isNarrow && (
+            <button
+              onClick={() => setShowLeftPanel(true)}
+              className="flex items-center gap-1.5 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground hover:bg-muted transition-colors"
+              title="Outils et formats"
+            >
+              <Menu className="w-4 h-4" />
+              <span className="hidden sm:inline">Outils</span>
+            </button>
+          )}
 
           <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
@@ -1328,15 +1370,17 @@ export default function Editor() {
             <div className="w-px h-5 bg-border mx-1" />
             <button
               onClick={() => setZoom(z => Math.min(2, z + 0.1))}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              title="Zoom +"
+              disabled={isNarrow}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
+              title="Zoom + (déactivé en mode mobile, zoom auto)"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
               onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              title="Zoom -"
+              disabled={isNarrow}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
+              title="Zoom - (déactivé en mode mobile, zoom auto)"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
@@ -1367,7 +1411,7 @@ export default function Editor() {
 
           {/* Droite : zoom, filigrane, export */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
+            <span className="text-[10px] text-muted-foreground w-10 text-center">{Math.round(effectiveZoom * 100)}%</span>
             {isFreePlan && (
               <span className="hidden lg:inline-flex text-[10px] text-amber-400 border border-amber-400/30 rounded-full px-2 py-0.5">
                 Filigrane
@@ -1423,9 +1467,10 @@ export default function Editor() {
         )}
 
         {/* Canvas — drag & drop images directly onto it */}
+        <div className="flex-1 min-h-0 flex items-center justify-center p-2 lg:p-4">
         <div
           ref={canvasContainerRef}
-          className="relative overflow-auto max-w-full max-h-[70vh] border border-border rounded-lg transition-colors"
+          className="relative overflow-auto max-w-full max-h-[70vh] w-full border border-border rounded-lg transition-colors"
           style={{ cursor: "default" }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -1446,21 +1491,21 @@ export default function Editor() {
             data-canvas="true"
             onMouseDown={handleCanvasMouseDown}
             style={{
-              width: canvasSize.w * zoom,
-              height: canvasSize.h * zoom,
+              width: canvasSize.w * effectiveZoom,
+              height: canvasSize.h * effectiveZoom,
               backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
               backgroundImage: bgImageUrl ? `url("${bgImageUrl}")` : undefined,
               backgroundSize: bgFit,
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
-              transform: `scale(${zoom})`,
+              transform: `scale(${effectiveZoom})`,
               transformOrigin: "top left",
               position: "relative",
             }}
             className="relative"
           >
             {/* Grid overlay when zoomed */}
-            {zoom > 1 && (
+            {zoom > 1 && !isNarrow && (
               <div className="absolute inset-0 pointer-events-none opacity-5"
                 style={{
                   backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
@@ -1596,8 +1641,9 @@ export default function Editor() {
         </DialogContent>
       </Dialog>
 
-      {/* Panneau droit propriétés */}
-      {renderPropertyPanel()}
+      </div>
+      {/* Panneau Propriétés : en mode narrow il est masqué (l'élément sélectionné reste éditible via les poignées et les sliders de la topbar restent accessibles) */}
+      {!isNarrow && renderPropertyPanel()}
     </div>
   );
 }
