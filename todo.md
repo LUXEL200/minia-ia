@@ -2140,4 +2140,4 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 --snip--
 
 - [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
-- [ ] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
