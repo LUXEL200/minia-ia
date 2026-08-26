@@ -30,6 +30,9 @@ const fallbackThumbs = [
   "/manus-storage/thumbnail-dramatic_1e94decd.png",
 ];
 
+const heroDemoVideo = "/manus-storage/minia-ia-hero-demo_8c30cba8.mp4";
+const heroDemoPoster = "/manus-storage/minia-ia-hero-demo-poster_00549801.jpg";
+
 const workflow = [
   { number: "01", icon: Wand2, title: "Décris ton idée", text: "Un sujet, une émotion, un style. Minia IA transforme ton intention en direction visuelle." },
   { number: "02", icon: LayoutTemplate, title: "Compare les variantes", text: "Génère plusieurs pistes et choisis celle qui porte le mieux ton titre et ton visage." },
@@ -123,18 +126,32 @@ export default function Home() {
                   <span className="ml-2 text-[10px] font-mono text-muted-foreground">minia.ai / generate</span>
                   <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-orange-400" /> en attente d'une idée</span>
                 </div>
-                <div className="grid gap-3 p-3 md:grid-cols-[1.1fr_.9fr]">
-                  <div className="rounded-xl border border-border bg-background/80 p-5 text-left">
-                    <div className="mb-3 flex items-center justify-between"><span className="text-[10px] uppercase tracking-[.18em] text-muted-foreground">Ton brief</span><span className="rounded-full bg-orange-400/10 px-2 py-1 text-[10px] text-orange-300">Viral</span></div>
-                    <p className="min-h-20 text-sm leading-6 text-foreground/90">« Je teste les outils IA qui promettent de gagner du temps. Je veux une miniature très lisible, expressive et contrastée. »</p>
-                    <div className="mt-5 flex items-center justify-between"><span className="text-[10px] text-muted-foreground">Style cohérent avec ton choix</span><button onClick={openGenerator} className="rounded-lg bg-orange-400 px-3 py-2 text-[11px] font-semibold text-[#14100c] transition-transform hover:-translate-y-0.5">Générer</button></div>
+                <div className="p-3">
+                  <div className="relative overflow-hidden rounded-xl border border-border bg-background">
+                    <video
+                      className="block aspect-video w-full object-cover"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      controls
+                      preload="metadata"
+                      poster={heroDemoPoster}
+                      aria-label="Démonstration vidéo du générateur de miniatures Minia IA"
+                    >
+                      <source src={heroDemoVideo} type="video/mp4" />
+                      Ton navigateur ne peut pas lire cette vidéo. Lance directement le générateur pour découvrir Minia IA.
+                    </video>
+                    <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-full border border-orange-300/30 bg-[#09090b]/80 px-3 py-1.5 text-[10px] uppercase tracking-[.16em] text-orange-200 backdrop-blur-md">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-300" /> Démo produit
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {gallery.slice(0, 4).map((src, index) => (
-                      <motion.div key={`${src}-${index}`} animate={{ y: [0, index % 2 ? -4 : 4, 0], rotate: [index % 2 ? 1 : -1, 0, index % 2 ? 1 : -1] }} transition={{ duration: 5 + index, repeat: Infinity, ease: "easeInOut" }} className={`overflow-hidden rounded-xl border border-border ${index === 0 ? "col-span-2 aspect-[2.25/1]" : "aspect-video"}`}>
-                        <img src={src} alt="Aperçu de miniature YouTube" className="h-full w-full object-cover" />
-                      </motion.div>
-                    ))}
+                  <div className="flex flex-col gap-3 px-1 pt-4 text-left sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[.18em] text-orange-300">Brief → variantes → Canvas → export</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Regarde le parcours, puis lance ta propre génération.</p>
+                    </div>
+                    <button onClick={openGenerator} className="inline-flex shrink-0 items-center justify-center rounded-lg bg-orange-400 px-3 py-2 text-[11px] font-semibold text-[#14100c] transition-transform hover:-translate-y-0.5">Essayer avec ton idée <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></button>
                   </div>
                 </div>
               </div>

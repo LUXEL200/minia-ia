@@ -25,3 +25,7 @@ Les sections recommandées pour Minia IA sont : hero « une idée, quatre miniat
 ## Vérification de la refonte
 
 La landing Minia IA adopte maintenant un hero centré avec grille éditoriale, badge capsule, titre grotesk + italique orange, CTA arrondi, mockup de génération et galerie horizontale animée. Les sections workflow, gain de temps, fonctionnalités, CTA et FAQ suivent le rythme éditorial de la référence tout en restant orientées miniatures YouTube. Le header mobile affiche désormais un bouton menu accessible, et la capture à 390 px ne présente pas de débordement visible. La capture desktop conserve une composition dense mais lisible, avec la galerie et le mockup qui prolongent naturellement le hero.
+
+## Vérification vidéo hero — 26/08/2026
+
+La vidéo de démonstration est intégrée dans le cadre produit du hero avec poster, lecture automatique silencieuse, boucle, lecture inline et contrôles natifs accessibles. Sur desktop, elle reste contenue dans la carte éditoriale sans modifier la hiérarchie du titre ni des CTA. Sur mobile étroit, le ratio 16:9 est conservé, le bouton d’action passe sous la vidéo et aucun débordement horizontal n’a été observé. Le fallback textuel est inclus dans l’élément vidéo. Asset hébergé via `/manus-storage/minia-ia-hero-demo_8c30cba8.mp4` et poster `/manus-storage/minia-ia-hero-demo-poster_00549801.jpg`.

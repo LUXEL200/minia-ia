@@ -2158,3 +2158,11 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Ajouter les sections workflow, gain de temps, fonctionnalités, tarifs, FAQ et CTA dans le nouveau style
 - [x] Vérifier le responsive, les liens d'authentification et les tests, puis publier un checkpoint
 
+
+## Démonstration vidéo du générateur dans le hero
+
+- [x] Préparer une vidéo de démonstration du parcours réel Minia IA et un poster de repli
+- [x] Héberger l'asset vidéo selon le stockage webdev et l'intégrer dans le hero
+- [x] Ajouter autoplay muet, boucle, contrôles accessibles, légende et fallback responsive
+- [x] Vérifier la vidéo sur desktop/mobile, exécuter TypeScript et Vitest, puis publier un checkpoint
+
