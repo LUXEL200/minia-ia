@@ -16,6 +16,12 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useMobile";
+import {
+  getEditorDraftKey,
+  parseEditorDraft,
+  serializeEditorDraft,
+  type EditorDraftSnapshot,
+} from "@/lib/editorDraft";
 
 
 interface EditorTextElement {
@@ -115,6 +121,7 @@ export default function Editor() {
 
   // === Versions panel ===
   const thumbnailId = Number(new URLSearchParams(search).get("thumbnailId") || "0");
+  const draftKey = useMemo(() => getEditorDraftKey(thumbnailId), [thumbnailId]);
   const [showVersions, setShowVersions] = useState(false);
   const [versionName, setVersionName] = useState("");
 
@@ -472,6 +479,117 @@ export default function Editor() {
   const [downloadState, setDownloadState] = useState<DownloadAnimationState | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
   const [liquidTheme, setLiquidTheme] = useState<"multicolor" | "orange" | "white">("multicolor");
+
+  // Brouillon local : il reste dans le navigateur et ne remplace pas la sauvegarde serveur.
+  const [draftStatus, setDraftStatus] = useState<"idle" | "restoring" | "saving" | "saved" | "error">("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [draftAvailable, setDraftAvailable] = useState(false);
+  const [draftReady, setDraftReady] = useState(false);
+
+  const draftSnapshot = useMemo<EditorDraftSnapshot>(() => ({
+    version: 1,
+    savedAt: Date.now(),
+    elements,
+    bgImageUrl,
+    bgColor,
+    bgTransparent,
+    bgFit,
+    canvasSize,
+    liquidTheme,
+  }), [elements, bgImageUrl, bgColor, bgTransparent, bgFit, canvasSize, liquidTheme]);
+
+  const applyDraftSnapshot = useCallback((draft: EditorDraftSnapshot, announce = false) => {
+    const restoredElements = draft.elements as EditorElement[];
+    setElements(restoredElements);
+    setHistory([restoredElements]);
+    setHistoryIndex(0);
+    setSelectedId(null);
+    setBgImageUrl(draft.bgImageUrl);
+    setBgColor(draft.bgColor);
+    setBgTransparent(draft.bgTransparent);
+    setBgFit(draft.bgFit);
+    setCanvasSize(draft.canvasSize);
+    setLiquidTheme(draft.liquidTheme);
+    setLastSavedAt(draft.savedAt);
+    setDraftAvailable(true);
+    setDraftStatus("saved");
+    if (announce) toast.success("Brouillon local restauré", { duration: 1800 });
+  }, []);
+
+  const restoreLocalDraft = useCallback((announce = true) => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      const draft = parseEditorDraft(raw);
+      if (!draft) {
+        setDraftAvailable(false);
+        setDraftStatus("idle");
+        if (announce) toast.info("Aucun brouillon local valide à restaurer");
+        return false;
+      }
+      applyDraftSnapshot(draft, announce);
+      return true;
+    } catch {
+      setDraftStatus("error");
+      if (announce) toast.error("Le brouillon local ne peut pas être lu");
+      return false;
+    }
+  }, [applyDraftSnapshot, draftKey]);
+
+  const clearLocalDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(draftKey);
+      setDraftAvailable(false);
+      setLastSavedAt(null);
+      setDraftStatus("idle");
+      toast.success("Brouillon local supprimé", { duration: 1800 });
+    } catch {
+      toast.error("Impossible de supprimer le brouillon local");
+    }
+  }, [draftKey]);
+
+  // Hydrate once per editor scope. Invalid or corrupt local data is ignored safely.
+  useEffect(() => {
+    setDraftReady(false);
+    setDraftStatus("restoring");
+    setDraftAvailable(false);
+    setLastSavedAt(null);
+    const restored = restoreLocalDraft(false);
+    if (!restored) setDraftStatus("idle");
+    setDraftReady(true);
+    if (restored) toast.success("Brouillon local restauré", { duration: 1800 });
+  }, [draftKey, restoreLocalDraft]);
+
+  // Debounce writes so dragging, typing and resizing never flood localStorage.
+  useEffect(() => {
+    if (!draftReady) return;
+    setDraftStatus("saving");
+    const timer = window.setTimeout(() => {
+      const serialized = serializeEditorDraft(draftSnapshot);
+      if (!serialized) {
+        setDraftStatus("error");
+        return;
+      }
+      try {
+        localStorage.setItem(draftKey, serialized);
+        setLastSavedAt(draftSnapshot.savedAt);
+        setDraftAvailable(true);
+        setDraftStatus("saved");
+      } catch {
+        setDraftStatus("error");
+      }
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [draftReady, draftKey, draftSnapshot]);
+
+  const draftStatusLabel = draftStatus === "restoring"
+    ? "Restauration…"
+    : draftStatus === "saving"
+      ? "Sauvegarde…"
+      : draftStatus === "error"
+        ? "Sauvegarde impossible"
+        : lastSavedAt
+          ? `Sauvé à ${new Date(lastSavedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`
+          : "Pas encore sauvegardé";
 
   const exportCanvas = async () => {
     if (!canvasRef.current) return;
@@ -936,6 +1054,44 @@ export default function Editor() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Brouillon local */}
+      <div className="p-3 border-b border-border">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Save className={`w-3.5 h-3.5 shrink-0 ${draftStatus === "error" ? "text-red-400" : draftStatus === "saving" ? "text-orange-300 animate-pulse" : "text-orange-400"}`} />
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium text-foreground">Brouillon local</p>
+              <p className="text-[10px] text-muted-foreground truncate">{draftStatusLabel}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => restoreLocalDraft()}
+              disabled={!draftAvailable || draftStatus === "restoring"}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-35 disabled:pointer-events-none transition-colors"
+              title="Restaurer le dernier brouillon local"
+              aria-label="Restaurer le dernier brouillon local"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={clearLocalDraft}
+              disabled={!draftAvailable}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-red-400 hover:bg-red-500/10 disabled:opacity-35 disabled:pointer-events-none transition-colors"
+              title="Supprimer le brouillon local"
+              aria-label="Supprimer le brouillon local"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+        <p className="text-[10px] text-muted-foreground/80 mt-2 leading-relaxed">
+          Sauvegarde automatique dans ce navigateur. Les images importées sont conservées dans le brouillon.
+        </p>
       </div>
 
       <div className="flex-1" />
@@ -1431,6 +1587,12 @@ export default function Editor() {
 
           {/* Droite : zoom, filigrane, export */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <span
+              className={`sm:hidden inline-block w-2 h-2 rounded-full shrink-0 ${draftStatus === "error" ? "bg-red-400" : draftStatus === "saving" || draftStatus === "restoring" ? "bg-orange-300 animate-pulse" : "bg-orange-400"}`}
+              title={draftStatusLabel}
+              aria-label={draftStatusLabel}
+            />
+            <span className="hidden md:inline text-[10px] text-muted-foreground max-w-28 truncate" title={draftStatusLabel}>{draftStatusLabel}</span>
             <span className="hidden sm:inline text-[10px] text-muted-foreground w-10 text-center">{Math.round(effectiveZoom * 100)}%</span>
             {isFreePlan && (
               <span className="hidden lg:inline-flex text-[10px] text-amber-400 border border-amber-400/30 rounded-full px-2 py-0.5">

@@ -2141,3 +2141,11 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 
 - [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
 - [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+
+## Sauvegarde automatique locale du Canvas
+
+- [x] Définir un format de brouillon local versionné et limité aux données sérialisables du Canvas
+- [x] Sauvegarder automatiquement le travail en cours avec debounce et restaurer le brouillon au chargement
+- [x] Ajouter un indicateur d'état, une restauration explicite et la suppression du brouillon local
+- [x] Ajouter les tests unitaires et vérifier le Canvas sur desktop/mobile, puis publier un checkpoint
+
