@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useActionEffect } from "@/components/ActionEffects";
 import { useDownloadEffects } from "@/components/DownloadEffects";
 import { useDownloadAnimation, DownloadAnimation } from "@/components/DownloadAnimation";
+import GenerationCanvasTransition, { buildCanvasRoute, type GenerationCanvasPayload } from "@/components/GenerationCanvasTransition";
 import { Link, useLocation } from "wouter";
 import { startLogin } from "@/const";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
@@ -259,9 +260,28 @@ export default function Dashboard() {
     }
   }, [likesData]);
 
-  const { runGenerate, isRunning: genAnimationRunning, state: genAnimState } = useDownloadAnimation();
+  const { runGenerate, isRunning: genAnimationRunning, state: genAnimState, reset: resetGenAnimation } = useDownloadAnimation();
   const [genAnimResultUrl, setGenAnimResultUrl] = useState<string | null>(null);
   const [genAnimPhase, setGenAnimPhase] = useState<"reveal" | null>(null);
+  const [canvasTransition, setCanvasTransition] = useState<GenerationCanvasPayload | null>(null);
+
+  const openGeneratedCanvas = useCallback(() => {
+    if (!canvasTransition) return;
+    const route = buildCanvasRoute(canvasTransition);
+    resetGenAnimation();
+    setGenAnimPhase(null);
+    setGenAnimResultUrl(null);
+    setCanvasTransition(null);
+    navigate(route);
+  }, [canvasTransition, navigate, resetGenAnimation]);
+
+  const cancelCanvasTransition = useCallback(() => {
+    resetGenAnimation();
+    setGenAnimPhase(null);
+    setGenAnimResultUrl(null);
+    setCanvasTransition(null);
+    toastRich("info", "Tu restes sur le dashboard", { description: "La miniature reste disponible dans tes générations récentes." });
+  }, [resetGenAnimation]);
 
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim() || prompt.length < 10) {
@@ -273,6 +293,7 @@ export default function Dashboard() {
       return;
     }
 
+    const submittedPrompt = prompt.trim();
     setIsGenerating(true);
     // L'ours IA remplit le rectangle pendant la génération API
     setGenAnimResultUrl(null);
@@ -280,7 +301,7 @@ export default function Dashboard() {
     runGenerate();
     try {
       const result = await generateMutation.mutateAsync({
-        prompt: prompt.trim(),
+        prompt: submittedPrompt,
         style: style as any,
         quantity,
         ...(inspirationUrl ? { inspirationImageUrl: inspirationUrl } : {}),
@@ -296,8 +317,17 @@ export default function Dashboard() {
       });
       // Révéler la première miniature réussie dès la fin de l'API
       const first = result.thumbnails?.find(t => t.status === "completed" && t.imageUrl);
-      setGenAnimResultUrl(first?.imageUrl ?? null);
-      setGenAnimPhase("reveal");
+      if (first?.imageUrl) {
+        setCanvasTransition({
+          imageUrl: first.imageUrl,
+          prompt: submittedPrompt,
+          style,
+          styleLabel: STYLE_LABELS[style] ?? style,
+        });
+      }
+      resetGenAnimation();
+      setGenAnimResultUrl(null);
+      setGenAnimPhase(null);
       triggerConfetti();
       toast.success(`${result.successful} miniature(s) générée(s) !`);
       setPrompt("");
@@ -309,7 +339,7 @@ export default function Dashboard() {
     } finally {
       setIsGenerating(false);
     }
-  }, [prompt, credits, quantity, style, generateMutation, refetchThumbs, refetchCredits, runGenerate]);
+  }, [prompt, credits, quantity, style, generateMutation, refetchThumbs, refetchCredits, runGenerate, resetGenAnimation]);
 
   const handleBatchGenerate = useCallback(async () => {
     const prompts = batchPrompts.split("\n").filter(p => p.trim().length >= 10);
@@ -332,8 +362,17 @@ export default function Dashboard() {
         style: style as any,
       });
       const first = result.thumbnails?.find(t => t.status === "completed" && t.imageUrl);
-      setGenAnimResultUrl(first?.imageUrl ?? null);
-      setGenAnimPhase("reveal");
+      if (first?.imageUrl) {
+        setCanvasTransition({
+          imageUrl: first.imageUrl,
+          prompt: prompts[0] ?? "",
+          style,
+          styleLabel: STYLE_LABELS[style] ?? style,
+        });
+      }
+      resetGenAnimation();
+      setGenAnimResultUrl(null);
+      setGenAnimPhase(null);
       triggerConfetti();
       toast.success(`${result.successful} sur ${prompts.length} miniatures générées !`);
       setBatchPrompts("");
@@ -345,7 +384,7 @@ export default function Dashboard() {
     } finally {
       setIsBatchGenerating(false);
     }
-  }, [batchPrompts, credits, style, batchMutation, refetchThumbs, refetchCredits]);
+  }, [batchPrompts, credits, style, batchMutation, refetchThumbs, refetchCredits, resetGenAnimation]);
 
   const genAnimActive = isGenerating || isBatchGenerating || genAnimationRunning;
 
@@ -1022,6 +1061,14 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#000]">
       {renderHeader()}
+
+      {canvasTransition && (
+        <GenerationCanvasTransition
+          payload={canvasTransition}
+          onOpen={openGeneratedCanvas}
+          onCancel={cancelCanvasTransition}
+        />
+      )}
 
       {/* Animation ours IA pendant la génération */}
       {genAnimActive && genAnimState && (

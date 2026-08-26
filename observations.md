@@ -29,3 +29,7 @@ La landing Minia IA adopte maintenant un hero centré avec grille éditoriale, b
 ## Vérification vidéo hero — 26/08/2026
 
 La vidéo de démonstration est intégrée dans le cadre produit du hero avec poster, lecture automatique silencieuse, boucle, lecture inline et contrôles natifs accessibles. Sur desktop, elle reste contenue dans la carte éditoriale sans modifier la hiérarchie du titre ni des CTA. Sur mobile étroit, le ratio 16:9 est conservé, le bouton d’action passe sous la vidéo et aucun débordement horizontal n’a été observé. Le fallback textuel est inclus dans l’élément vidéo. Asset hébergé via `/manus-storage/minia-ia-hero-demo_8c30cba8.mp4` et poster `/manus-storage/minia-ia-hero-demo-poster_00549801.jpg`.
+
+## Vérification transition brief → Canvas — 26/08/2026
+
+Le Dashboard conserve son overlay de génération existant pendant l'appel API. Lorsqu'une génération réussit, le composant `GenerationCanvasTransition` affiche une étape dédiée de 1,65 s avec progression, aperçu de la première variante, brief, style, étapes « Brief reçu », « Variantes prêtes » et « Canvas prêt », bouton d'annulation et bouton d'ouverture immédiate. L'ouverture navigue vers `/editor` en transmettant l'image, le brief, le style et la source via `URLSearchParams`. Le Canvas affiche ensuite le contexte dans une capsule de topbar sur desktop et conserve la mise en page responsive sur mobile. Le helper de route a été isolé et couvert par deux tests unitaires.

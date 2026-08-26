@@ -70,6 +70,12 @@ type EditorElement = EditorTextElement | EditorShapeElement | EditorImageElement
 export default function Editor() {
   const [location, navigate] = useLocation();
   const search = useSearch();
+  const generationContext = useMemo(() => {
+    const params = new URLSearchParams(search);
+    const prompt = params.get("prompt")?.trim() ?? "";
+    const style = params.get("style")?.trim() ?? "";
+    return prompt || style ? { prompt, style } : null;
+  }, [search]);
   const canvasRef = useRef<HTMLDivElement>(null);
   const { triggerConfetti, triggerFlash, triggerShake } = useActionEffect();
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -1489,6 +1495,17 @@ export default function Editor() {
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden md:inline text-xs font-medium">Tableau de bord</span>
           </Link>
+
+          {generationContext && (
+            <div
+              className="hidden md:flex min-w-0 max-w-[280px] items-center gap-2 rounded-lg border border-orange-300/20 bg-orange-400/[.07] px-2.5 py-1.5"
+              title={generationContext.prompt || "Brief transmis depuis la génération"}
+            >
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-orange-300" />
+              <span className="shrink-0 text-[10px] font-medium text-orange-200">{generationContext.style || "Brief"}</span>
+              {generationContext.prompt && <span className="min-w-0 truncate text-[10px] text-muted-foreground">{generationContext.prompt}</span>}
+            </div>
+          )}
 
           {isNarrow && (
             <button

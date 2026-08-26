@@ -2166,3 +2166,11 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Ajouter autoplay muet, boucle, contrôles accessibles, légende et fallback responsive
 - [x] Vérifier la vidéo sur desktop/mobile, exécuter TypeScript et Vitest, puis publier un checkpoint
 
+
+## Transition animée brief → Canvas
+
+- [x] Repérer la soumission de génération et définir le contexte à transmettre au Canvas
+- [x] Ajouter une transition de préparation animée avec progression, annulation et état d'erreur
+- [x] Ouvrir le Canvas avec le brief, le style et la miniature générée contextualisés
+- [x] Vérifier l'accessibilité, le responsive, TypeScript et Vitest, puis publier un checkpoint
+
