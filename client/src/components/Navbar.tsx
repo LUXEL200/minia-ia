@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, X, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, Zap, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import {
@@ -133,6 +133,15 @@ export default function Navbar() {
           )}
         </div>
 
+        <button
+          type="button"
+          onClick={() => setMobileOpen(value => !value)}
+          className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/70 text-foreground transition-colors hover:border-orange-400/50 hover:text-orange-300"
+          aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={mobileOpen}
+        >
+          {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </button>
         </nav>
       {/* Mobile menu */}
       <AnimatePresence>

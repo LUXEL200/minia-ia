@@ -2149,3 +2149,12 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Ajouter un indicateur d'état, une restauration explicite et la suppression du brouillon local
 - [x] Ajouter les tests unitaires et vérifier le Canvas sur desktop/mobile, puis publier un checkpoint
 
+
+## Refonte landing inspirée d'Easy Visuel
+
+- [x] Définir le nouveau langage éditorial Minia IA : grille sombre, capsules, titres expressifs et palette bleu nuit/orange
+- [x] Refaire le header et le hero autour du prompt, des variantes et du Canvas
+- [x] Ajouter une galerie de miniatures en défilement et des reveals au scroll
+- [x] Ajouter les sections workflow, gain de temps, fonctionnalités, tarifs, FAQ et CTA dans le nouveau style
+- [x] Vérifier le responsive, les liens d'authentification et les tests, puis publier un checkpoint
+

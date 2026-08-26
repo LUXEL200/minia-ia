@@ -804,3 +804,47 @@ html.light .glow-btn:hover {
 [data-sonner-toast][data-removed="true"] {
   animation: toast-slide-out 0.2s ease-in both;
 }
+
+
+/* ===== Landing éditoriale Minia IA — direction Easy Visuel adaptée aux miniatures ===== */
+.editorial-landing {
+  --editorial-grid-line: color-mix(in oklch, var(--foreground) 7%, transparent);
+}
+.editorial-grid {
+  background-image:
+    linear-gradient(to right, var(--editorial-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--editorial-grid-line) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black 0%, black 72%, transparent 100%);
+}
+.editorial-card {
+  border: 1px solid color-mix(in oklch, var(--border) 88%, transparent);
+  border-radius: 1.15rem;
+  background: color-mix(in oklch, var(--card) 72%, transparent);
+  transition: transform 260ms var(--ease-out), border-color 260ms var(--ease-out), background-color 260ms var(--ease-out), box-shadow 260ms var(--ease-out);
+}
+.editorial-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
+  background: color-mix(in oklch, var(--card) 92%, transparent);
+  box-shadow: 0 18px 50px -28px color-mix(in oklch, var(--primary) 55%, transparent);
+}
+.editorial-card-accent {
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+  background: color-mix(in oklch, var(--primary) 8%, var(--card));
+}
+.marquee-track {
+  animation: editorial-marquee 42s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+@keyframes editorial-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+  .editorial-card { transition: none; }
+  .editorial-card:hover { transform: none; }
+}
