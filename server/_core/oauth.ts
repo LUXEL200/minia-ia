@@ -1,4 +1,10 @@
-import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, decodeOAuthState } from "@shared/const";
+import {
+  COOKIE_NAME,
+  ONE_YEAR_MS,
+  OAUTH_STATE_COOKIE,
+  OAUTH_STATE_FALLBACK_COOKIE,
+  decodeOAuthState,
+} from "@shared/const";
 import { parse as parseCookieHeader } from "cookie";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
@@ -15,64 +21,58 @@ export function registerOAuthRoutes(app: Express) {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
 
-    // Session relancée depuis le portail OAuth : le code est présent mais le state
-    // peut être absent (ex. clic sur "Utiliser un autre compte" dans le portail).
-    // Dans ce cas, on redirige vers le login propre pour relancer un échange complet.
-    if (!code) {
-      res.status(400).type("text/html").send(
-        `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Connexion Minia IA</title>
-        <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0f;color:#f5f5f7;font-family:system-ui,sans-serif}
-        .card{background:#14141c;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:32px;max-width:400px;text-align:center}
-        h1{font-size:18px;margin:0 0 8px}.p{color:#a1a1aa;font-size:14px;margin:0 0 20px}
-        a{display:inline-block;background:linear-gradient(90deg,#fb923c,#fdba74);color:#111;border-radius:999px;padding:10px 22px;font-weight:600;text-decoration:none;font-size:14px}</style></head>
-        <body><div class="card"><h1>Paramètres OAuth introuvables</h1>
-        <p class="p">La connexion n'a pas pu être finalisée automatiquement. Ce n'est pas grave : un simple clic relance la connexion proprement.</p>
-        <a href="/dashboard">Se connecter à Minia IA</a></div></body></html>`
-      );
+    // The provider must return both values. Without `state`, the token exchange
+    // cannot know which redirect URI was used and must not be attempted with an
+    // empty redirect URI (that was the source of the raw JSON error page).
+    if (!code || !state) {
+      console.warn("[OAuth] Callback missing code or state");
+      res.redirect(302, "/dashboard?auth_error=missing_state");
       return;
     }
 
-    // CSRF guard: the nonce in `state` should match the one-time cookie that
-    // startLogin set in the browser that began this login.
-    const { nonce } = state ? decodeOAuthState(state) : { nonce: undefined };
-    const expectedNonce = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
-    // Be fully tolerant: if the cookie is missing (blocked in some browsers/iframes/preview),
-    // still allow the login. The OAuth server validates the app-auth flow server-to-server.
-    // In preview/iframe environments, third-party cookies are often blocked (Safari ITP,
-    // Chrome third-party cookie deprecation, private browsing), causing the __Host- cookie
-    // to never arrive back at the callback. We trust the OAuth provider's validation.
-    if (nonce && expectedNonce && nonce !== expectedNonce) {
-      // Only reject if BOTH nonce and cookie are present but don't match (real CSRF attack).
-      console.warn("[OAuth] Nonce mismatch - blocking");
-      res.status(403).json({ error: "invalid oauth state" });
+    const decodedState = decodeOAuthState(state);
+    const { redirectUri, nonce, returnPath } = decodedState;
+    let callbackUrl: URL;
+    try {
+      callbackUrl = new URL(redirectUri);
+    } catch {
+      callbackUrl = new URL("https://invalid.local/");
+    }
+    if (!redirectUri || !/^https?:$/.test(callbackUrl.protocol) || callbackUrl.pathname !== "/api/oauth/callback") {
+      console.warn("[OAuth] Invalid redirect URI in state");
+      res.redirect(302, "/dashboard?auth_error=invalid_state");
       return;
     }
-    if (nonce && !expectedNonce) {
-      console.warn("[OAuth] Nonce cookie missing (likely blocked by browser) - allowing login");
+
+    // CSRF guard: accept either the hardened __Host- cookie (HTTPS) or the
+    // localhost-compatible fallback (plain HTTP). Some embedded browsers drop
+    // both cookies, so the provider's signed state remains the final validator.
+    const cookies = parseCookieHeader(req.headers.cookie ?? "");
+    const expectedNonce = cookies[OAUTH_STATE_COOKIE] ?? cookies[OAUTH_STATE_FALLBACK_COOKIE];
+    let normalizedExpectedNonce: string | undefined;
+    try {
+      normalizedExpectedNonce = expectedNonce ? decodeURIComponent(expectedNonce) : undefined;
+    } catch {
+      normalizedExpectedNonce = undefined;
     }
-    if (!nonce) {
-      console.warn("[OAuth] No nonce in state (legacy/external link) - allowing login");
+    if (nonce && normalizedExpectedNonce && nonce !== normalizedExpectedNonce) {
+      console.warn("[OAuth] Nonce mismatch - blocking");
+      res.redirect(302, "/dashboard?auth_error=invalid_state");
+      return;
+    }
+    if (nonce && !normalizedExpectedNonce) {
+      console.warn("[OAuth] Nonce cookie missing; continuing with provider validation");
     }
     res.clearCookie(OAUTH_STATE_COOKIE, { path: "/" });
+    res.clearCookie(OAUTH_STATE_FALLBACK_COOKIE, { path: "/" });
 
     try {
-      let tokenResponse = null;
-      try {
-        tokenResponse = await sdk.exchangeCodeForToken(code, state ?? "");
-      } catch (exchangeError) {
-        if (!state) {
-          // Pas de state possible (session relancée depuis le portail) : la page
-          // HTML de relance a déjà été servie plus haut ; l'échange ne peut pas
-          // aboutir sans state, on redirige donc vers le login.
-          res.redirect(302, "/dashboard");
-          return;
-        }
-        throw exchangeError;
-      }
+      const tokenResponse = await sdk.exchangeCodeForToken(code, state);
       const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
 
       if (!userInfo.openId) {
-        res.status(400).json({ error: "openId missing from user info" });
+        console.warn("[OAuth] Provider returned no openId");
+        res.redirect(302, "/dashboard?auth_error=profile");
         return;
       }
 
@@ -92,16 +92,16 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      // Redirect to dashboard after successful login for better UX.
-      // Fall back to / if state doesn't have a valid redirectUri.
-      const { redirectUri } = state ? decodeOAuthState(state) : { redirectUri: undefined };
-      const redirectTarget = redirectUri ? new URL(redirectUri).pathname === "/" ? "/dashboard" : redirectUri : "/dashboard";
+      // Only allow an internal path from state; never reflect an arbitrary URL.
+      const redirectTarget = typeof returnPath === "string" && returnPath.startsWith("/") && !returnPath.startsWith("//")
+        ? returnPath
+        : "/dashboard";
       res.redirect(302, redirectTarget);
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
-      // Échec de l'échange : rediriger vers le dashboard qui détectera l'absence
-      // de session et relancera proprement le login plutôt qu'afficher un JSON brut.
-      res.redirect(302, "/dashboard");
+      // Always return to a usable UI. The dashboard shows a contextual message
+      // and lets the user retry, rather than exposing provider JSON.
+      res.redirect(302, "/dashboard?auth_error=exchange");
     }
   });
 }

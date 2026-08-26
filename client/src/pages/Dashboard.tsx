@@ -62,7 +62,7 @@ function getDateFromPeriod(period: string): string | undefined {
 export default function Dashboard() {
   const { user, loading: authLoading, isAuthenticated, logout } = useAuth();
   const { triggerConfetti, triggerFlash, triggerShake, triggerPop } = useActionEffect();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState<string>("viral");
   const [quantity, setQuantity] = useState<number>(1);
@@ -86,6 +86,18 @@ export default function Dashboard() {
 
   // Auth gate
   const isAuthed = !authLoading && isAuthenticated && !!user;
+  const authError = new URLSearchParams(location.split("?")[1] ?? "").get("auth_error");
+  const authErrorMessage = authError === "missing_state"
+    ? "Le retour du fournisseur de connexion était incomplet. Relance la connexion."
+    : authError === "invalid_state"
+      ? "La session de connexion a expiré ou a été ouverte dans un autre onglet. Relance la connexion."
+      : authError === "configuration"
+        ? "La connexion n'est pas configurée sur cet environnement. Vérifie les variables OAuth."
+        : authError === "exchange"
+          ? "Le fournisseur n'a pas pu finaliser la connexion. Relance la connexion."
+          : authError === "profile"
+            ? "Le fournisseur de connexion n'a pas renvoyé un profil complet. Relance la connexion."
+            : null;
 
   // v8 : YouTube planning dialog state + upcoming schedules countdown
   const [planTarget, setPlanTarget] = useState<{ id: number; imageUrl: string; prompt: string } | null>(null);
@@ -442,11 +454,16 @@ export default function Dashboard() {
         <div className="text-center max-w-sm mx-auto p-8">
           <h1 className="text-2xl font-semibold text-white mb-2">Tableau de bord</h1>
           <p className="text-muted-foreground text-sm mb-6">Connecte-toi pour accéder à ton espace de création.</p>
+          {authErrorMessage && (
+            <div role="alert" className="mb-5 rounded-2xl border border-orange-400/30 bg-orange-400/10 px-4 py-3 text-left text-sm text-orange-100">
+              {authErrorMessage}
+            </div>
+          )}
           <Button
             onClick={() => startLogin()}
             className="w-full py-5 text-base font-medium bg-white text-black hover:bg-white/90 rounded-[20px]"
           >
-            Se connecter
+            {authErrorMessage ? "Réessayer la connexion" : "Se connecter"}
           </Button>
           <Link href="/" className="block mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors">
             ← Retour à l'accueil

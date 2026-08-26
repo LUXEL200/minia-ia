@@ -9,18 +9,41 @@ export const NOT_ADMIN_ERR_MSG = 'You do not have required permission (10002)';
 // Domain), so a sibling *.manus.space site cannot plant a matching value in a
 // victim's browser.
 export const OAUTH_STATE_COOKIE = "__Host-oauth_state";
+// The __Host- prefix is rejected by browsers on plain HTTP localhost. This
+// host-only fallback is used only by local development; production keeps the
+// stronger __Host- cookie above.
+export const OAUTH_STATE_FALLBACK_COOKIE = "minia_oauth_state";
 
 // `state` carries the callback redirect URI (used at token exchange) plus the
 // CSRF nonce. Defined here so the client encoder and server decoder never drift.
-export type OAuthState = { redirectUri: string; nonce?: string };
+export type OAuthState = {
+  redirectUri: string;
+  nonce?: string;
+  // Client route to restore after the provider callback succeeds.
+  // `redirectUri` remains the technical OAuth callback URL required by the provider.
+  returnPath?: string;
+};
+
+const encodeBase64Utf8 = (value: string): string => {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of Array.from(bytes)) binary += String.fromCharCode(byte);
+  return btoa(binary);
+};
+
+const decodeBase64Utf8 = (value: string): string => {
+  const binary = atob(value);
+  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+};
 
 export const encodeOAuthState = (state: OAuthState): string =>
-  btoa(JSON.stringify(state));
+  encodeBase64Utf8(JSON.stringify(state));
 
 export const decodeOAuthState = (state: string): OAuthState => {
   let decoded: string;
   try {
-    decoded = atob(state);
+    decoded = decodeBase64Utf8(state);
   } catch {
     // Malformed base64 (e.g. attacker-supplied garbage). Return no nonce so the
     // callback's CSRF guard rejects it with 403 — never throw, since the caller

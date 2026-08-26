@@ -11,7 +11,7 @@ import {
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
   ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
-  Smartphone, Tablet, Youtube, X, Heart, Sparkles, UploadCloud,
+  Smartphone, Tablet, Youtube, X, Heart, Sparkles, UploadCloud, PanelRight, PanelLeft,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -92,6 +92,7 @@ export default function Editor() {
   const [devicePreview, setDevicePreview] = useState<"none" | "phone" | "tablet" | "youtube">("none");
   // Responsive : en mobile/tablette (<1024px), le panneau gauche devient un Sheet
   const [showLeftPanel, setShowLeftPanel] = useState(false);
+  const [showPropertyPanel, setShowPropertyPanel] = useState(false);
   const isNarrow = useIsMobile();
 
   // === Format du canevas (dynamique selon le panneau gauche) ===
@@ -386,10 +387,12 @@ export default function Editor() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [isNarrow]);
-  const effectiveZoom = useMemo(
-    () => (isNarrow && containerWidth ? Math.min(1, Math.max(0.4, containerWidth / canvasSize.w)) : 1) * zoom,
-    [isNarrow, containerWidth, zoom, canvasSize.w]
-  );
+  const effectiveZoom = useMemo(() => {
+    if (!isNarrow || !containerWidth) return zoom;
+    const availableWidth = Math.max(1, containerWidth - 16);
+    const fitZoom = Math.min(1, availableWidth / canvasSize.w);
+    return Math.max(0.35, fitZoom) * zoom;
+  }, [isNarrow, containerWidth, zoom, canvasSize.w]);
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!selectedId) return;
@@ -473,16 +476,17 @@ export default function Editor() {
   const exportCanvas = async () => {
     if (!canvasRef.current) return;
     try {
+      const { w: exportWidth, h: exportHeight } = exportDimensions;
       const dataUrl = await toPng(canvasRef.current, {
-        width: 1280,
-        height: 720,
+        width: exportWidth,
+        height: exportHeight,
         pixelRatio: 1,
         backgroundColor: bgTransparent && !bgImageUrl ? undefined : bgColor,
         cacheBust: true,
       });
       let finalDataUrl = dataUrl;
       if (isFreePlan) {
-        finalDataUrl = await applyWatermark(dataUrl);
+        finalDataUrl = await applyWatermark(dataUrl, exportWidth, exportHeight);
       }
       // Stocker l'URL data pour le téléchargement réel après l'animation ours IA
       const link = document.createElement("a");
@@ -511,29 +515,29 @@ export default function Editor() {
     if (el) {
       el.click();
       triggerConfetti();
-      toast.success("Miniature exportée en PNG (1280×720) !", { duration: 1800 });
+      toast.success(`Miniature exportée en PNG (${exportDimensions.w}×${exportDimensions.h}) !`, { duration: 1800 });
     }
   }, [triggerConfetti]);
 
   /** Burn a "Minia IA" watermark into the bottom-right corner of the exported PNG */
-  const applyWatermark = async (dataUrl: string): Promise<string> => {
+  const applyWatermark = async (dataUrl: string, width: number, height: number): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
         const c = document.createElement("canvas");
-        c.width = 1280;
-        c.height = 720;
+        c.width = width;
+        c.height = height;
         const cx = c.getContext("2d");
         if (!cx) return resolve(dataUrl);
-        cx.drawImage(img, 0, 0, 1280, 720);
-        cx.font = "bold 34px sans-serif";
+        cx.drawImage(img, 0, 0, width, height);
+        cx.font = `bold ${Math.max(22, Math.round(width / 38))}px sans-serif`;
         cx.fillStyle = "rgba(255, 255, 255, 0.85)";
         cx.shadowColor = "rgba(0, 0, 0, 0.7)";
         cx.shadowBlur = 8;
         cx.shadowOffsetX = 2;
         cx.shadowOffsetY = 2;
         cx.textAlign = "right";
-        cx.fillText("Minia IA", 1256, 688);
+        cx.fillText("Minia IA", width - Math.max(24, Math.round(width / 38)), height - Math.max(24, Math.round(height / 24)));
         resolve(c.toDataURL("image/png"));
       };
       img.onerror = () => resolve(dataUrl);
@@ -542,8 +546,9 @@ export default function Editor() {
   };
 
   const getSVGExport = () => {
-    const w = 1280;
-    const h = 720;
+    const { w, h } = exportDimensions;
+    const sx = w / canvasSize.w;
+    const sy = h / canvasSize.h;
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
     if (bgImageUrl) {
       svg += `<image href="${bgImageUrl}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice" />`;
@@ -553,8 +558,6 @@ export default function Editor() {
     }
 
     for (const el of elements) {
-      const sx = w / 640;
-      const sy = h / 360;
       if (el.type === "shape") {
         svg += `<${el.shape === "rect" ? "rect" : el.shape === "circle" ? "ellipse" : "polygon"} `;
         if (el.shape === "rect") {
@@ -706,18 +709,19 @@ export default function Editor() {
       const reader = new FileReader();
       reader.onload = () => {
         const url = String(reader.result || "");
-        // Measure the image to frame it proportionally within the canvas (640×360)
+        // Frame the upload proportionally within the currently selected canvas.
         const img = new Image();
         img.onload = () => {
-          const scale = Math.min(640 / img.width, 360 / img.height, 1);
+          const { w: cw, h: ch } = canvasSize;
+          const scale = Math.min(cw / img.width, ch / img.height, 1);
           const w = Math.round(img.width * scale);
           const h = Math.round(img.height * scale);
           const el: EditorImageElement = {
             id: `img-${Date.now()}`,
             type: "image",
             url,
-            x: Math.round((640 - w) / 2),
-            y: Math.round((360 - h) / 2),
+            x: Math.round((canvasSize.w - w) / 2),
+            y: Math.round((canvasSize.h - h) / 2),
             width: w,
             height: h,
             opacity: 1,
@@ -755,10 +759,17 @@ export default function Editor() {
     const url = (el as EditorImageElement).url;
     const img = new Image();
     img.onload = () => {
-      const scale = mode === "cover" ? Math.max(640 / img.width, 360 / img.height) : Math.min(640 / img.width, 360 / img.height);
+      const scale = mode === "cover"
+        ? Math.max(canvasSize.w / img.width, canvasSize.h / img.height)
+        : Math.min(canvasSize.w / img.width, canvasSize.h / img.height);
       const w = Math.round(img.width * scale);
       const h = Math.round(img.height * scale);
-      updateElement(el.id, { width: w, height: h, x: Math.round((640 - w) / 2), y: Math.round((360 - h) / 2) });
+      updateElement(el.id, {
+        width: w,
+        height: h,
+        x: Math.round((canvasSize.w - w) / 2),
+        y: Math.round((canvasSize.h - h) / 2),
+      });
       pushHistory([...elements]);
       toast.success(mode === "cover" ? "Image étendue (cover)" : "Image ajustée (contain)");
     };
@@ -1001,7 +1012,7 @@ export default function Editor() {
     if (!selectedElement) return null;
 
     return (
-      <div className="fixed right-0 top-0 h-full w-56 bg-[#111] border-l border-border p-4 z-40 overflow-y-auto">
+      <aside className="w-56 shrink-0 h-full min-h-0 bg-background border-l border-border p-4 overflow-y-auto">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">Propriétés</p>
 
         {selectedElement.type === "text" && (
@@ -1198,7 +1209,7 @@ export default function Editor() {
             </div>
           </div>
         )}
-      </div>
+      </aside>
     );
   };
 
@@ -1295,7 +1306,7 @@ export default function Editor() {
 
   // Responsive : en mobile/tablette (<1024px), le panneau gauche devient un Sheet
   return (
-    <div className="min-h-screen bg-[#000] flex overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
       {/* Animation de téléchargement « ours IA liquide » (overlay z-[150]) */}
       {downloadRunning && (
         <DownloadAnimation state={downloadState} onComplete={onDownloadReady} />
@@ -1313,7 +1324,7 @@ export default function Editor() {
       {/* Zone centrale : topbar + canvas + variantes */}
       <div className="flex-1 flex flex-col min-w-0 z-10 min-h-screen lg:min-h-0">
         {/* Topbar pro */}
-        <div className="h-14 shrink-0 border-b border-border bg-background flex items-center px-3 gap-2 relative pr-20">
+        <div className="h-14 shrink-0 border-b border-border bg-background flex items-center min-w-0 overflow-hidden px-2 sm:px-3 gap-1.5 sm:gap-2 relative pr-24 sm:pr-20">
           <Link
             href="/dashboard"
             className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -1329,7 +1340,7 @@ export default function Editor() {
               className="flex items-center gap-1.5 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground hover:bg-muted transition-colors"
               title="Outils et formats"
             >
-              <Menu className="w-4 h-4" />
+              <PanelLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Outils</span>
             </button>
           )}
@@ -1337,7 +1348,7 @@ export default function Editor() {
           <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
           {/* Outils centraux */}
-          <div className="flex items-center gap-0.5 mx-auto">
+          <div className="flex items-center gap-0.5 mx-auto min-w-0 shrink overflow-hidden">
             <button
               onClick={addTextElement}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -1371,7 +1382,7 @@ export default function Editor() {
             <button
               onClick={() => setZoom(z => Math.min(2, z + 0.1))}
               disabled={isNarrow}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
+              className="hidden sm:block p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
               title="Zoom + (déactivé en mode mobile, zoom auto)"
             >
               <ZoomIn className="w-4 h-4" />
@@ -1379,12 +1390,12 @@ export default function Editor() {
             <button
               onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
               disabled={isNarrow}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
+              className="hidden sm:block p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
               title="Zoom - (déactivé en mode mobile, zoom auto)"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <div className="w-px h-5 bg-border mx-1" />
+            <div className="hidden sm:block w-px h-5 bg-border mx-1" />
             <button
               onClick={() => setDevicePreview("phone")}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -1394,15 +1405,24 @@ export default function Editor() {
             </button>
             <button
               onClick={() => setDevicePreview("tablet")}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="hidden sm:block p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               title="Aperçu tablette"
             >
               <Tablet className="w-4 h-4" />
             </button>
-            <div className="w-px h-5 bg-border mx-1" />
+            <div className="hidden sm:block w-px h-5 bg-border mx-1" />
+            {isNarrow && selectedElement && (
+              <button
+                onClick={() => setShowPropertyPanel(true)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                title="Ouvrir les propriétés de l'élément sélectionné"
+              >
+                <PanelRight className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={() => setDevicePreview("youtube")}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="hidden sm:block p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               title="Aperçu YouTube (miniature dans les suggestions)"
             >
               <Youtube className="w-4 h-4" />
@@ -1410,15 +1430,15 @@ export default function Editor() {
           </div>
 
           {/* Droite : zoom, filigrane, export */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground w-10 text-center">{Math.round(effectiveZoom * 100)}%</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <span className="hidden sm:inline text-[10px] text-muted-foreground w-10 text-center">{Math.round(effectiveZoom * 100)}%</span>
             {isFreePlan && (
               <span className="hidden lg:inline-flex text-[10px] text-amber-400 border border-amber-400/30 rounded-full px-2 py-0.5">
                 Filigrane
               </span>
             )}
-            <Button onClick={exportCanvas} className="h-8 text-xs bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white">
-              <Download className="w-3.5 h-3.5 mr-1" /> Exporter
+            <Button onClick={exportCanvas} className="h-8 px-2 sm:px-3 text-xs bg-gradient-to-r from-orange-500 to-amber-400 hover:from-orange-600 hover:to-amber-500 text-white shrink-0">
+              <Download className="w-3.5 h-3.5 sm:mr-1" /> <span className="hidden sm:inline">Exporter</span>
             </Button>
           </div>
         </div>
@@ -1470,7 +1490,7 @@ export default function Editor() {
         <div className="flex-1 min-h-0 flex items-center justify-center p-2 lg:p-4">
         <div
           ref={canvasContainerRef}
-          className="relative overflow-auto max-w-full max-h-[70vh] w-full border border-border rounded-lg transition-colors"
+          className="relative min-w-0 overflow-auto max-w-full max-h-[calc(100dvh-7rem)] w-full border border-border rounded-lg transition-colors"
           style={{ cursor: "default" }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -1487,12 +1507,16 @@ export default function Editor() {
             </div>
           )}
           <div
+            className="relative shrink-0"
+            style={{ width: canvasSize.w * effectiveZoom, height: canvasSize.h * effectiveZoom }}
+          >
+          <div
             ref={canvasRef}
             data-canvas="true"
             onMouseDown={handleCanvasMouseDown}
             style={{
-              width: canvasSize.w * effectiveZoom,
-              height: canvasSize.h * effectiveZoom,
+              width: canvasSize.w,
+              height: canvasSize.h,
               backgroundColor: bgImageUrl ? undefined : bgTransparent ? "transparent" : bgColor,
               backgroundImage: bgImageUrl ? `url("${bgImageUrl}")` : undefined,
               backgroundSize: bgFit,
@@ -1538,6 +1562,7 @@ export default function Editor() {
                 </div>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>
@@ -1642,7 +1667,14 @@ export default function Editor() {
       </Dialog>
 
       </div>
-      {/* Panneau Propriétés : en mode narrow il est masqué (l'élément sélectionné reste éditible via les poignées et les sliders de la topbar restent accessibles) */}
+      {isNarrow && selectedElement && (
+        <Sheet open={showPropertyPanel} onOpenChange={setShowPropertyPanel}>
+          <SheetContent side="right" className="w-[min(22rem,92vw)] p-0 bg-background">
+            {renderPropertyPanel()}
+          </SheetContent>
+        </Sheet>
+      )}
+      {/* Le panneau participe au layout desktop : il ne recouvre plus le Canvas. */}
       {!isNarrow && renderPropertyPanel()}
     </div>
   );

@@ -66,24 +66,24 @@ export default function SettingsPage() {
             <h2 className="font-semibold text-sm">Notifications</h2>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm">Notifications email</p>
                 <p className="text-xs text-zinc-500">Recevoir un email quand une miniature est prête</p>
               </div>
               <Switch
                 checked={emailNotifs}
-                onCheckedChange={(v) => { setEmailNotifs(v); localStorage.setItem("minia-email-notifs", v ? "1" : "0"); toast.success("Notifications email activées"); }}
+                onCheckedChange={(v) => { setEmailNotifs(v); localStorage.setItem("minia-email-notifs", v ? "1" : "0"); toast.success(v ? "Notifications email activées" : "Notifications email désactivées"); }}
               />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm">Notifications push</p>
                 <p className="text-xs text-zinc-500">Alertes en temps réel dans le navigateur</p>
               </div>
               <Switch
                 checked={pushNotifs}
-                onCheckedChange={(v) => { setPushNotifs(v); localStorage.setItem("minia-push-notifs", v ? "1" : "0"); toast.success("Notifications push activées"); }}
+                onCheckedChange={(v) => { setPushNotifs(v); localStorage.setItem("minia-push-notifs", v ? "1" : "0"); toast.success(v ? "Notifications push activées" : "Notifications push désactivées"); }}
               />
             </div>
           </div>
@@ -96,18 +96,18 @@ export default function SettingsPage() {
             <h2 className="font-semibold text-sm">Affichage</h2>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm">Téléchargement auto</p>
                 <p className="text-xs text-zinc-500">Télécharger automatiquement après génération</p>
               </div>
               <Switch
                 checked={autoDownload}
-                onCheckedChange={(v) => { setAutoDownload(v); localStorage.setItem("minia-auto-download", v ? "1" : "0"); toast.success("Téléchargement automatique activé"); }}
+                onCheckedChange={(v) => { setAutoDownload(v); localStorage.setItem("minia-auto-download", v ? "1" : "0"); toast.success(v ? "Téléchargement automatique activé" : "Téléchargement automatique désactivé"); }}
               />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm">Sons d'animation</p>
                 <p className="text-xs text-zinc-500">Effet sonore lors de la révélation de l'ours IA</p>
               </div>
@@ -116,15 +116,15 @@ export default function SettingsPage() {
                 onCheckedChange={(v) => { setAnimSound(v); localStorage.setItem("minia-anim-sound", v ? "1" : "0"); toast.success(v ? "Sons d'animation activés" : "Sons d'animation désactivés"); }}
               />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm">Style par défaut</p>
                 <p className="text-xs text-zinc-500">Style pré-sélectionné à la génération</p>
               </div>
               <select
                 value={defaultStyle}
                 onChange={(e) => { setDefaultStyle(e.target.value); toast.success("Paramètre mis à jour"); }}
-                className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none"
+                className="w-full sm:w-auto max-w-full shrink-0 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none"
               >
                 {styles.map((s) => (
                   <option key={s.id} value={s.id}>{s.label}</option>
@@ -141,15 +141,15 @@ export default function SettingsPage() {
             <h2 className="font-semibold text-sm">Général</h2>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm">Langue</p>
                 <p className="text-xs text-zinc-500">Langue de l'interface</p>
               </div>
               <select
                 value={language}
                 onChange={(e) => { setLanguage(e.target.value); toast.success("Langue mise à jour"); }}
-                className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none"
+                className="w-full sm:w-auto max-w-full shrink-0 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none"
               >
                 <option value="fr">Français</option>
                 <option value="en">English</option>

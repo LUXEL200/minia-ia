@@ -337,3 +337,1807 @@ Palette déjà appliquée (bleu nuit/orange/vert, opacité 6%) + onboarding tour
 - [x] Recherche globale : plein écran mobile (fixed inset-0 + p-3), bouton retour/fermer ajouté
 - [x] Suppression réelle : deleteApiKey côté serveur (apiKeys.delete), filtrage des révoquées dans list, AlertDialog de confirmation dans ApiKeys.tsx
 - [x] Toasts animés : keyframes toast-slide-in/out + animation sur [data-sonner-toast] (260 ms cubic-bezier), icône info orange
+
+## Corrections demandées — authentification, Canvas et paramètres
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [x] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d'accès aux outils
+- [x] Corriger le débordement des puces/curseurs des switches dans Paramètres et vérifier leurs états activé/désactivé
+- [x] Tester les flux OAuth, Canvas et Paramètres en responsive, exécuter tsc et Vitest, puis publier un checkpoint
+
+--snip--
+
+- [x] Corriger le flux d'authentification OAuth et le retour callback sans paramètres incomplets, avec gestion claire des erreurs et relance fiable
+- [ ] Corriger la responsivité du Canvas sur desktop, tablette et mobile sans débordement ni perte d
