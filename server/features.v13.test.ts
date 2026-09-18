@@ -124,7 +124,9 @@ describe("v13 — Notifications et rappels", () => {
     if (!db) throw new Error("db unavailable");
     await db.delete(notifications).where(and(eq(notifications.userId, testUserId), eq(notifications.type as any, "planning_reminder" as any)));
     await db.update(publishedSchedules).set({ reminded: 0 }).where(eq(publishedSchedules.userId, testUserId));
-    const result = await caller.reminders.fire();
+    // Freeze the logical clock slightly after creation so J+1 is inside the
+    // 24-hour window without depending on millisecond scheduling.
+    const result = await caller.reminders.fire({ nowIso: new Date(Date.now() + 5 * 60 * 1000).toISOString() });
     expect(result.fired.length).toBeGreaterThanOrEqual(1);
     const all = await getNotificationsByUserId(testUserId);
     const reminders = all.filter(n => n.message?.includes("demain") || n.metadata?.includes("planning-reminder"));

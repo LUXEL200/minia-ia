@@ -1,6 +1,7 @@
 import type { Express, Request } from "express";
 import { ENV } from "./env";
 import { sdk } from "./sdk";
+import { rateLimit } from "./rateLimit";
 
 const PUBLIC_PREFIXES = ["generated/", "templates/"];
 
@@ -21,6 +22,7 @@ async function canReadKey(req: Request, key: string) {
 }
 
 export function registerStorageProxy(app: Express) {
+  app.use("/manus-storage", rateLimit({ name: "storage", windowMs: 60_000, max: 120 }));
   app.get("/manus-storage/*", async (req, res) => {
     const key = (req.params as Record<string, string>)[0];
     if (!key || !isSafeKey(key)) {

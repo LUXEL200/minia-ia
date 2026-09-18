@@ -560,6 +560,15 @@ export async function deleteApiKey(id: number, userId: number) {
   return true;
 }
 
+/** Disable legacy plaintext keys (the old format started with `minia-`). */
+export async function invalidateLegacyApiKeys() {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.update(apiKeys).set({ isActive: "revoked" })
+    .where(and(eq(apiKeys.isActive, "active"), like(apiKeys.key, "minia-%")));
+  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0);
+}
+
 // === Notifications ===
 export async function getNotificationsByUserId(userId: number) {
   const db = await getDb();
