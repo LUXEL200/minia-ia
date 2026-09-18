@@ -8,3 +8,7 @@ export const ENV = {
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
 };
+
+if (ENV.isProduction && !ENV.ownerOpenId) {
+  console.error("[Security] OWNER_OPEN_ID is missing: super-admin routes are disabled until the verified owner OAuth ID is configured.");
+}

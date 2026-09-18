@@ -74,6 +74,13 @@ export default function AdminPage() {
     onSuccess: (data) => { toast.success(`${data.updated} utilisateurs mis à jour`); refetchUsers(); },
     onError: (e) => toast.error(e.message),
   });
+  const { data: legacyApiKeys, refetch: refetchLegacyApiKeys } = trpc.admin.legacyApiKeys.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+  });
+  const migrateLegacyApiKeysMut = trpc.admin.migrateLegacyApiKeys.useMutation({
+    onSuccess: (data) => { toast.success(`${data.revokedCount} ancienne(s) clé(s) désactivée(s)`, { description: `${data.notifiedUserCount} utilisateur(s) notifié(s).` }); refetchLegacyApiKeys(); },
+    onError: (e) => toast.error(e.message),
+  });
   const createTemplateMut = trpc.templates.create.useMutation({
     onSuccess: () => { toast.success("Template créé"); refetchTemplates(); setShowNewTemplateForm(false); setNewTemplateTitle(""); setNewTemplateImageUrl(""); },
     onError: (e) => toast.error(e.message),
@@ -532,6 +539,21 @@ export default function AdminPage() {
           {activeTab === "settings" && (
             <div className="space-y-6">
               <h3 className="font-semibold">Paramètres Super Admin</h3>
+              <div className="bg-muted border border-orange-500/20 rounded-xl p-5 space-y-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="text-orange-400 mt-0.5 shrink-0" size={18} />
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-medium">Migration des anciennes clés API</h4>
+                    <p className="text-xs text-gray-500 mt-1">Les anciennes clés au format texte sont détectées sans être affichées. La migration les révoque et informe chaque utilisateur concerné.</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-gray-300">{legacyApiKeys?.keyCount ?? 0} clé(s) active(s) héritée(s) · {legacyApiKeys?.userCount ?? 0} utilisateur(s)</p>
+                  <button type="button" disabled={!legacyApiKeys?.keyCount || migrateLegacyApiKeysMut.isPending} onClick={() => migrateLegacyApiKeysMut.mutate()} className="rounded-lg bg-orange-500 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-400 disabled:opacity-50">
+                    {migrateLegacyApiKeysMut.isPending ? "Migration…" : "Révoquer et notifier"}
+                  </button>
+                </div>
+              </div>
               <div className="bg-muted border border-border rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <div>

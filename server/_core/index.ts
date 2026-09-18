@@ -8,7 +8,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { sdk } from "./sdk";
-import { getRemindersToFire, markScheduleReminded, getJ5RemindersToFire, markScheduleJ5Reminded, getUsersWithLowCredits, markLowCreditNotified, createNotification, invalidateLegacyApiKeys } from "../db";
+import { getRemindersToFire, markScheduleReminded, getJ5RemindersToFire, markScheduleJ5Reminded, getUsersWithLowCredits, markLowCreditNotified, createNotification } from "../db";
 import { serveStatic, setupVite } from "./vite";
 import { rateLimit } from "./rateLimit";
 
@@ -34,8 +34,6 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  const revokedLegacyKeys = await invalidateLegacyApiKeys();
-  if (revokedLegacyKeys > 0) console.warn(`[Security] Revoked ${revokedLegacyKeys} legacy plaintext API key(s)`);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

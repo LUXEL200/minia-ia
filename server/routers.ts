@@ -90,6 +90,8 @@ import {
   getUnreadCountByUserId,
   getRecentUnreadNotifications,
   createNotification,
+  getLegacyApiKeySummary,
+  migrateLegacyApiKeys,
   markNotificationRead,
   markAllNotificationsRead,
   getAdminStats,
@@ -820,6 +822,27 @@ export const notificationsRouter = router({
 
 // === Admin Router ===
 export const adminRouter = router({
+  legacyApiKeys: adminProcedure.query(async () => {
+    const rows = await getLegacyApiKeySummary();
+    const users = new Set(rows.map(row => row.userId));
+    return { keyCount: rows.length, userCount: users.size, keys: rows };
+  }),
+
+  migrateLegacyApiKeys: adminProcedure.mutation(async () => {
+    const revoked = await migrateLegacyApiKeys();
+    const userIds = Array.from(new Set(revoked.map(row => row.userId)));
+    for (const userId of userIds) {
+      await createNotification({
+        userId,
+        title: "Ancienne clé API désactivée",
+        message: "Une ancienne clé API stockée dans un format non sécurisé a été désactivée. Crée une nouvelle clé depuis Paramètres → Clés API.",
+        type: "system",
+        metadata: JSON.stringify({ kind: "legacy-api-key-migration", revokedCount: revoked.filter(row => row.userId === userId).length }),
+      });
+    }
+    return { revokedCount: revoked.length, notifiedUserCount: userIds.length } as const;
+  }),
+
   // Stats overview
   stats: adminProcedure.query(async () => {
     return getAdminStats();

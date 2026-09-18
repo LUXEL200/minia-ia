@@ -560,13 +560,24 @@ export async function deleteApiKey(id: number, userId: number) {
   return true;
 }
 
-/** Disable legacy plaintext keys (the old format started with `minia-`). */
-export async function invalidateLegacyApiKeys() {
+/** Find active legacy plaintext keys (the old format started with `minia-`). */
+export async function getLegacyApiKeySummary() {
   const db = await getDb();
-  if (!db) return 0;
-  const result = await db.update(apiKeys).set({ isActive: "revoked" })
+  if (!db) return [];
+  return db.select({ id: apiKeys.id, userId: apiKeys.userId, name: apiKeys.name, createdAt: apiKeys.createdAt })
+    .from(apiKeys)
     .where(and(eq(apiKeys.isActive, "active"), like(apiKeys.key, "minia-%")));
-  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0);
+}
+
+/** Revoke active legacy plaintext keys and return affected records for notification. */
+export async function migrateLegacyApiKeys() {
+  const db = await getDb();
+  if (!db) return [];
+  const legacy = await getLegacyApiKeySummary();
+  if (legacy.length === 0) return [];
+  await db.update(apiKeys).set({ isActive: "revoked" })
+    .where(and(eq(apiKeys.isActive, "active"), like(apiKeys.key, "minia-%")));
+  return legacy;
 }
 
 // === Notifications ===

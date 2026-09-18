@@ -44,6 +44,10 @@ Crée un fichier `.env` à la racine du projet. Voici les variables requises :
 | `VITE_APP_TITLE` | Titre du site | `Minia IA` |
 | `VITE_APP_LOGO` | URL du logo | `/logo.png` |
 
+### Configuration production du super admin
+
+`OWNER_OPEN_ID` doit contenir l’**openId exact retourné par Manus OAuth** pour le compte propriétaire vérifié. Il ne faut pas y mettre l’adresse e-mail ni un mot de passe. Définis cette variable dans les secrets de l’environnement de production, redémarre le serveur, puis vérifie que l’utilisateur connecté avec ce compte voit la route `/admin`. Si la variable est absente, les procédures `adminProcedure` restent volontairement bloquées et le serveur écrit une alerte de sécurité.
+
 ## Rôle Admin
 
 En tant que super admin, tu as les droits suivants :
