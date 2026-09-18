@@ -1,8 +1,9 @@
-import { and, desc, eq, gte, lt, lte, like, or } from "drizzle-orm";
+import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
+import { createHash, randomBytes } from "node:crypto";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -142,12 +143,20 @@ export async function ensureUserCredits(userId: number) {
 export async function deductCredits(userId: number, amount: number) {
   const db = await getDb();
   if (!db) return false;
-  const current = await getUserCredits(userId);
-  if (!current || current.credits < amount) return false;
-  await db.update(userCredits)
-    .set({ credits: current.credits - amount })
+  if (!Number.isInteger(amount) || amount <= 0) return false;
+  const result = await db.update(userCredits)
+    .set({ credits: sql`${userCredits.credits} - ${amount}` })
+    .where(and(eq(userCredits.userId, userId), sql`${userCredits.credits} >= ${amount}`));
+  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) === 1;
+}
+
+export async function refundCredits(userId: number, amount: number) {
+  const db = await getDb();
+  if (!db || !Number.isInteger(amount) || amount <= 0) return false;
+  const result = await db.update(userCredits)
+    .set({ credits: sql`${userCredits.credits} + ${amount}` })
     .where(eq(userCredits.userId, userId));
-  return true;
+  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) === 1;
 }
 
 // === Public Gallery ===
@@ -339,12 +348,14 @@ export async function createTeamTask(data: { ownerId: number; thumbnailId: numbe
   return { id: result.insertId };
 }
 
-export async function updateTaskStatus(taskId: number, status: "pending" | "reviewing" | "approved" | "rejected" | "cancelled", comment?: string) {
+export async function updateTaskStatus(ownerId: number, taskId: number, status: "pending" | "reviewing" | "approved" | "rejected" | "cancelled", comment?: string) {
   const db = await getDb();
   if (!db) return;
   const updateData: Record<string, unknown> = { status };
   if (comment) updateData.comment = comment;
-  await db.update(teamTasks).set(updateData).where(eq(teamTasks.id, taskId));
+  const result = await db.update(teamTasks).set(updateData)
+    .where(and(eq(teamTasks.id, taskId), eq(teamTasks.ownerId, ownerId)));
+  if (Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) !== 1) return false;
 
   // Send notification on status change
   try {
@@ -353,6 +364,7 @@ export async function updateTaskStatus(taskId: number, status: "pending" | "revi
       content: `Une tâche a été ${status === "approved" ? "approuvée" : status === "rejected" ? "rejetée" : "mise à jour"} (ID: ${taskId}).${comment ? ` Commentaire: ${comment}` : ""}`,
     });
   } catch { /* ignore notification errors */ }
+  return true;
 }
 
 // === Favorites ===
@@ -518,16 +530,20 @@ export async function emptyTrash(userId: number) {
 export async function getApiKeysByUserId(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(apiKeys).where(and(eq(apiKeys.userId, userId), eq(apiKeys.isActive, "active"))).orderBy(desc(apiKeys.createdAt));
+  const rows = await db.select().from(apiKeys).where(and(eq(apiKeys.userId, userId), eq(apiKeys.isActive, "active"))).orderBy(desc(apiKeys.createdAt));
+  return rows.map(({ key: _storedHash, ...row }) => ({ ...row, key: "••••••••" }));
 }
 
 export async function createApiKey(userId: number, name: string, expiryMonths?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const key = `minia-${crypto.randomUUID().replace(/-/g, "").slice(0, 32)}`;
+  const key = `minia-${randomBytes(24).toString("hex")}`;
+  const keyHash = createHash("sha256").update(key).digest("hex");
   const expiresAt = expiryMonths ? new Date(Date.now() + expiryMonths * 30 * 24 * 3600 * 1000) : null;
-  const [result] = await db.insert(apiKeys).values({ userId, name, key, isActive: "active", expiresAt });
-  return { id: result.insertId, key };
+  await db.insert(apiKeys).values({ userId, name, key: keyHash, isActive: "active", expiresAt });
+  const [result] = await db.select({ id: apiKeys.id }).from(apiKeys)
+    .where(and(eq(apiKeys.userId, userId), eq(apiKeys.key, keyHash))).limit(1);
+  return { id: result?.id ?? 0, key };
 }
 
 export async function revokeApiKey(id: number, userId: number) {
@@ -936,6 +952,10 @@ export async function acceptInvitation(id: number, userId: number) {
   if (!invite) return { ok: false, error: "Invitation introuvable" };
   if (invite.status !== "pending") return { ok: false, error: "Invitation déjà traitée" };
   if (invite.expiresAt < new Date()) return { ok: false, error: "Invitation expirée" };
+  const recipient = (await db.select().from(users).where(eq(users.id, userId)).limit(1))[0];
+  if (!recipient?.email || recipient.email.toLowerCase() !== invite.email.toLowerCase()) {
+    return { ok: false, error: "Cette invitation ne vous est pas destinée" };
+  }
   const org = (await db.select().from(organizations).where(eq(organizations.id, invite.orgId)).limit(1))[0];
   if (!org) return { ok: false, error: "Organisation introuvable" };
   // Join the org team
@@ -947,8 +967,11 @@ export async function acceptInvitation(id: number, userId: number) {
 export async function declineInvitation(id: number, userId: number) {
   const db = await getDb();
   if (!db) return false;
-  await db.update(teamInvitations).set({ status: "declined" }).where(eq(teamInvitations.id, id));
-  return true;
+  const user = (await db.select().from(users).where(eq(users.id, userId)).limit(1))[0];
+  if (!user?.email) return false;
+  const result = await db.update(teamInvitations).set({ status: "declined" })
+    .where(and(eq(teamInvitations.id, id), eq(teamInvitations.status, "pending"), eq(teamInvitations.email, user.email.toLowerCase())));
+  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) === 1;
 }
 
 export async function cancelSentInvitation(id: number, orgOwner: number) {

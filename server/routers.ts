@@ -55,6 +55,7 @@ import {
   getUserCredits,
   ensureUserCredits,
   deductCredits,
+  refundCredits,
   getDb,
   getGalleryThumbnails,
   getGalleryStats,
@@ -529,8 +530,8 @@ export const avatarsRouter = router({
       style: z.string().max(64).default("professional"),
     }))
     .mutation(async ({ ctx, input }) => {
-      const credits = await ensureUserCredits(ctx.user.id);
-      if (credits.credits < 1) {
+      await ensureUserCredits(ctx.user.id);
+      if (!(await deductCredits(ctx.user.id, 1))) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Crédits insuffisants" });
       }
 
@@ -544,12 +545,13 @@ export const avatarsRouter = router({
         });
         if (url) {
           await updateAvatarStatus(id, "completed", url);
-          await deductCredits(ctx.user.id, 1);
         } else {
           await updateAvatarStatus(id, "failed");
+          await refundCredits(ctx.user.id, 1);
         }
       } catch {
         await updateAvatarStatus(id, "failed");
+        await refundCredits(ctx.user.id, 1);
       }
 
       return { success: true, avatarId: id } as const;
@@ -576,8 +578,8 @@ export const endCardsRouter = router({
       style: z.string().max(64).default("viral"),
     }))
     .mutation(async ({ ctx, input }) => {
-      const credits = await ensureUserCredits(ctx.user.id);
-      if (credits.credits < 1) {
+      await ensureUserCredits(ctx.user.id);
+      if (!(await deductCredits(ctx.user.id, 1))) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Crédits insuffisants" });
       }
 
@@ -591,12 +593,13 @@ export const endCardsRouter = router({
         });
         if (url) {
           await updateEndCardStatus(id, "completed", url);
-          await deductCredits(ctx.user.id, 1);
         } else {
           await updateEndCardStatus(id, "failed");
+          await refundCredits(ctx.user.id, 1);
         }
       } catch {
         await updateEndCardStatus(id, "failed");
+        await refundCredits(ctx.user.id, 1);
       }
 
       return { success: true, endCardId: id } as const;
@@ -1005,9 +1008,9 @@ export const appRouter = router({
         inspirationMime: z.string().max(64).default("image/jpeg"),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Check credits
+        // Reserve credits atomically before external AI work.
         const credits = await ensureUserCredits(ctx.user.id);
-        if (credits.credits < input.quantity) {
+        if (!(await deductCredits(ctx.user.id, input.quantity))) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: `Crédits insuffisants. Il te reste ${credits.credits} crédit(s). Tu as besoin de ${input.quantity} crédit(s).`,
@@ -1073,18 +1076,15 @@ export const appRouter = router({
               successfulCount++;
             } else {
               await updateThumbnailStatus(thumbId, "failed");
+              await refundCredits(ctx.user.id, 1);
               results.push({ id: thumbId, status: "failed", imageUrl: null });
             }
           } catch (error) {
             console.error(`[Thumbnail] Generation failed for ${thumbId}:`, error);
             await updateThumbnailStatus(thumbId, "failed");
+            await refundCredits(ctx.user.id, 1);
             results.push({ id: thumbId, status: "failed", imageUrl: null });
           }
-        }
-
-        // Only deduct credits for successfully generated thumbnails
-        if (successfulCount > 0) {
-          await deductCredits(ctx.user.id, successfulCount);
         }
 
         const updatedCredits = await getUserCredits(ctx.user.id);
@@ -1179,7 +1179,8 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const credits = await ensureUserCredits(ctx.user.id);
-        if (credits.credits < input.prompts.length) {
+        const reserved = await deductCredits(ctx.user.id, input.prompts.length);
+        if (!reserved) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: `Crdits insuffisants. Il te reste ${credits.credits} crdit(s). Tu as besoin de ${input.prompts.length} crdit(s).`,
@@ -1223,16 +1224,14 @@ export const appRouter = router({
               successfulCount++;
             } else {
               await updateThumbnailStatus(thumbId, "failed");
+              await refundCredits(ctx.user.id, 1);
               results.push({ id: thumbId, status: "failed", imageUrl: null });
             }
           } catch {
             await updateThumbnailStatus(thumbId, "failed");
+            await refundCredits(ctx.user.id, 1);
             results.push({ id: thumbId, status: "failed", imageUrl: null });
           }
-        }
-
-        if (successfulCount > 0) {
-          await deductCredits(ctx.user.id, successfulCount);
         }
 
         const updatedCredits = await getUserCredits(ctx.user.id);
@@ -1286,6 +1285,8 @@ export const appRouter = router({
         comment: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        const thumbnail = await getThumbnailByIdWithCheck(input.thumbnailId, ctx.user.id);
+        if (!thumbnail) throw new TRPCError({ code: "NOT_FOUND", message: "Miniature introuvable ou non autorisée" });
         return createTeamTask({
           ownerId: ctx.user.id,
           thumbnailId: input.thumbnailId,
@@ -1304,7 +1305,8 @@ export const appRouter = router({
         comment: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        await updateTaskStatus(input.taskId, input.status, input.comment);
+        const updated = await updateTaskStatus(ctx.user.id, input.taskId, input.status, input.comment);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Tâche introuvable ou non autorisée" });
         return { success: true };
       }),
   }),
