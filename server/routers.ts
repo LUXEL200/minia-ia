@@ -1433,6 +1433,27 @@ export const appRouter = router({
         return { fired } as const;
       }),
   }),
+  // === Subscription plans (selection is simulated until billing is connected) ===
+  plans: router({
+    catalog: publicProcedure.query(() => ([
+      { id: "free", name: "Gratuit", priceCents: 0, description: "Pour découvrir Minia IA sans engagement.", features: ["5 miniatures gratuites", "3 styles", "Espace personnel"] },
+      { id: "pro", name: "Pro", priceCents: 1900, description: "Pour les créateurs réguliers qui publient chaque semaine.", features: ["50 miniatures par mois", "6 styles professionnels", "Export HD", "Support prioritaire"] },
+      { id: "max", name: "Max", priceCents: 4900, description: "Pour les équipes, agences et workflows collaboratifs.", features: ["Miniatures illimitées", "Batch Upload", "Interface équipe", "Accès API"] },
+    ] as const)),
+    choose: protectedProcedure
+      .input(z.object({ planType: z.enum(["free", "pro", "max"]) }))
+      .mutation(async ({ ctx, input }) => {
+        await updateUserPlan(ctx.user.id, input.planType);
+        await createNotification({
+          userId: ctx.user.id,
+          title: "Forfait sélectionné",
+          message: `Le forfait ${input.planType === "free" ? "Gratuit" : input.planType === "pro" ? "Pro" : "Max"} a été sélectionné. La facturation réelle sera activée ultérieurement.`,
+          type: "system",
+        });
+        return { success: true, planType: input.planType, simulated: true } as const;
+      }),
+  }),
+
   // === Credit packs (simulated payments, ready for Stripe later) ===
   packs: router({
     /** Catalogue des packs rechargeables (prix de simulation) */
