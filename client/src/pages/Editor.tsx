@@ -1468,7 +1468,7 @@ export default function Editor() {
 
   // Responsive : en mobile/tablette (<1024px), le panneau gauche devient un Sheet
   return (
-    <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
+    <div className="min-h-[100dvh] w-full max-w-full bg-background text-foreground flex overflow-x-hidden overflow-y-auto lg:overflow-hidden">
       {/* Animation de téléchargement « ours IA liquide » (overlay z-[150]) */}
       {downloadRunning && (
         <DownloadAnimation state={downloadState} onComplete={onDownloadReady} />
@@ -1484,9 +1484,9 @@ export default function Editor() {
       )}
 
       {/* Zone centrale : topbar + canvas + variantes */}
-      <div className="flex-1 flex flex-col min-w-0 z-10 min-h-screen lg:min-h-0">
+      <div className="flex-1 flex flex-col min-w-0 max-w-full z-10 min-h-[100dvh] lg:min-h-0">
         {/* Topbar pro */}
-        <div className="h-14 shrink-0 border-b border-border bg-background flex items-center min-w-0 overflow-hidden px-2 sm:px-3 gap-1.5 sm:gap-2 relative pr-24 sm:pr-20">
+        <div className="min-h-14 shrink-0 border-b border-border bg-background flex items-center min-w-0 max-w-full overflow-hidden px-2 sm:px-3 py-1.5 gap-1.5 sm:gap-2 relative pr-24 sm:pr-20">
           <Link
             href="/dashboard"
             className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
@@ -1666,10 +1666,10 @@ export default function Editor() {
         )}
 
         {/* Canvas — drag & drop images directly onto it */}
-        <div className="flex-1 min-h-0 flex items-center justify-center p-2 lg:p-4">
+        <div className="flex-1 min-h-0 min-w-0 flex items-center justify-center p-2 lg:p-4 overflow-hidden">
         <div
           ref={canvasContainerRef}
-          className="relative min-w-0 overflow-auto max-w-full max-h-[calc(100dvh-7rem)] w-full border border-border rounded-lg transition-colors"
+          className="relative min-w-0 max-w-full max-h-[calc(100dvh-7rem)] w-full overflow-auto overscroll-contain border border-border rounded-lg transition-colors"
           style={{ cursor: "default" }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}

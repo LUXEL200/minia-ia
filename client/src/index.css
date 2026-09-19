@@ -122,6 +122,8 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    overflow-x: hidden;
+    min-width: 320px;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

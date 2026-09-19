@@ -522,17 +522,17 @@ export default function Dashboard() {
 
   const renderHeader = () => (
     <header className="sticky top-0 z-50 glass border-b border-border">
-      <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 min-h-14 py-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-sm text-foreground font-medium">Tableau de bord</span>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted border border-border text-xs text-foreground">
+          <button className="flex min-w-0 items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full bg-muted border border-border text-[11px] sm:text-xs text-foreground">
             <CreditCard className="w-3.5 h-3.5 text-muted-foreground" />
-            {credits?.credits ?? 10} crédit{credits && credits.credits !== 1 ? "s" : ""}
+            <span className="truncate">{credits?.credits ?? 10} crédit{credits && credits.credits !== 1 ? "s" : ""}</span>
           </button>
-          <button className="text-muted-foreground hover:text-foreground transition-colors">
+          <button className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors" aria-label="Messages">
             <MessageSquare className="w-5 h-5" />
           </button>
         </div>
@@ -1092,15 +1092,15 @@ export default function Dashboard() {
           disableSound={typeof window !== "undefined" && localStorage.getItem("minia-anim-sound") === "0"}
         />
       )}
-      <main className="pt-2">
+      <main className="pt-2 pb-[calc(7rem+env(safe-area-inset-bottom))] overflow-x-hidden">
         {activeView === "home" && renderHomeView()}
         {activeView === "generate" && renderGenerateView()}
         <OnboardingTour />
       </main>
 
       {/* Floating nav (like Youthumb) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-1 px-2 py-1.5 rounded-[20px] bg-muted border border-border shadow-2xl shadow-black/50 backdrop-blur-xl">
+      <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-1rem)]">
+        <div className="flex items-center gap-0.5 px-1.5 py-1.5 rounded-[20px] bg-muted border border-border shadow-2xl shadow-black/50 backdrop-blur-xl">
           <button
             onClick={() => setActiveView("home")}
             className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-[20px] transition-all ${

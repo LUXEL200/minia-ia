@@ -113,7 +113,7 @@ export function AppSidebar({
         open ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="flex flex-col h-full overflow-y-auto pb-4">
+      <div className="flex flex-col h-full overflow-y-auto overscroll-contain pb-[calc(1rem+env(safe-area-inset-bottom))]">
         {/* Org info */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
@@ -377,7 +377,7 @@ export function AppSidebar({
     <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" onClick={() => setShowAccountsDialog(false)}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-sm bg-[#111] border border-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-sm max-h-[calc(100dvh-2rem)] bg-[#111] border border-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-border">
