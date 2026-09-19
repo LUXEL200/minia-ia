@@ -86,11 +86,12 @@ export function OnboardingTour() {
 
   // Positionner la bulle : sous l'élément s'il est visible, sinon centrée
   const isIntro = !rect;
+  const bubbleWidth = Math.min(380, Math.max(280, window.innerWidth - 32));
   const bubbleStyle: React.CSSProperties = isIntro
-    ? { top: "14%", left: "50%", transform: "translateX(-50%)" }
+    ? { top: "14%", left: Math.max(16, (window.innerWidth - bubbleWidth) / 2) }
     : {
         top: Math.min(window.innerHeight - 260, rect.bottom + 16),
-        left: Math.min(Math.max(rect.left, 16), window.innerWidth - 420),
+        left: Math.min(Math.max(rect.left, 16), Math.max(16, window.innerWidth - bubbleWidth - 16)),
       };
 
   return (
@@ -123,25 +124,25 @@ export function OnboardingTour() {
 
           {/* Bulle de tutoriel */}
           <motion.div
-            className="absolute pointer-events-auto w-[380px] max-w-[calc(100vw-2rem)] bg-card border border-border rounded-2xl p-5 shadow-2xl"
-            style={bubbleStyle}
+            className="absolute pointer-events-auto max-w-[calc(100vw-2rem)] bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-2xl"
+            style={{ ...bubbleStyle, width: bubbleWidth }}
             initial={{ opacity: 0, y: 12, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="w-7 h-7 shrink-0 rounded-full bg-primary/15 flex items-center justify-center">
                   <Sparkles className="w-4 h-4 text-primary" />
                 </span>
-                <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                <span className="min-w-0 truncate text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted-foreground">
                   Visite guidée · {step + 1}/{ONBOARDING_STEPS.length}
                 </span>
               </div>
               <button
                 onClick={skip}
-                className="p-1 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                className="touch-target shrink-0 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Fermer la visite"
               >
                 <X className="w-4 h-4" />
@@ -160,17 +161,17 @@ export function OnboardingTour() {
                 />
               ))}
             </div>
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 mt-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={prev}
                 disabled={step === 0}
-                className="text-muted-foreground"
+                className="w-full sm:w-auto justify-center text-muted-foreground"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" /> Précédent
               </Button>
-              <Button size="sm" onClick={next}>
+              <Button size="sm" onClick={next} className="w-full sm:w-auto justify-center">
                 {step + 1 >= ONBOARDING_STEPS.length ? (
                   <>Commencer à créer</>
                 ) : (

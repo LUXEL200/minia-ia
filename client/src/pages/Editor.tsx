@@ -11,7 +11,7 @@ import {
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
   ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
-  Smartphone, Tablet, Youtube, X, Heart, Sparkles, UploadCloud, PanelRight, PanelLeft,
+  Smartphone, Tablet, Youtube, X, Heart, Sparkles, UploadCloud, PanelRight, PanelLeft, RotateCw,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -106,6 +106,23 @@ export default function Editor() {
   const [showLeftPanel, setShowLeftPanel] = useState(false);
   const [showPropertyPanel, setShowPropertyPanel] = useState(false);
   const isNarrow = useIsMobile();
+  const [landscapeMode, setLandscapeMode] = useState(false);
+
+  const toggleLandscapeMode = useCallback(async () => {
+    const next = !landscapeMode;
+    setLandscapeMode(next);
+    const orientation = typeof screen !== "undefined"
+      ? screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void>; unlock?: () => void }
+      : null;
+    if (orientation?.lock) {
+      try {
+        if (next) await orientation.lock("landscape");
+        else orientation.unlock?.();
+      } catch {
+        // iOS Safari can reject orientation locking; the compact layout still applies.
+      }
+    }
+  }, [landscapeMode]);
 
   // === Format du canevas (dynamique selon le panneau gauche) ===
   const [canvasSize, setCanvasSize] = useState({ w: 640, h: 360 });
@@ -1468,7 +1485,7 @@ export default function Editor() {
 
   // Responsive : en mobile/tablette (<1024px), le panneau gauche devient un Sheet
   return (
-    <div className="min-h-[100dvh] w-full max-w-full bg-background text-foreground flex overflow-x-hidden overflow-y-auto lg:overflow-hidden">
+    <div className={`min-h-[100dvh] w-full max-w-full bg-background text-foreground flex overflow-x-hidden overflow-y-auto lg:overflow-hidden ${isNarrow && landscapeMode ? "canvas-landscape-mode" : ""}`}>
       {/* Animation de téléchargement « ours IA liquide » (overlay z-[150]) */}
       {downloadRunning && (
         <DownloadAnimation state={downloadState} onComplete={onDownloadReady} />
@@ -1508,14 +1525,24 @@ export default function Editor() {
           )}
 
           {isNarrow && (
-            <button
-              onClick={() => setShowLeftPanel(true)}
-              className="flex items-center gap-1.5 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground hover:bg-muted transition-colors"
-              title="Outils et formats"
-            >
-              <PanelLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Outils</span>
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setShowLeftPanel(true)}
+                className="touch-target flex items-center gap-1.5 border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground hover:bg-muted transition-colors"
+                title="Outils et formats"
+              >
+                <PanelLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Outils</span>
+              </button>
+              <button
+                onClick={toggleLandscapeMode}
+                className={`touch-target rounded-lg border px-2 py-1.5 transition-colors ${landscapeMode ? "border-orange-400/50 bg-orange-400/10 text-orange-300" : "border-border text-muted-foreground hover:bg-muted"}`}
+                title={landscapeMode ? "Désactiver le mode paysage" : "Activer le mode paysage"}
+                aria-label={landscapeMode ? "Désactiver le mode paysage" : "Activer le mode paysage"}
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+            </div>
           )}
 
           <div className="w-px h-6 bg-border mx-1 hidden sm:block" />

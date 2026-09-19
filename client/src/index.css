@@ -850,3 +850,23 @@ html.light .glow-btn:hover {
   .editorial-card { transition: none; }
   .editorial-card:hover { transform: none; }
 }
+
+/* Cibles tactiles conformes aux recommandations mobiles (iOS/Android). */
+@media (pointer: coarse) and (max-width: 640px) {
+  button:not(.touch-compact),
+  [role="button"]:not(.touch-compact),
+  a[href]:not(.touch-compact) {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 1023px) {
+  .canvas-landscape-mode {
+    min-height: 100dvh;
+  }
+  .canvas-landscape-mode [data-canvas="true"] {
+    max-width: 100%;
+  }
+}
