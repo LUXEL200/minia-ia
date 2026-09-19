@@ -223,6 +223,22 @@ export const apiKeys = mysqlTable("apiKeys", {
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type InsertApiKey = typeof apiKeys.$inferInsert;
 
+/** Super-admin audit trail for sensitive security and communication actions. */
+export const adminAuditLogs = mysqlTable("adminAuditLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  actorUserId: int("actorUserId").notNull(),
+  action: mysqlEnum("action", ["legacy_keys_revoked", "users_notified"]).notNull(),
+  targetUserId: int("targetUserId"),
+  details: text("details"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  createdAtIdx: index("admin_audit_created_idx").on(table.createdAt),
+  actorIdx: index("admin_audit_actor_idx").on(table.actorUserId),
+}));
+
+export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
+export type InsertAdminAuditLog = typeof adminAuditLogs.$inferInsert;
+
 /**
  * Notifications table
  */

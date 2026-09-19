@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
@@ -578,6 +578,24 @@ export async function migrateLegacyApiKeys() {
   await db.update(apiKeys).set({ isActive: "revoked" })
     .where(and(eq(apiKeys.isActive, "active"), like(apiKeys.key, "minia-%")));
   return legacy;
+}
+
+export async function createAdminAuditLog(data: {
+  actorUserId: number;
+  action: "legacy_keys_revoked" | "users_notified";
+  targetUserId?: number;
+  details?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const [result] = await db.insert(adminAuditLogs).values(data);
+  return { id: Number(result.insertId) };
+}
+
+export async function getAdminAuditLogs(limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(adminAuditLogs).orderBy(desc(adminAuditLogs.createdAt)).limit(Math.min(limit, 250));
 }
 
 // === Notifications ===

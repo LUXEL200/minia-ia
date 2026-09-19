@@ -92,6 +92,8 @@ import {
   createNotification,
   getLegacyApiKeySummary,
   migrateLegacyApiKeys,
+  createAdminAuditLog,
+  getAdminAuditLogs,
   markNotificationRead,
   markAllNotificationsRead,
   getAdminStats,
@@ -822,14 +824,19 @@ export const notificationsRouter = router({
 
 // === Admin Router ===
 export const adminRouter = router({
+  auditLogs: adminProcedure.query(async () => getAdminAuditLogs()),
+
   legacyApiKeys: adminProcedure.query(async () => {
     const rows = await getLegacyApiKeySummary();
     const users = new Set(rows.map(row => row.userId));
     return { keyCount: rows.length, userCount: users.size, keys: rows };
   }),
 
-  migrateLegacyApiKeys: adminProcedure.mutation(async () => {
+  migrateLegacyApiKeys: adminProcedure.mutation(async ({ ctx }) => {
     const revoked = await migrateLegacyApiKeys();
+    if (revoked.length > 0) {
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "legacy_keys_revoked", details: JSON.stringify({ revokedCount: revoked.length }) });
+    }
     const userIds = Array.from(new Set(revoked.map(row => row.userId)));
     for (const userId of userIds) {
       await createNotification({
@@ -839,6 +846,7 @@ export const adminRouter = router({
         type: "system",
         metadata: JSON.stringify({ kind: "legacy-api-key-migration", revokedCount: revoked.filter(row => row.userId === userId).length }),
       });
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", targetUserId: userId, details: JSON.stringify({ reason: "legacy-api-key-migration", revokedCount: revoked.filter(row => row.userId === userId).length }) });
     }
     return { revokedCount: revoked.length, notifiedUserCount: userIds.length } as const;
   }),
@@ -898,8 +906,9 @@ export const adminRouter = router({
       message: z.string().max(2000).optional(),
       type: z.enum(["system", "credit", "generation", "team"]).default("system"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       await sendGlobalNotification(input.title, input.message, input.type);
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", details: JSON.stringify({ scope: "global", title: input.title, type: input.type }) });
       return { success: true } as const;
     }),
 

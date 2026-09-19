@@ -67,7 +67,7 @@ export default function AdminPage() {
     onError: (e) => toast.error(e.message),
   });
   const sendNotifMut = trpc.admin.sendNotification.useMutation({
-    onSuccess: () => { toast.success("Notification envoyée à tous les utilisateurs"); setNotifTitle(""); setNotifMessage(""); },
+    onSuccess: () => { toast.success("Notification envoyée à tous les utilisateurs"); setNotifTitle(""); setNotifMessage(""); refetchAuditLogs(); },
     onError: (e) => toast.error(e.message),
   });
   const bulkCreditsMut = trpc.admin.bulkCredits.useMutation({
@@ -77,8 +77,11 @@ export default function AdminPage() {
   const { data: legacyApiKeys, refetch: refetchLegacyApiKeys } = trpc.admin.legacyApiKeys.useQuery(undefined, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
+  const { data: auditLogs, refetch: refetchAuditLogs } = trpc.admin.auditLogs.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+  });
   const migrateLegacyApiKeysMut = trpc.admin.migrateLegacyApiKeys.useMutation({
-    onSuccess: (data) => { toast.success(`${data.revokedCount} ancienne(s) clé(s) désactivée(s)`, { description: `${data.notifiedUserCount} utilisateur(s) notifié(s).` }); refetchLegacyApiKeys(); },
+    onSuccess: (data) => { toast.success(`${data.revokedCount} ancienne(s) clé(s) désactivée(s)`, { description: `${data.notifiedUserCount} utilisateur(s) notifié(s).` }); refetchLegacyApiKeys(); refetchAuditLogs(); },
     onError: (e) => toast.error(e.message),
   });
   const createTemplateMut = trpc.templates.create.useMutation({
@@ -530,6 +533,15 @@ export default function AdminPage() {
                       {type}
                     </span>
                   ))}
+                </div>
+              </div>
+              <div className="bg-muted border border-border rounded-xl p-5">
+                <div className="flex items-center justify-between mb-3"><div><h4 className="text-sm font-medium text-gray-300">Journal d’audit</h4><p className="text-xs text-gray-500 mt-1">Historique des révocations et notifications sensibles.</p></div><span className="text-[11px] text-gray-500">{auditLogs?.length ?? 0} entrées</span></div>
+                <div className="space-y-2 max-h-72 overflow-auto">
+                  {(auditLogs ?? []).length === 0 ? <p className="text-xs text-gray-500 py-4">Aucune action enregistrée.</p> : (auditLogs ?? []).map((log) => {
+                    const detail = log.details ? (() => { try { return JSON.parse(log.details); } catch { return {}; } })() : {};
+                    return <div key={log.id} className="flex items-start gap-3 rounded-lg bg-black/30 px-3 py-2.5 text-xs"><span className={`mt-0.5 h-2 w-2 rounded-full shrink-0 ${log.action === "legacy_keys_revoked" ? "bg-orange-400" : "bg-cyan-400"}`} /><div className="min-w-0 flex-1"><p className="text-gray-200">{log.action === "legacy_keys_revoked" ? "Révocation de clés API héritées" : "Notification envoyée"}</p><p className="text-gray-500 mt-0.5">{detail.revokedCount ? `${detail.revokedCount} clé(s)` : detail.scope === "global" ? `Globale · ${detail.title ?? ""}` : `Utilisateur #${log.targetUserId ?? "—"}`} · {new Date(log.createdAt).toLocaleString("fr-FR")}</p></div></div>;
+                  })}
                 </div>
               </div>
             </div>
