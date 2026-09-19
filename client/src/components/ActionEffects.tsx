@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 // ------------------------------------------------------------------
 // ActionEffects — effets spéciaux déclenchés par les actions utilisateur
@@ -39,10 +39,10 @@ export function ActionEffectsProvider({ children }: { children: ReactNode }) {
   return (
     <ActionEffectsContext.Provider value={{ triggerConfetti, triggerFlash, triggerShake, triggerPop }}>
       {children}
-      <ConfettiOverlay key={confettiKey} origin={confettiOrigin} />
-      <FlashOverlay key={flashKey} />
-      <ShakeMarker key={shakeKey} />
-      <PopMarker key={popKey} />
+      <ConfettiOverlay key={`confetti-${confettiKey}`} origin={confettiOrigin} />
+      <FlashOverlay key={`flash-${flashKey}`} />
+      <ShakeMarker key={`shake-${shakeKey}`} />
+      <PopMarker key={`pop-${popKey}`} />
     </ActionEffectsContext.Provider>
   );
 }
@@ -64,12 +64,13 @@ export function useActionEffect(): ActionEffectsApi {
 // ------------------------------------------------------------------
 function ConfettiOverlay({ origin }: { origin: { x: number; y: number } | null }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  if (typeof window === "undefined") return null;
+  const viewportWidth = typeof window === "undefined" ? 0 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 0 : window.innerHeight;
 
   const colors = ["#fb923c", "#fdba74", "#1e2a4a", "#f8fafc", "#38bdf8", "#f59e0b"];
   const particles = Array.from({ length: 34 }, (_, i) => ({
-    x: (origin?.x ?? 0.5) * window.innerWidth + (Math.random() - 0.5) * 120,
-    y: (origin?.y ?? 0.4) * window.innerHeight,
+    x: (origin?.x ?? 0.5) * viewportWidth + (Math.random() - 0.5) * 120,
+    y: (origin?.y ?? 0.4) * viewportHeight,
     vx: (Math.random() - 0.5) * 10,
     vy: -Math.random() * 12 - 4,
     g: 0.45 + Math.random() * 0.15,
@@ -81,13 +82,15 @@ function ConfettiOverlay({ origin }: { origin: { x: number; y: number } | null }
     decay: 0.008 + Math.random() * 0.008,
   }));
 
-  requestAnimationFrame(() => {
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return undefined;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) return undefined;
+    let frameId = 0;
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -108,11 +111,14 @@ function ConfettiOverlay({ origin }: { origin: { x: number; y: number } | null }
         ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
         ctx.restore();
       }
-      if (alive) requestAnimationFrame(draw);
-      else canvas.remove();
+      if (alive) frameId = requestAnimationFrame(draw);
     };
     draw();
-  });
+    return () => {
+      cancelAnimationFrame(frameId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+  }, [origin]);
 
   return (
     <canvas
