@@ -14,7 +14,7 @@ import {
   Smartphone, Tablet, Youtube, X, Heart, Sparkles, UploadCloud, PanelRight, PanelLeft, RotateCw,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   getEditorDraftKey,
@@ -1493,6 +1493,7 @@ export default function Editor() {
       {isNarrow ? (
         <Sheet open={showLeftPanel} onOpenChange={setShowLeftPanel}>
           <SheetContent side="left" className="w-full sm:w-[85%] p-0 overflow-y-auto bg-background">
+            <SheetTitle className="sr-only">Outils et formats du Canvas</SheetTitle>
             {renderLeftPanel()}
           </SheetContent>
         </Sheet>
@@ -1876,6 +1877,7 @@ export default function Editor() {
       {isNarrow && selectedElement && (
         <Sheet open={showPropertyPanel} onOpenChange={setShowPropertyPanel}>
           <SheetContent side="right" className="w-[min(22rem,92vw)] p-0 bg-background">
+            <SheetTitle className="sr-only">Propriétés de l’élément sélectionné</SheetTitle>
             {renderPropertyPanel()}
           </SheetContent>
         </Sheet>
