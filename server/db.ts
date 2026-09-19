@@ -7,6 +7,12 @@ import { createHash, randomBytes } from "node:crypto";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+/** Drizzle/mysql2 peut renvoyer le ResultSetHeader directement ou dans un tuple. */
+function getAffectedRows(result: unknown): number {
+  const header = Array.isArray(result) ? result[0] : result;
+  return Number((header as { affectedRows?: number } | undefined)?.affectedRows ?? 0);
+}
+
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -147,7 +153,7 @@ export async function deductCredits(userId: number, amount: number) {
   const result = await db.update(userCredits)
     .set({ credits: sql`${userCredits.credits} - ${amount}` })
     .where(and(eq(userCredits.userId, userId), sql`${userCredits.credits} >= ${amount}`));
-  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) === 1;
+  return getAffectedRows(result) === 1;
 }
 
 export async function refundCredits(userId: number, amount: number) {
@@ -156,7 +162,7 @@ export async function refundCredits(userId: number, amount: number) {
   const result = await db.update(userCredits)
     .set({ credits: sql`${userCredits.credits} + ${amount}` })
     .where(eq(userCredits.userId, userId));
-  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) === 1;
+  return getAffectedRows(result) === 1;
 }
 
 // === Public Gallery ===
@@ -355,7 +361,7 @@ export async function updateTaskStatus(ownerId: number, taskId: number, status: 
   if (comment) updateData.comment = comment;
   const result = await db.update(teamTasks).set(updateData)
     .where(and(eq(teamTasks.id, taskId), eq(teamTasks.ownerId, ownerId)));
-  if (Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) !== 1) return false;
+  if (getAffectedRows(result) !== 1) return false;
 
   // Send notification on status change
   try {
@@ -1009,7 +1015,7 @@ export async function declineInvitation(id: number, userId: number) {
   if (!user?.email) return false;
   const result = await db.update(teamInvitations).set({ status: "declined" })
     .where(and(eq(teamInvitations.id, id), eq(teamInvitations.status, "pending"), eq(teamInvitations.email, user.email.toLowerCase())));
-  return Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) === 1;
+  return getAffectedRows(result) === 1;
 }
 
 export async function cancelSentInvitation(id: number, orgOwner: number) {

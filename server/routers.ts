@@ -1043,9 +1043,10 @@ export const appRouter = router({
         // Reserve credits atomically before external AI work.
         const credits = await ensureUserCredits(ctx.user.id);
         if (!(await deductCredits(ctx.user.id, input.quantity))) {
+          const currentCredits = await getUserCredits(ctx.user.id);
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Crédits insuffisants. Il te reste ${credits.credits} crédit(s). Tu as besoin de ${input.quantity} crédit(s).`,
+            message: `Crédits insuffisants. Il te reste ${currentCredits?.credits ?? credits.credits} crédit(s). Tu as besoin de ${input.quantity} crédit(s).`,
           });
         }
 
@@ -1213,9 +1214,10 @@ export const appRouter = router({
         const credits = await ensureUserCredits(ctx.user.id);
         const reserved = await deductCredits(ctx.user.id, input.prompts.length);
         if (!reserved) {
+          const currentCredits = await getUserCredits(ctx.user.id);
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: `Crdits insuffisants. Il te reste ${credits.credits} crdit(s). Tu as besoin de ${input.prompts.length} crdit(s).`,
+            message: `Crédits insuffisants. Il te reste ${currentCredits?.credits ?? credits.credits} crédit(s). Tu as besoin de ${input.prompts.length} crédit(s).`,
           });
         }
 
