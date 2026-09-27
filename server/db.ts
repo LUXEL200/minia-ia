@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
@@ -8,7 +8,7 @@ import { createHash, randomBytes } from "node:crypto";
 let _db: ReturnType<typeof drizzle> | null = null;
 
 /** Drizzle/mysql2 peut renvoyer le ResultSetHeader directement ou dans un tuple. */
-function getAffectedRows(result: unknown): number {
+export function getAffectedRows(result: unknown): number {
   const header = Array.isArray(result) ? result[0] : result;
   return Number((header as { affectedRows?: number } | undefined)?.affectedRows ?? 0);
 }
@@ -153,7 +153,12 @@ export async function deductCredits(userId: number, amount: number) {
   const result = await db.update(userCredits)
     .set({ credits: sql`${userCredits.credits} - ${amount}` })
     .where(and(eq(userCredits.userId, userId), sql`${userCredits.credits} >= ${amount}`));
-  return getAffectedRows(result) === 1;
+  const applied = getAffectedRows(result) === 1;
+  if (applied) {
+    const current = await getUserCredits(userId);
+    if (current) await recordCreditLedger({ userId, amount, balanceAfter: current.credits, type: "debit", reason: "generation" });
+  }
+  return applied;
 }
 
 export async function refundCredits(userId: number, amount: number) {
@@ -162,7 +167,28 @@ export async function refundCredits(userId: number, amount: number) {
   const result = await db.update(userCredits)
     .set({ credits: sql`${userCredits.credits} + ${amount}` })
     .where(eq(userCredits.userId, userId));
-  return getAffectedRows(result) === 1;
+  const applied = getAffectedRows(result) === 1;
+  if (applied) {
+    const current = await getUserCredits(userId);
+    if (current) await recordCreditLedger({ userId, amount, balanceAfter: current.credits, type: "refund", reason: "generation_failed" });
+  }
+  return applied;
+}
+
+export async function recordCreditLedger(entry: InsertCreditLedger) {
+  const db = await getDb();
+  if (!db) return null;
+  const [result] = await db.insert(creditLedger).values(entry);
+  return { id: result.insertId };
+}
+
+export async function listCreditLedger(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(creditLedger)
+    .where(eq(creditLedger.userId, userId))
+    .orderBy(desc(creditLedger.createdAt))
+    .limit(100);
 }
 
 // === Public Gallery ===

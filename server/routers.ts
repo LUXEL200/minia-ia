@@ -53,6 +53,8 @@ import {
   createThumbnail,
   updateThumbnailStatus,
   getUserCredits,
+  listCreditLedger,
+  recordCreditLedger,
   ensureUserCredits,
   deductCredits,
   refundCredits,
@@ -1136,6 +1138,9 @@ export const appRouter = router({
       return { ...credits, planType: credits.planType };
     }),
 
+    /** Historique immuable des débits, remboursements et recharges. */
+    creditHistory: protectedProcedure.query(async ({ ctx }) => listCreditLedger(ctx.user.id)),
+
     /** Delete a thumbnail — verifies ownership */
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
@@ -1534,6 +1539,17 @@ export const appRouter = router({
         // 2) Créditer immédiatement le compte
         const current = await ensureUserCredits(ctx.user.id);
         await updateUserCredits(ctx.user.id, (current?.credits ?? 0) + pack.credits);
+        const updatedBalance = await getUserCredits(ctx.user.id);
+        if (updatedBalance) {
+          await recordCreditLedger({
+            userId: ctx.user.id,
+            amount: pack.credits,
+            balanceAfter: updatedBalance.credits,
+            type: "grant",
+            reason: "credit_pack",
+            referenceId: String(purchase.id),
+          });
+        }
 
         // 3) Notification in-app de confirmation
         try {

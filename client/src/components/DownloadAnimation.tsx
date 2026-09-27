@@ -2,8 +2,8 @@
  * DownloadAnimation — animation de téléchargement « ours IA liquide » :
  * 1. Le rectangle se remplit progressivement de liquide (palette configurable)
  * 2. L'ours IA verse le liquide depuis le haut
- * 3. Une fois rempli, le compteur « respire » (0→100 en boucle douce) tant que
- *    l'API génère la miniature ; puis l'ours s'enfuit et la miniature apparaît
+ * 3. Une fois rempli, le compteur reste à 100 % tant que l'API génère ; puis
+ *    l'ours s'enfuit et la miniature apparaît
  * 4. Si aucune miniature ne revient jamais, l'ours revient avec un panneau « Réessaie »
  *
  * Palettes : « multicolor » (défaut), « orange », « white ».
@@ -21,7 +21,6 @@ const BEAR_POUR = "/manus-storage/bear-ai-pour_92862632.png";
 const BEAR_RUN = "/manus-storage/bear-ai-run_7980f85e.png";
 const DURATION_DESKTOP_MS = 3400;
 const DURATION_MOBILE_MS = 3000; // raccourci sur petit écran
-const BREATH_MS = 2600; // durée d'une respiration 0→100 après remplissage
 const FAILURE_AFTER_MS = 30_000; // panneau « Réessaie » si rien n'est revenu après 30 s
 
 export type LiquidTheme = "multicolor" | "orange" | "white";
@@ -182,19 +181,19 @@ export function DownloadAnimation({
   const startRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
   const [stuckAtFull, setStuckAtFull] = useState(false);
-  const [breath, setBreath] = useState(0); // respiration 0→100 pendant l'attente API
   const plopPlayed = useRef(false);
   const [retryShown, setRetryShown] = useState(false);
 
   const liquid: LiquidTheme = state?.liquid ?? "multicolor";
   const genMode = state?.mode === "generate";
   const revealUrl = resultUrl ?? state?.thumbnailUrl;
-  const displayProgress = stuckAtFull ? breath : progress;
+  const displayProgress = stuckAtFull ? 100 : progress;
 
   useEffect(() => {
     if (phaseForce === "reveal") {
       setPhase("reveal");
-      return;
+      const t = setTimeout(() => onComplete?.(), 750);
+      return () => clearTimeout(t);
     }
     const duration = getDuration();
     startRef.current = performance.now();
@@ -206,21 +205,10 @@ export function DownloadAnimation({
         rafRef.current = requestAnimationFrame(tick);
       } else {
         if (genMode && !resultUrl) {
-          // Le compteur « respire » (0→100 en boucle douce) tant que l'API génère
+          // Le remplissage est terminé : rester à 100 % jusqu'au retour de l'API.
+          // Ne jamais relancer une animation de respiration, qui pouvait boucler
+          // autour d'une valeur intermédiaire et empêcher la fin visuelle.
           setStuckAtFull(true);
-          const breathTick = () => {
-            const start = performance.now();
-            const breathe = (now2: number) => {
-              const t2 = Math.min(1, (now2 - start) / BREATH_MS);
-              // courbe douce : montée puis descente
-              setBreath(Math.round(100 * Math.abs(Math.sin(Math.PI * t2))));
-              if (t2 < 1 && stuckAtFullRef.current) {
-                requestAnimationFrame(breathe);
-              }
-            };
-            requestAnimationFrame(breathe);
-          };
-          breathTick();
         } else {
           setPhase("reveal");
           const t = setTimeout(() => onComplete?.(), 750);
@@ -232,11 +220,6 @@ export function DownloadAnimation({
     return () => cancelAnimationFrame(rafRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onComplete, genMode, resultUrl, phaseForce]);
-
-  const stuckAtFullRef = useRef(false);
-  useEffect(() => {
-    stuckAtFullRef.current = stuckAtFull;
-  }, [stuckAtFull]);
 
   // Panneau « Réessaie » si rien n'est revenu après un délai long
   useEffect(() => {
@@ -250,12 +233,12 @@ export function DownloadAnimation({
 
   // En mode generate, passer en reveal dès que l'API renvoie la miniature
   useEffect(() => {
-    if (genMode && stuckAtFull && resultUrl) {
+    if (genMode && stuckAtFull && resultUrl && phaseForce !== "reveal") {
       setPhase("reveal");
       const t = setTimeout(() => onComplete?.(), 750);
       return () => clearTimeout(t);
     }
-  }, [genMode, stuckAtFull, resultUrl, onComplete]);
+  }, [genMode, stuckAtFull, resultUrl, onComplete, phaseForce]);
 
   // Son « plouf » au moment de la révélation (une seule fois, désactivable)
   useEffect(() => {

@@ -7,6 +7,7 @@ vi.mock("./db", () => ({
   ensureUserCredits: vi.fn(),
   updateUserCredits: vi.fn(),
   getUserCredits: vi.fn(),
+  recordCreditLedger: vi.fn(),
   createNotification: vi.fn(),
 }));
 
@@ -17,6 +18,7 @@ import {
   ensureUserCredits,
   updateUserCredits,
   getUserCredits,
+  recordCreditLedger,
   createNotification,
 } from "./db";
 import { appRouter } from "./routers";
@@ -60,6 +62,7 @@ describe("packs purchase (protected)", () => {
     (ensureUserCredits as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ credits: 4, planType: "free" });
     (updateUserCredits as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(true);
     (getUserCredits as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ credits: 54, planType: "free" });
+    (recordCreditLedger as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 1 });
 
     const res = await caller.packs.purchase({ packId: "creator" });
 
@@ -76,6 +79,7 @@ describe("packs purchase (protected)", () => {
       }),
     );
     expect(updateUserCredits).toHaveBeenCalledWith(1, 54);
+    expect(recordCreditLedger).toHaveBeenCalledWith(expect.objectContaining({ userId: 1, amount: 50, balanceAfter: 54, type: "grant" }));
     expect(createNotification).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 1, type: "credit" }),
     );

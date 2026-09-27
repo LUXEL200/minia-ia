@@ -324,17 +324,21 @@ export default function Dashboard() {
           style,
           styleLabel: STYLE_LABELS[style] ?? style,
         });
+        setGenAnimResultUrl(first.imageUrl);
+        setGenAnimPhase("reveal");
+      } else {
+        resetGenAnimation();
       }
-      resetGenAnimation();
-      setGenAnimResultUrl(null);
-      setGenAnimPhase(null);
       triggerConfetti();
-      toast.success(`${result.successful} miniature(s) générée(s) !`);
+      toast.success(`${result.successful} miniature(s) générée(s) ! Solde : ${result.creditsRemaining} crédit(s).`);
       setPrompt("");
       refetchThumbs();
       refetchCredits();
       setActiveView("home");
     } catch (err: any) {
+      resetGenAnimation();
+      setGenAnimResultUrl(null);
+      setGenAnimPhase(null);
       toast.error(err.message || "Erreur lors de la génération");
     } finally {
       setIsGenerating(false);
@@ -369,24 +373,28 @@ export default function Dashboard() {
           style,
           styleLabel: STYLE_LABELS[style] ?? style,
         });
+        setGenAnimResultUrl(first.imageUrl);
+        setGenAnimPhase("reveal");
+      } else {
+        resetGenAnimation();
       }
-      resetGenAnimation();
-      setGenAnimResultUrl(null);
-      setGenAnimPhase(null);
       triggerConfetti();
-      toast.success(`${result.successful} sur ${prompts.length} miniatures générées !`);
+      toast.success(`${result.successful} sur ${prompts.length} miniatures générées ! Solde : ${result.creditsRemaining} crédit(s).`);
       setBatchPrompts("");
       refetchThumbs();
       refetchCredits();
       setActiveView("home");
     } catch (err: any) {
+      resetGenAnimation();
+      setGenAnimResultUrl(null);
+      setGenAnimPhase(null);
       toast.error(err.message || "Erreur lors de la génération en lot");
     } finally {
       setIsBatchGenerating(false);
     }
   }, [batchPrompts, credits, style, batchMutation, refetchThumbs, refetchCredits, resetGenAnimation]);
 
-  const genAnimActive = isGenerating || isBatchGenerating || genAnimationRunning;
+  const genAnimActive = isGenerating || isBatchGenerating || genAnimationRunning || genAnimPhase === "reveal";
 
   const handleDelete = (id: number) => deleteMutation.mutate({ id });
 
@@ -1077,6 +1085,7 @@ export default function Dashboard() {
           resultUrl={genAnimResultUrl}
           phaseForce={genAnimPhase}
           onComplete={() => {
+            resetGenAnimation();
             setGenAnimPhase(null);
             setGenAnimResultUrl(null);
           }}

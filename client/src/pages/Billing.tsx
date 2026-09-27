@@ -71,6 +71,7 @@ export default function BillingPage() {
   const { data: credits } = trpc.thumbnail.credits.useQuery();
   const { data: catalog } = trpc.packs.catalog.useQuery();
   const { data: purchases, refetch: refetchPurchases } = trpc.packs.purchases.useQuery();
+  const { data: creditHistory } = trpc.thumbnail.creditHistory.useQuery();
 
   const [selectedPack, setSelectedPack] = useState<string | null>(null);
   const [successPack, setSuccessPack] = useState<string | null>(null);
@@ -228,6 +229,45 @@ export default function BillingPage() {
                   </span>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Credit ledger */}
+        <div className="mt-8">
+          <div className="flex items-center gap-3 mb-4">
+            <Zap className="text-orange-400" size={20} />
+            <h2 className="text-lg font-semibold">Mouvements de crédits</h2>
+          </div>
+          {!creditHistory || creditHistory.length === 0 ? (
+            <div className="border border-dashed border-zinc-800 rounded-xl p-6 text-center">
+              <p className="text-sm text-zinc-400">Aucun mouvement enregistré</p>
+              <p className="text-xs text-zinc-600 mt-1">Les générations et remboursements apparaîtront ici.</p>
+            </div>
+          ) : (
+            <div className="border border-zinc-800 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-4 gap-2 px-4 py-2.5 bg-zinc-950/70 text-[11px] uppercase tracking-wide text-zinc-500">
+                <span>Opération</span>
+                <span className="text-right">Variation</span>
+                <span className="text-right">Solde</span>
+                <span className="text-right">Date</span>
+              </div>
+              {creditHistory.map((entry) => {
+                const isDebit = entry.type === "debit";
+                const label = entry.type === "debit" ? "Génération" : entry.type === "refund" ? "Remboursement" : "Recharge";
+                return (
+                  <div key={entry.id} className="grid grid-cols-4 gap-2 px-4 py-3 border-t border-zinc-800/70 text-sm">
+                    <span className="truncate">{label}</span>
+                    <span className={`text-right font-medium ${isDebit ? "text-red-400" : "text-emerald-400"}`}>
+                      {isDebit ? "-" : "+"}{entry.amount}
+                    </span>
+                    <span className="text-right text-zinc-300">{entry.balanceAfter}</span>
+                    <span className="text-right text-xs text-zinc-500">
+                      {new Date(entry.createdAt).toLocaleDateString("fr-FR")}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

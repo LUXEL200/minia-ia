@@ -61,6 +61,24 @@ export const userCredits = mysqlTable("userCredits", {
 export type UserCredits = typeof userCredits.$inferSelect;
 export type InsertUserCredits = typeof userCredits.$inferInsert;
 
+/** Immutable credit ledger for generation debits, refunds and top-ups. */
+export const creditLedger = mysqlTable("creditLedger", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  amount: int("amount").notNull(),
+  balanceAfter: int("balanceAfter").notNull(),
+  type: mysqlEnum("type", ["debit", "refund", "grant"]).notNull(),
+  reason: varchar("reason", { length: 128 }).notNull(),
+  referenceId: varchar("referenceId", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("credit_ledger_user_idx").on(table.userId),
+  createdAtIdx: index("credit_ledger_created_idx").on(table.createdAt),
+}));
+
+export type CreditLedger = typeof creditLedger.$inferSelect;
+export type InsertCreditLedger = typeof creditLedger.$inferInsert;
+
 /**
  * Likes table — tracks which users liked which thumbnails
  */
