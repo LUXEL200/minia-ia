@@ -1,0 +1,2 @@
+ALTER TABLE `adminAuditLogs` MODIFY COLUMN `action` enum('legacy_keys_revoked','users_notified','credits_reset','session_revoked') NOT NULL;--> statement-breakpoint
+ALTER TABLE `users` ADD `sessionRevokedAt` timestamp;

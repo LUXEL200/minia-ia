@@ -9,6 +9,7 @@ import {
   Globe, Key, Layers, TrendingUp, AlertTriangle, Star, MessageSquare,
   CheckCircle2, XCircle, Clock
 } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 
 type TabId = "dashboard" | "operations" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials";
@@ -27,6 +28,11 @@ export default function AdminPage() {
   const [newTemplateImageUrl, setNewTemplateImageUrl] = useState("");
   const [newTemplateCategory, setNewTemplateCategory] = useState("viral");
   const [supportUserId, setSupportUserId] = useState("");
+  const [timelineKind, setTimelineKind] = useState<"all" | "account" | "generation" | "credit" | "notification" | "api_key">("all");
+  const [timelineFrom, setTimelineFrom] = useState("");
+  const [timelineTo, setTimelineTo] = useState("");
+  const [supportMessage, setSupportMessage] = useState("");
+  const [supportTitle, setSupportTitle] = useState("Message du support Minia IA");
 
 
   // Guard: redirect if not admin
@@ -52,6 +58,9 @@ export default function AdminPage() {
   const { data: operations, refetch: refetchOperations } = trpc.admin.operations.useQuery(undefined, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
+  const { data: historicalMetrics } = trpc.admin.historicalMetrics.useQuery({ days: 14 }, {
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+  });
   const supportInput = useMemo(() => {
     const id = Number.parseInt(supportUserId, 10);
     return Number.isInteger(id) && id > 0 ? { userId: id } : undefined;
@@ -60,6 +69,11 @@ export default function AdminPage() {
     supportInput as { userId: number },
     { enabled: !loading && isAuthenticated && user?.isAdminOwner === true && !!supportInput }
   );
+  const filteredTimeline = useMemo(() => (supportSnapshot?.timeline ?? []).filter(event => {
+    const after = !timelineFrom || new Date(event.timestamp) >= new Date(`${timelineFrom}T00:00:00`);
+    const before = !timelineTo || new Date(event.timestamp) <= new Date(`${timelineTo}T23:59:59.999`);
+    return (timelineKind === "all" || event.kind === timelineKind) && after && before;
+  }), [supportSnapshot?.timeline, timelineKind, timelineFrom, timelineTo]);
 
   // Mutations
   const updateRoleMut = trpc.admin.updateRole.useMutation({
@@ -84,6 +98,18 @@ export default function AdminPage() {
   });
   const bulkCreditsMut = trpc.admin.bulkCredits.useMutation({
     onSuccess: (data) => { toast.success(`${data.updated} utilisateurs mis à jour`); refetchUsers(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const resetCreditsMut = trpc.admin.resetCredits.useMutation({
+    onSuccess: (data) => { toast.success(`Solde réinitialisé à ${data.amount} crédits`); refetchUsers(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const notifyUserMut = trpc.admin.notifyUser.useMutation({
+    onSuccess: () => { toast.success("Notification ciblée envoyée"); setSupportMessage(""); },
+    onError: (e) => toast.error(e.message),
+  });
+  const revokeSessionsMut = trpc.admin.revokeSessions.useMutation({
+    onSuccess: () => toast.success("Toutes les sessions utilisateur ont été révoquées"),
     onError: (e) => toast.error(e.message),
   });
   const { data: legacyApiKeys, refetch: refetchLegacyApiKeys } = trpc.admin.legacyApiKeys.useQuery(undefined, {
@@ -230,6 +256,17 @@ export default function AdminPage() {
                 <StatCard icon={<TrendingUp />} label="Plans Pro/Max" value={0} color="gold" />
               </div>
 
+              <div className="bg-muted rounded-xl border border-border p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div><h3 className="font-semibold">Métriques historiques</h3><p className="text-xs text-gray-500 mt-1">14 derniers jours · UTC</p></div>
+                  <Activity size={18} className="text-orange-400" />
+                </div>
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                  <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={historicalMetrics ?? []}><CartesianGrid strokeDasharray="3 3" stroke="#273044" /><XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={v => String(v).slice(5)} /><YAxis allowDecimals={false} tick={{ fontSize: 10 }} /><Tooltip contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} /><Legend /><Line type="monotone" dataKey="activeUsers" name="Utilisateurs actifs" stroke="#fb923c" strokeWidth={2} dot={false} /><Line type="monotone" dataKey="generations" name="Générations" stroke="#60a5fa" strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
+                  <div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={historicalMetrics ?? []}><CartesianGrid strokeDasharray="3 3" stroke="#273044" /><XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={v => String(v).slice(5)} /><YAxis allowDecimals={false} tick={{ fontSize: 10 }} /><Tooltip contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} /><Legend /><Bar dataKey="errors" name="Erreurs" fill="#f87171" radius={[3, 3, 0, 0]} /><Bar dataKey="creditsConsumed" name="Crédits consommés" fill="#a78bfa" radius={[3, 3, 0, 0]} /></BarChart></ResponsiveContainer></div>
+                </div>
+              </div>
+
               {/* Quick Actions */}
               <div className="bg-muted rounded-xl border border-border p-5">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
@@ -369,11 +406,18 @@ export default function AdminPage() {
                     <div className="mt-5 border-t border-border pt-4">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-semibold flex items-center gap-2"><Activity size={15} className="text-orange-400" /> Timeline utilisateur</h4>
-                        <span className="text-[11px] text-gray-500">{supportSnapshot.timeline.length} événements</span>
+                        <span className="text-[11px] text-gray-500">{filteredTimeline.length} événements</span>
                       </div>
-                      {supportSnapshot.timeline.length === 0 ? <p className="text-xs text-gray-500">Aucun événement disponible.</p> : (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+                        <select value={timelineKind} onChange={e => setTimelineKind(e.target.value as typeof timelineKind)} className="bg-black/40 border border-border rounded-lg px-3 py-2 text-xs">
+                          <option value="all">Tous les types</option><option value="account">Compte</option><option value="generation">Générations</option><option value="credit">Crédits</option><option value="notification">Notifications</option><option value="api_key">Clés API</option>
+                        </select>
+                        <input type="date" value={timelineFrom} onChange={e => setTimelineFrom(e.target.value)} className="bg-black/40 border border-border rounded-lg px-3 py-2 text-xs" aria-label="Date de début" />
+                        <input type="date" value={timelineTo} onChange={e => setTimelineTo(e.target.value)} className="bg-black/40 border border-border rounded-lg px-3 py-2 text-xs" aria-label="Date de fin" />
+                      </div>
+                      {filteredTimeline.length === 0 ? <p className="text-xs text-gray-500">Aucun événement pour ces filtres.</p> : (
                         <div className="relative ml-2 border-l border-border pl-5 space-y-4 max-h-[420px] overflow-y-auto pr-2">
-                          {supportSnapshot.timeline.map((event) => (
+                          {filteredTimeline.map((event) => (
                             <div key={event.id} className="relative">
                               <span className="absolute -left-[26px] top-1.5 h-2.5 w-2.5 rounded-full bg-orange-400 ring-4 ring-muted" />
                               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
@@ -389,6 +433,18 @@ export default function AdminPage() {
                           ))}
                         </div>
                       )}
+                    </div>
+                    <div className="mt-5 border-t border-border pt-4">
+                      <h4 className="text-sm font-semibold mb-3">Actions de support contrôlées</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                        <button onClick={() => resetCreditsMut.mutate({ userId: supportSnapshot.user.id, amount: 10 })} disabled={resetCreditsMut.isPending} className="rounded-lg bg-orange-500 hover:bg-orange-400 disabled:opacity-50 px-3 py-2 text-xs font-medium">Réinitialiser à 10 crédits</button>
+                        <button onClick={() => { if (confirm("Révoquer toutes les sessions de cet utilisateur ?")) revokeSessionsMut.mutate({ userId: supportSnapshot.user.id }); }} disabled={revokeSessionsMut.isPending} className="rounded-lg bg-red-500/80 hover:bg-red-500 disabled:opacity-50 px-3 py-2 text-xs font-medium">Révoquer les sessions</button>
+                        <button onClick={() => { if (!supportMessage.trim()) toast.error("Message requis"); else notifyUserMut.mutate({ userId: supportSnapshot.user.id, title: supportTitle, message: supportMessage, type: "system" }); }} disabled={notifyUserMut.isPending} className="rounded-lg bg-blue-500/80 hover:bg-blue-500 disabled:opacity-50 px-3 py-2 text-xs font-medium">Envoyer la notification</button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input value={supportTitle} onChange={e => setSupportTitle(e.target.value)} placeholder="Titre de notification" className="bg-black/40 border border-border rounded-lg px-3 py-2 text-xs" />
+                        <input value={supportMessage} onChange={e => setSupportMessage(e.target.value)} placeholder="Message ciblé à l'utilisateur" className="bg-black/40 border border-border rounded-lg px-3 py-2 text-xs" />
+                      </div>
                     </div>
                   </>
                 )}

@@ -13,6 +13,8 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  /** Sessions issued before this instant are rejected by the server. */
+  sessionRevokedAt: timestamp("sessionRevokedAt"),
 });
 
 export type User = typeof users.$inferSelect;
@@ -245,7 +247,7 @@ export type InsertApiKey = typeof apiKeys.$inferInsert;
 export const adminAuditLogs = mysqlTable("adminAuditLogs", {
   id: int("id").autoincrement().primaryKey(),
   actorUserId: int("actorUserId").notNull(),
-  action: mysqlEnum("action", ["legacy_keys_revoked", "users_notified"]).notNull(),
+  action: mysqlEnum("action", ["legacy_keys_revoked", "users_notified", "credits_reset", "session_revoked"]).notNull(),
   targetUserId: int("targetUserId"),
   details: text("details"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

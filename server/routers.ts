@@ -102,10 +102,13 @@ import {
   getAdminOperations,
   getUserSupportSnapshot,
   getUserEventTimeline,
+  getAdminHistoricalMetrics,
   getAllUsers,
   updateUserRole,
   updateUserCredits,
   updateUserPlan,
+  resetUserCredits,
+  revokeUserSessions,
   sendGlobalNotification,
   createTemplateCustomization,
   updateTemplateCustomization,
@@ -844,8 +847,15 @@ export const adminRouter = router({
     }),
 
   userTimeline: adminProcedure
-    .input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(200).default(100) }))
-    .query(async ({ input }) => getUserEventTimeline(input.userId, input.limit)),
+    .input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(200).default(100), kind: z.enum(["all", "account", "generation", "credit", "notification", "api_key"]).default("all"), from: z.coerce.date().optional(), to: z.coerce.date().optional() }))
+    .query(async ({ input }) => {
+      const events = await getUserEventTimeline(input.userId, input.limit * 2);
+      return events.filter(event => (input.kind === "all" || event.kind === input.kind) && (!input.from || event.timestamp >= input.from) && (!input.to || event.timestamp <= input.to)).slice(0, input.limit);
+    }),
+
+  historicalMetrics: adminProcedure
+    .input(z.object({ days: z.number().int().min(7).max(90).default(14) }).optional())
+    .query(async ({ input }) => getAdminHistoricalMetrics(input?.days ?? 14)),
 
   legacyApiKeys: adminProcedure.query(async () => {
     const rows = await getLegacyApiKeySummary();
@@ -893,6 +903,35 @@ export const adminRouter = router({
     .input(z.object({ userId: z.number(), credits: z.number().min(0).max(10000) }))
     .mutation(async ({ input }) => {
       await updateUserCredits(input.userId, input.credits);
+      return { success: true } as const;
+    }),
+
+  resetCredits: adminProcedure
+    .input(z.object({ userId: z.number().int().positive(), amount: z.number().int().min(0).max(10000).default(10) }))
+    .mutation(async ({ ctx, input }) => {
+      const success = await resetUserCredits(input.userId, input.amount);
+      if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur introuvable ou crédits indisponibles" });
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "credits_reset", targetUserId: input.userId, details: JSON.stringify({ amount: input.amount }) });
+      await createNotification({ userId: input.userId, title: "Crédits réinitialisés", message: `Ton solde a été réinitialisé à ${input.amount} crédit(s) par le support.`, type: "credit", metadata: JSON.stringify({ kind: "admin-credit-reset", amount: input.amount }) });
+      return { success: true, amount: input.amount } as const;
+    }),
+
+  notifyUser: adminProcedure
+    .input(z.object({ userId: z.number().int().positive(), title: z.string().min(1).max(200), message: z.string().max(2000).optional(), type: z.enum(["system", "credit", "generation", "team"]).default("system") }))
+    .mutation(async ({ ctx, input }) => {
+      const recipient = await getUserSupportSnapshot(input.userId);
+      if (!recipient) throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur introuvable" });
+      await createNotification({ userId: input.userId, title: input.title, message: input.message, type: input.type, metadata: JSON.stringify({ kind: "admin-targeted-notification" }) });
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", targetUserId: input.userId, details: JSON.stringify({ scope: "targeted", title: input.title, type: input.type }) });
+      return { success: true } as const;
+    }),
+
+  revokeSessions: adminProcedure
+    .input(z.object({ userId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const success = await revokeUserSessions(input.userId);
+      if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur introuvable" });
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "session_revoked", targetUserId: input.userId, details: JSON.stringify({ scope: "all_sessions" }) });
       return { success: true } as const;
     }),
 

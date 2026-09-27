@@ -614,7 +614,7 @@ export async function migrateLegacyApiKeys() {
 
 export async function createAdminAuditLog(data: {
   actorUserId: number;
-  action: "legacy_keys_revoked" | "users_notified";
+  action: "legacy_keys_revoked" | "users_notified" | "credits_reset" | "session_revoked";
   targetUserId?: number;
   details?: string;
 }) {
@@ -772,6 +772,54 @@ export async function getUserEventTimeline(userId: number, limit = 100): Promise
     ...apiKeyRows.map(row => ({ id: `api-key-${row.id}`, timestamp: row.createdAt, kind: "api_key" as const, title: "Clé API créée", description: `${row.name} · aucune valeur secrète affichée`, status: row.isActive })),
   ];
   return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, Math.min(limit, 200));
+}
+
+export async function resetUserCredits(userId: number, amount = 10) {
+  const db = await getDb();
+  if (!db || !Number.isInteger(amount) || amount < 0 || amount > 10000) return false;
+  const user = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+  if (user.length === 0) return false;
+  const existing = await getUserCredits(userId);
+  if (!existing) await db.insert(userCredits).values({ userId, credits: amount, planType: "free" });
+  else await db.update(userCredits).set({ credits: amount }).where(eq(userCredits.userId, userId));
+  await recordCreditLedger({ userId, amount, balanceAfter: amount, type: "grant", reason: "admin_reset" });
+  return true;
+}
+
+export async function revokeUserSessions(userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(users).set({ sessionRevokedAt: new Date() }).where(eq(users.id, userId));
+  return getAffectedRows(result) === 1;
+}
+
+export async function getAdminHistoricalMetrics(days = 14) {
+  const db = await getDb();
+  const safeDays = Math.min(Math.max(Math.floor(days), 7), 90);
+  const start = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000);
+  const labels = Array.from({ length: safeDays }, (_, index) => {
+    const date = new Date(start.getTime() + index * 24 * 60 * 60 * 1000);
+    return date.toISOString().slice(0, 10);
+  });
+  if (!db) return labels.map(date => ({ date, activeUsers: 0, generations: 0, successfulGenerations: 0, errors: 0, creditsConsumed: 0 }));
+  const [userRows, thumbnailRows, ledgerRows] = await Promise.all([
+    db.select({ createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(gte(users.lastSignedIn, start)),
+    db.select({ status: thumbnails.status, createdAt: thumbnails.createdAt }).from(thumbnails).where(gte(thumbnails.createdAt, start)),
+    db.select({ amount: creditLedger.amount, type: creditLedger.type, createdAt: creditLedger.createdAt }).from(creditLedger).where(and(gte(creditLedger.createdAt, start), eq(creditLedger.type, "debit"))),
+  ]);
+  return labels.map(date => {
+    const next = new Date(`${date}T00:00:00.000Z`); next.setUTCDate(next.getUTCDate() + 1);
+    const inDay = (value: Date) => value >= new Date(`${date}T00:00:00.000Z`) && value < next;
+    const dayThumbs = thumbnailRows.filter(row => inDay(row.createdAt));
+    return {
+      date,
+      activeUsers: userRows.filter(row => inDay(row.lastSignedIn)).length,
+      generations: dayThumbs.length,
+      successfulGenerations: dayThumbs.filter(row => row.status === "completed").length,
+      errors: dayThumbs.filter(row => row.status === "failed").length,
+      creditsConsumed: ledgerRows.filter(row => inDay(row.createdAt)).reduce((sum, row) => sum + Math.abs(row.amount), 0),
+    };
+  });
 }
 
 export async function getAllUsers() {
