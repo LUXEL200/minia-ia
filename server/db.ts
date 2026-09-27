@@ -738,7 +738,40 @@ export async function getUserSupportSnapshot(userId: number) {
     .from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt)).limit(20);
   const unreadNotifications = await getUnreadCountByUserId(userId);
   const ledger = await listCreditLedger(userId);
-  return { user: { id: user.id, name: user.name, email: user.email, role: user.role, lastSignedIn: user.lastSignedIn }, credits, thumbnails: userThumbnails, apiKeys: apiKeyRows, unreadNotifications, creditHistory: ledger };
+  const timeline = await getUserEventTimeline(userId);
+  return { user: { id: user.id, name: user.name, email: user.email, role: user.role, lastSignedIn: user.lastSignedIn }, credits, thumbnails: userThumbnails, apiKeys: apiKeyRows, unreadNotifications, creditHistory: ledger, timeline };
+}
+
+export type UserEventTimelineItem = {
+  id: string;
+  timestamp: Date;
+  kind: "account" | "generation" | "credit" | "notification" | "api_key";
+  title: string;
+  description: string;
+  status?: string;
+};
+
+/** Build a redacted, chronological support timeline. Image URLs and API secrets are never included. */
+export async function getUserEventTimeline(userId: number, limit = 100): Promise<UserEventTimelineItem[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const user = (await db.select({ id: users.id, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(eq(users.id, userId)).limit(1))[0];
+  if (!user) return [];
+  const [thumbRows, ledgerRows, notificationRows, apiKeyRows] = await Promise.all([
+    db.select({ id: thumbnails.id, prompt: thumbnails.prompt, style: thumbnails.style, status: thumbnails.status, createdAt: thumbnails.createdAt, updatedAt: thumbnails.updatedAt }).from(thumbnails).where(eq(thumbnails.userId, userId)).limit(100),
+    db.select().from(creditLedger).where(eq(creditLedger.userId, userId)).limit(100),
+    db.select({ id: notifications.id, title: notifications.title, message: notifications.message, type: notifications.type, isRead: notifications.isRead, createdAt: notifications.createdAt }).from(notifications).where(eq(notifications.userId, userId)).limit(100),
+    db.select({ id: apiKeys.id, name: apiKeys.name, isActive: apiKeys.isActive, createdAt: apiKeys.createdAt, expiresAt: apiKeys.expiresAt }).from(apiKeys).where(eq(apiKeys.userId, userId)).limit(100),
+  ]);
+  const events: UserEventTimelineItem[] = [
+    { id: `account-created-${user.id}`, timestamp: user.createdAt, kind: "account", title: "Compte créé", description: "Le compte utilisateur a été créé." },
+    { id: `account-login-${user.id}`, timestamp: user.lastSignedIn, kind: "account", title: "Dernière connexion", description: "Dernière activité d’authentification connue." },
+    ...thumbRows.map(row => ({ id: `thumbnail-${row.id}`, timestamp: row.updatedAt ?? row.createdAt, kind: "generation" as const, title: row.status === "completed" ? "Génération terminée" : row.status === "failed" ? "Génération échouée" : "Génération en cours", description: `${row.style ?? "viral"} · ${row.prompt.slice(0, 140)}`, status: row.status })),
+    ...ledgerRows.map(row => ({ id: `credit-${row.id}`, timestamp: row.createdAt, kind: "credit" as const, title: row.type === "debit" ? "Crédits consommés" : row.type === "refund" ? "Crédits remboursés" : "Crédits ajoutés", description: `${row.amount} crédit(s) · solde après opération : ${row.balanceAfter}`, status: row.type })),
+    ...notificationRows.map(row => ({ id: `notification-${row.id}`, timestamp: row.createdAt, kind: "notification" as const, title: row.title, description: row.message?.slice(0, 140) || "Notification système", status: row.isRead })),
+    ...apiKeyRows.map(row => ({ id: `api-key-${row.id}`, timestamp: row.createdAt, kind: "api_key" as const, title: "Clé API créée", description: `${row.name} · aucune valeur secrète affichée`, status: row.isActive })),
+  ];
+  return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, Math.min(limit, 200));
 }
 
 export async function getAllUsers() {

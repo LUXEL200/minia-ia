@@ -359,12 +359,38 @@ export default function AdminPage() {
                 {supportLoading && <p className="text-xs text-gray-500 mt-3">Analyse du compte…</p>}
                 {supportError && <p className="text-xs text-red-400 mt-3">{supportError.message}</p>}
                 {supportSnapshot && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    <div><p className="text-xs text-gray-500">Compte</p><p className="truncate">{supportSnapshot.user.name || supportSnapshot.user.email || `#${supportSnapshot.user.id}`}</p></div>
-                    <div><p className="text-xs text-gray-500">Crédits / plan</p><p>{supportSnapshot.credits?.credits ?? 0} · {supportSnapshot.credits?.planType ?? "free"}</p></div>
-                    <div><p className="text-xs text-gray-500">Miniatures</p><p>{supportSnapshot.thumbnails.length}</p></div>
-                    <div><p className="text-xs text-gray-500">Alertes non lues</p><p>{supportSnapshot.unreadNotifications}</p></div>
-                  </div>
+                  <>
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div><p className="text-xs text-gray-500">Compte</p><p className="truncate">{supportSnapshot.user.name || supportSnapshot.user.email || `#${supportSnapshot.user.id}`}</p></div>
+                      <div><p className="text-xs text-gray-500">Crédits / plan</p><p>{supportSnapshot.credits?.credits ?? 0} · {supportSnapshot.credits?.planType ?? "free"}</p></div>
+                      <div><p className="text-xs text-gray-500">Miniatures</p><p>{supportSnapshot.thumbnails.length}</p></div>
+                      <div><p className="text-xs text-gray-500">Alertes non lues</p><p>{supportSnapshot.unreadNotifications}</p></div>
+                    </div>
+                    <div className="mt-5 border-t border-border pt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold flex items-center gap-2"><Activity size={15} className="text-orange-400" /> Timeline utilisateur</h4>
+                        <span className="text-[11px] text-gray-500">{supportSnapshot.timeline.length} événements</span>
+                      </div>
+                      {supportSnapshot.timeline.length === 0 ? <p className="text-xs text-gray-500">Aucun événement disponible.</p> : (
+                        <div className="relative ml-2 border-l border-border pl-5 space-y-4 max-h-[420px] overflow-y-auto pr-2">
+                          {supportSnapshot.timeline.map((event) => (
+                            <div key={event.id} className="relative">
+                              <span className="absolute -left-[26px] top-1.5 h-2.5 w-2.5 rounded-full bg-orange-400 ring-4 ring-muted" />
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium truncate">{event.title}</p>
+                                  <p className="text-xs text-gray-500 break-words">{event.description}</p>
+                                </div>
+                                <time className="text-[11px] text-gray-500 shrink-0" dateTime={new Date(event.timestamp).toISOString()}>
+                                  {new Date(event.timestamp).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
+                                </time>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
 

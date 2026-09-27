@@ -101,6 +101,7 @@ import {
   getAdminStats,
   getAdminOperations,
   getUserSupportSnapshot,
+  getUserEventTimeline,
   getAllUsers,
   updateUserRole,
   updateUserCredits,
@@ -841,6 +842,10 @@ export const adminRouter = router({
       if (!snapshot) throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur introuvable" });
       return snapshot;
     }),
+
+  userTimeline: adminProcedure
+    .input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(200).default(100) }))
+    .query(async ({ input }) => getUserEventTimeline(input.userId, input.limit)),
 
   legacyApiKeys: adminProcedure.query(async () => {
     const rows = await getLegacyApiKeySummary();
