@@ -99,6 +99,8 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   getAdminStats,
+  getAdminOperations,
+  getUserSupportSnapshot,
   getAllUsers,
   updateUserRole,
   updateUserCredits,
@@ -827,6 +829,18 @@ export const notificationsRouter = router({
 // === Admin Router ===
 export const adminRouter = router({
   auditLogs: adminProcedure.query(async () => getAdminAuditLogs()),
+
+  /** Health and incident snapshot; no secrets are returned. */
+  operations: adminProcedure.query(async () => getAdminOperations()),
+
+  /** Support view for one account, with secrets and raw API keys excluded. */
+  userSupport: adminProcedure
+    .input(z.object({ userId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const snapshot = await getUserSupportSnapshot(input.userId);
+      if (!snapshot) throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur introuvable" });
+      return snapshot;
+    }),
 
   legacyApiKeys: adminProcedure.query(async () => {
     const rows = await getLegacyApiKeySummary();

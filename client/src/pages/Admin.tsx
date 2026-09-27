@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import {
-  Users, CreditCard, Image as ImageIcon, Bell, Settings, BarChart3,
+  Users, CreditCard, Image as ImageIcon, Bell, Settings, BarChart3, Activity, Database, Bug,
   Crown, Shield, Search, ChevronDown, Zap, Trash2, RefreshCw,
   Globe, Key, Layers, TrendingUp, AlertTriangle, Star, MessageSquare,
   CheckCircle2, XCircle, Clock
 } from "lucide-react";
 
 
-type TabId = "dashboard" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials";
+type TabId = "dashboard" | "operations" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials";
 
 export default function AdminPage() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -26,6 +26,7 @@ export default function AdminPage() {
   const [newTemplateTitle, setNewTemplateTitle] = useState("");
   const [newTemplateImageUrl, setNewTemplateImageUrl] = useState("");
   const [newTemplateCategory, setNewTemplateCategory] = useState("viral");
+  const [supportUserId, setSupportUserId] = useState("");
 
 
   // Guard: redirect if not admin
@@ -48,6 +49,17 @@ export default function AdminPage() {
   const { data: models, refetch: refetchModels } = trpc.admin.models.useQuery(undefined, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
+  const { data: operations, refetch: refetchOperations } = trpc.admin.operations.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+  });
+  const supportInput = useMemo(() => {
+    const id = Number.parseInt(supportUserId, 10);
+    return Number.isInteger(id) && id > 0 ? { userId: id } : undefined;
+  }, [supportUserId]);
+  const { data: supportSnapshot, isFetching: supportLoading, error: supportError } = trpc.admin.userSupport.useQuery(
+    supportInput as { userId: number },
+    { enabled: !loading && isAuthenticated && user?.isAdminOwner === true && !!supportInput }
+  );
 
   // Mutations
   const updateRoleMut = trpc.admin.updateRole.useMutation({
@@ -124,6 +136,7 @@ export default function AdminPage() {
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: "dashboard", label: "Vue d'ensemble", icon: <BarChart3 size={18} /> },
+    { id: "operations", label: "Opérations", icon: <Activity size={18} /> },
     { id: "users", label: "Utilisateurs", icon: <Users size={18} /> },
     { id: "templates", label: "Templates", icon: <Layers size={18} /> },
     { id: "api", label: "API & Modèles", icon: <Key size={18} /> },
@@ -301,6 +314,71 @@ export default function AdminPage() {
                     <span className="text-gray-500 text-sm">Aucun modèle disponible — vérifier la config API</span>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Operations / support tab */}
+          {activeTab === "operations" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold flex items-center gap-2"><Activity size={18} className="text-orange-400" /> Centre Opérations</h2>
+                  <p className="text-xs text-gray-500 mt-1">Surveille l’API, les incidents de génération et aide un utilisateur sans exposer ses secrets.</p>
+                </div>
+                <button onClick={() => refetchOperations()} className="text-xs bg-muted border border-border px-3 py-2 rounded-lg flex items-center gap-2"><RefreshCw size={13} /> Actualiser</button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-muted border border-border rounded-xl p-4">
+                  <Database className="text-emerald-400 mb-2" size={18} />
+                  <p className="text-xs text-gray-500">Base de données</p>
+                  <p className="font-semibold mt-1">{operations?.database === "ok" ? "Opérationnelle" : "Indisponible"}</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Dernier contrôle : {operations?.checkedAt ? new Date(operations.checkedAt).toLocaleTimeString("fr-FR") : "—"}</p>
+                </div>
+                <div className="bg-muted border border-red-500/20 rounded-xl p-4">
+                  <Bug className="text-red-400 mb-2" size={18} />
+                  <p className="text-xs text-gray-500">Générations en échec</p>
+                  <p className="font-semibold mt-1">{operations?.failedGenerations.length ?? 0}</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Dernières erreurs conservées pour diagnostic</p>
+                </div>
+                <div className="bg-muted border border-orange-500/20 rounded-xl p-4">
+                  <CreditCard className="text-orange-400 mb-2" size={18} />
+                  <p className="text-xs text-gray-500">Mouvements récents</p>
+                  <p className="font-semibold mt-1">{operations?.recentCredits.length ?? 0}</p>
+                  <p className="text-[11px] text-gray-500 mt-1">Débits, remboursements et recharges</p>
+                </div>
+              </div>
+
+              <div className="bg-muted border border-border rounded-xl p-5">
+                <h3 className="font-semibold mb-3">Dépannage utilisateur</h3>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input value={supportUserId} onChange={e => setSupportUserId(e.target.value.replace(/[^0-9]/g, ""))} placeholder="ID utilisateur (ex. 42)" className="flex-1 bg-black/40 border border-border rounded-lg px-3 py-2 text-sm" inputMode="numeric" />
+                  <button onClick={() => { if (!supportInput) toast.error("Saisis un ID utilisateur valide"); }} className="bg-orange-500 hover:bg-orange-400 px-4 py-2 rounded-lg text-sm font-medium">Diagnostiquer</button>
+                </div>
+                {supportLoading && <p className="text-xs text-gray-500 mt-3">Analyse du compte…</p>}
+                {supportError && <p className="text-xs text-red-400 mt-3">{supportError.message}</p>}
+                {supportSnapshot && (
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div><p className="text-xs text-gray-500">Compte</p><p className="truncate">{supportSnapshot.user.name || supportSnapshot.user.email || `#${supportSnapshot.user.id}`}</p></div>
+                    <div><p className="text-xs text-gray-500">Crédits / plan</p><p>{supportSnapshot.credits?.credits ?? 0} · {supportSnapshot.credits?.planType ?? "free"}</p></div>
+                    <div><p className="text-xs text-gray-500">Miniatures</p><p>{supportSnapshot.thumbnails.length}</p></div>
+                    <div><p className="text-xs text-gray-500">Alertes non lues</p><p>{supportSnapshot.unreadNotifications}</p></div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-muted border border-border rounded-xl p-5">
+                <h3 className="font-semibold mb-3">Incidents récents</h3>
+                {(operations?.failedGenerations ?? []).length === 0 ? <p className="text-sm text-gray-500">Aucun échec récent.</p> : (
+                  <div className="space-y-2">{operations?.failedGenerations.map((incident) => (
+                    <div key={incident.id} className="flex items-center gap-3 border-b border-border/60 pb-2 last:border-0">
+                      <Bug size={14} className="text-red-400 shrink-0" />
+                      <span className="text-xs flex-1 truncate">#{incident.id} · {incident.prompt}</span>
+                      <span className="text-[11px] text-gray-500">user {incident.userId}</span>
+                    </div>
+                  ))}</div>
+                )}
               </div>
             </div>
           )}

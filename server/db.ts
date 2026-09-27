@@ -716,6 +716,31 @@ export async function getAdminStats() {
   };
 }
 
+/** Operational snapshot used by the Super Admin support console. */
+export async function getAdminOperations() {
+  const db = await getDb();
+  if (!db) return { database: "unavailable" as const, checkedAt: new Date(), failedGenerations: [], recentCredits: [] };
+  const failedGenerations = await db.select({ id: thumbnails.id, userId: thumbnails.userId, prompt: thumbnails.prompt, style: thumbnails.style, updatedAt: thumbnails.updatedAt })
+    .from(thumbnails).where(eq(thumbnails.status, "failed")).orderBy(desc(thumbnails.updatedAt)).limit(25);
+  const recentCredits = await db.select().from(creditLedger).orderBy(desc(creditLedger.createdAt)).limit(25);
+  return { database: "ok" as const, checkedAt: new Date(), failedGenerations, recentCredits };
+}
+
+export async function getUserSupportSnapshot(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const user = (await db.select().from(users).where(eq(users.id, userId)).limit(1))[0];
+  if (!user) return null;
+  const credits = await getUserCredits(userId);
+  const userThumbnails = await db.select({ id: thumbnails.id, status: thumbnails.status, prompt: thumbnails.prompt, createdAt: thumbnails.createdAt, updatedAt: thumbnails.updatedAt })
+    .from(thumbnails).where(eq(thumbnails.userId, userId)).orderBy(desc(thumbnails.createdAt)).limit(20);
+  const apiKeyRows = await db.select({ id: apiKeys.id, name: apiKeys.name, isActive: apiKeys.isActive, createdAt: apiKeys.createdAt, expiresAt: apiKeys.expiresAt })
+    .from(apiKeys).where(eq(apiKeys.userId, userId)).orderBy(desc(apiKeys.createdAt)).limit(20);
+  const unreadNotifications = await getUnreadCountByUserId(userId);
+  const ledger = await listCreditLedger(userId);
+  return { user: { id: user.id, name: user.name, email: user.email, role: user.role, lastSignedIn: user.lastSignedIn }, credits, thumbnails: userThumbnails, apiKeys: apiKeyRows, unreadNotifications, creditHistory: ledger };
+}
+
 export async function getAllUsers() {
   const db = await getDb();
   if (!db) return [];
