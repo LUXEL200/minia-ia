@@ -60,9 +60,9 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <img
-            src="/manus-storage/minia-logo_8c5c988e.png"
-            alt="Minia IA logo"
-            className="w-9 h-9 rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-105"
+            src="/manus-storage/minia-bear-paint-logo-b_17324125.png"
+            alt="Minia IA — ours touchant la peinture"
+            className="w-10 h-10 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
           />
           <span className={`font-display text-lg font-bold tracking-tight ${isLight ? "text-foreground" : "text-white"}`}>
             Minia<span className="gradient-text">IA</span>

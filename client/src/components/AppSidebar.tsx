@@ -117,7 +117,7 @@ export function AppSidebar({
         {/* Org info */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <img src="/manus-storage/minia-logo_8c5c988e.png" alt="Minia IA" className="w-9 h-9 rounded-xl flex-shrink-0" />
+            <img src="/manus-storage/minia-bear-paint-logo-b_17324125.png" alt="Minia IA — ours touchant la peinture" className="w-10 h-10 object-contain flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-sm text-foreground font-medium truncate">{user?.name || "Mon organisation"}</p>
               <p className="text-[10px] text-muted-foreground/70 truncate">Organisation pour {user?.email || "moi"}</p>
