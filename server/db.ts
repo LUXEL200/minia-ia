@@ -793,19 +793,22 @@ export async function revokeUserSessions(userId: number) {
   return getAffectedRows(result) === 1;
 }
 
-export async function getAdminHistoricalMetrics(days = 14) {
+export async function getAdminHistoricalMetrics(options: { days?: number; planType?: "free" | "pro" | "max"; userId?: number; from?: Date; to?: Date } = {}) {
   const db = await getDb();
-  const safeDays = Math.min(Math.max(Math.floor(days), 7), 90);
-  const start = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000);
+  const safeDays = Math.min(Math.max(Math.floor(options.days ?? 14), 7), 90);
+  const start = options.from ?? new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000);
+  const end = options.to ?? new Date();
   const labels = Array.from({ length: safeDays }, (_, index) => {
     const date = new Date(start.getTime() + index * 24 * 60 * 60 * 1000);
     return date.toISOString().slice(0, 10);
   });
   if (!db) return labels.map(date => ({ date, activeUsers: 0, generations: 0, successfulGenerations: 0, errors: 0, creditsConsumed: 0 }));
+  const userFilter = options.userId ? eq(users.id, options.userId) : undefined;
+  const planFilter = options.planType ? eq(userCredits.planType, options.planType) : undefined;
   const [userRows, thumbnailRows, ledgerRows] = await Promise.all([
-    db.select({ createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(gte(users.lastSignedIn, start)),
-    db.select({ status: thumbnails.status, createdAt: thumbnails.createdAt }).from(thumbnails).where(gte(thumbnails.createdAt, start)),
-    db.select({ amount: creditLedger.amount, type: creditLedger.type, createdAt: creditLedger.createdAt }).from(creditLedger).where(and(gte(creditLedger.createdAt, start), eq(creditLedger.type, "debit"))),
+    db.select({ createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).leftJoin(userCredits, eq(userCredits.userId, users.id)).where(and(gte(users.lastSignedIn, start), lte(users.lastSignedIn, end), userFilter, planFilter)),
+    db.select({ userId: thumbnails.userId, status: thumbnails.status, createdAt: thumbnails.createdAt }).from(thumbnails).leftJoin(userCredits, eq(userCredits.userId, thumbnails.userId)).where(and(gte(thumbnails.createdAt, start), lte(thumbnails.createdAt, end), options.userId ? eq(thumbnails.userId, options.userId) : undefined, planFilter)),
+    db.select({ userId: creditLedger.userId, amount: creditLedger.amount, type: creditLedger.type, createdAt: creditLedger.createdAt }).from(creditLedger).leftJoin(users, eq(users.id, creditLedger.userId)).leftJoin(userCredits, eq(userCredits.userId, creditLedger.userId)).where(and(gte(creditLedger.createdAt, start), lte(creditLedger.createdAt, end), eq(creditLedger.type, "debit"), options.userId ? eq(creditLedger.userId, options.userId) : undefined, planFilter)),
   ]);
   return labels.map(date => {
     const next = new Date(`${date}T00:00:00.000Z`); next.setUTCDate(next.getUTCDate() + 1);

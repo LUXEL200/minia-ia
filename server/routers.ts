@@ -854,8 +854,8 @@ export const adminRouter = router({
     }),
 
   historicalMetrics: adminProcedure
-    .input(z.object({ days: z.number().int().min(7).max(90).default(14) }).optional())
-    .query(async ({ input }) => getAdminHistoricalMetrics(input?.days ?? 14)),
+    .input(z.object({ days: z.number().int().min(7).max(90).default(14), planType: z.enum(["free", "pro", "max"]).optional(), userId: z.number().int().positive().optional(), from: z.coerce.date().optional(), to: z.coerce.date().optional() }).optional())
+    .query(async ({ input }) => getAdminHistoricalMetrics(input ?? {})),
 
   legacyApiKeys: adminProcedure.query(async () => {
     const rows = await getLegacyApiKeySummary();

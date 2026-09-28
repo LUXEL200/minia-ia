@@ -7,12 +7,29 @@ import {
   Users, CreditCard, Image as ImageIcon, Bell, Settings, BarChart3, Activity, Database, Bug,
   Crown, Shield, Search, ChevronDown, Zap, Trash2, RefreshCw,
   Globe, Key, Layers, TrendingUp, AlertTriangle, Star, MessageSquare,
-  CheckCircle2, XCircle, Clock
+  CheckCircle2, XCircle, Clock, Download, FileText, Filter
 } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 
 type TabId = "dashboard" | "operations" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials";
+
+function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
+  const headers = rows.length ? Object.keys(rows[0]) : [];
+  const escape = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const csv = [headers.map(escape).join(","), ...rows.map(row => headers.map(header => escape(row[header])).join(","))].join("\n");
+  const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+  const anchor = document.createElement("a"); anchor.href = url; anchor.download = filename; anchor.click(); URL.revokeObjectURL(url);
+}
+
+function printPdf(title: string, rows: Record<string, unknown>[]) {
+  const headers = rows.length ? Object.keys(rows[0]) : [];
+  const popup = window.open("", "_blank", "noopener,noreferrer,width=1100,height=800");
+  if (!popup) { toast.error("Autorise les fenêtres pop-up pour générer le PDF"); return; }
+  const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char] ?? char));
+  popup.document.write(`<html><head><title>${esc(title)}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1{font-size:20px}table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #ddd;padding:6px;text-align:left}th{background:#f3f4f6}@media print{button{display:none}}</style></head><body><h1>${esc(title)}</h1><p>Export généré le ${new Date().toLocaleString("fr-FR")}</p><table><thead><tr>${headers.map(header => `<th>${esc(header)}</th>`).join("")}</tr></thead><tbody>${rows.map(row => `<tr>${headers.map(header => `<td>${esc(row[header])}</td>`).join("")}</tr>`).join("")}</tbody></table><button onclick="window.print()">Imprimer / Enregistrer en PDF</button></body></html>`);
+  popup.document.close(); popup.focus(); setTimeout(() => popup.print(), 250);
+}
 
 export default function AdminPage() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -33,6 +50,11 @@ export default function AdminPage() {
   const [timelineTo, setTimelineTo] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
   const [supportTitle, setSupportTitle] = useState("Message du support Minia IA");
+  const [metricPlan, setMetricPlan] = useState<"all" | "free" | "pro" | "max">("all");
+  const [metricUserId, setMetricUserId] = useState("");
+  const [metricFrom, setMetricFrom] = useState("");
+  const [metricTo, setMetricTo] = useState("");
+  const [metricDays, setMetricDays] = useState("14");
 
 
   // Guard: redirect if not admin
@@ -58,7 +80,14 @@ export default function AdminPage() {
   const { data: operations, refetch: refetchOperations } = trpc.admin.operations.useQuery(undefined, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
-  const { data: historicalMetrics } = trpc.admin.historicalMetrics.useQuery({ days: 14 }, {
+  const metricInput = useMemo(() => ({
+    days: Math.min(Math.max(Number(metricDays) || 14, 7), 90),
+    planType: metricPlan === "all" ? undefined : metricPlan,
+    userId: Number(metricUserId) > 0 ? Number(metricUserId) : undefined,
+    from: metricFrom ? new Date(`${metricFrom}T00:00:00Z`) : undefined,
+    to: metricTo ? new Date(`${metricTo}T23:59:59.999Z`) : undefined,
+  }), [metricDays, metricPlan, metricUserId, metricFrom, metricTo]);
+  const { data: historicalMetrics } = trpc.admin.historicalMetrics.useQuery(metricInput, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
   const supportInput = useMemo(() => {
@@ -259,7 +288,14 @@ export default function AdminPage() {
               <div className="bg-muted rounded-xl border border-border p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div><h3 className="font-semibold">Métriques historiques</h3><p className="text-xs text-gray-500 mt-1">14 derniers jours · UTC</p></div>
-                  <Activity size={18} className="text-orange-400" />
+                  <div className="flex items-center gap-2"><button title="Exporter CSV" onClick={() => downloadCsv("minia-metrics.csv", (historicalMetrics ?? []) as unknown as Record<string, unknown>[])} className="text-xs bg-muted/80 hover:bg-muted border border-border rounded-lg px-2.5 py-2 flex items-center gap-1"><Download size={13} /> CSV</button><button title="Exporter PDF" onClick={() => printPdf("Métriques historiques Minia IA", (historicalMetrics ?? []) as unknown as Record<string, unknown>[])} className="text-xs bg-muted/80 hover:bg-muted border border-border rounded-lg px-2.5 py-2 flex items-center gap-1"><FileText size={13} /> PDF</button><Activity size={18} className="text-orange-400" /></div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-5">
+                  <label className="text-[11px] text-gray-500">Plan<select value={metricPlan} onChange={e => setMetricPlan(e.target.value as typeof metricPlan)} className="mt-1 w-full bg-black/40 border border-border rounded-lg px-2 py-2 text-xs text-white"><option value="all">Tous</option><option value="free">Free</option><option value="pro">Pro</option><option value="max">Max</option></select></label>
+                  <label className="text-[11px] text-gray-500">Utilisateur<input value={metricUserId} onChange={e => setMetricUserId(e.target.value.replace(/\D/g, ""))} placeholder="ID" inputMode="numeric" className="mt-1 w-full bg-black/40 border border-border rounded-lg px-2 py-2 text-xs text-white" /></label>
+                  <label className="text-[11px] text-gray-500">Du<input type="date" value={metricFrom} onChange={e => setMetricFrom(e.target.value)} className="mt-1 w-full bg-black/40 border border-border rounded-lg px-2 py-2 text-xs text-white" /></label>
+                  <label className="text-[11px] text-gray-500">Au<input type="date" value={metricTo} onChange={e => setMetricTo(e.target.value)} className="mt-1 w-full bg-black/40 border border-border rounded-lg px-2 py-2 text-xs text-white" /></label>
+                  <label className="text-[11px] text-gray-500">Période<select value={metricDays} onChange={e => setMetricDays(e.target.value)} className="mt-1 w-full bg-black/40 border border-border rounded-lg px-2 py-2 text-xs text-white"><option value="7">7 jours</option><option value="14">14 jours</option><option value="30">30 jours</option><option value="90">90 jours</option></select></label>
                 </div>
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                   <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={historicalMetrics ?? []}><CartesianGrid strokeDasharray="3 3" stroke="#273044" /><XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={v => String(v).slice(5)} /><YAxis allowDecimals={false} tick={{ fontSize: 10 }} /><Tooltip contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} /><Legend /><Line type="monotone" dataKey="activeUsers" name="Utilisateurs actifs" stroke="#fb923c" strokeWidth={2} dot={false} /><Line type="monotone" dataKey="generations" name="Générations" stroke="#60a5fa" strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
@@ -406,7 +442,7 @@ export default function AdminPage() {
                     <div className="mt-5 border-t border-border pt-4">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-semibold flex items-center gap-2"><Activity size={15} className="text-orange-400" /> Timeline utilisateur</h4>
-                        <span className="text-[11px] text-gray-500">{filteredTimeline.length} événements</span>
+                        <div className="flex items-center gap-2"><button onClick={() => downloadCsv(`minia-timeline-user-${supportSnapshot.user.id}.csv`, filteredTimeline as unknown as Record<string, unknown>[])} className="text-[11px] bg-muted/80 border border-border rounded px-2 py-1 flex items-center gap-1"><Download size={11} /> CSV</button><button onClick={() => printPdf(`Timeline utilisateur #${supportSnapshot.user.id}`, filteredTimeline as unknown as Record<string, unknown>[])} className="text-[11px] bg-muted/80 border border-border rounded px-2 py-1 flex items-center gap-1"><FileText size={11} /> PDF</button><span className="text-[11px] text-gray-500">{filteredTimeline.length} événements</span></div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
                         <select value={timelineKind} onChange={e => setTimelineKind(e.target.value as typeof timelineKind)} className="bg-black/40 border border-border rounded-lg px-3 py-2 text-xs">
@@ -437,8 +473,8 @@ export default function AdminPage() {
                     <div className="mt-5 border-t border-border pt-4">
                       <h4 className="text-sm font-semibold mb-3">Actions de support contrôlées</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                        <button onClick={() => resetCreditsMut.mutate({ userId: supportSnapshot.user.id, amount: 10 })} disabled={resetCreditsMut.isPending} className="rounded-lg bg-orange-500 hover:bg-orange-400 disabled:opacity-50 px-3 py-2 text-xs font-medium">Réinitialiser à 10 crédits</button>
-                        <button onClick={() => { if (confirm("Révoquer toutes les sessions de cet utilisateur ?")) revokeSessionsMut.mutate({ userId: supportSnapshot.user.id }); }} disabled={revokeSessionsMut.isPending} className="rounded-lg bg-red-500/80 hover:bg-red-500 disabled:opacity-50 px-3 py-2 text-xs font-medium">Révoquer les sessions</button>
+                        <button onClick={() => { const answer = window.prompt(`Action sensible : le solde de ${supportSnapshot.user.email || `l'utilisateur #${supportSnapshot.user.id}`} sera remplacé par 10. Tape RESET pour confirmer.`); if (answer === "RESET") resetCreditsMut.mutate({ userId: supportSnapshot.user.id, amount: 10 }); else if (answer !== null) toast.error("Confirmation incorrecte — aucune action effectuée"); }} disabled={resetCreditsMut.isPending} className="rounded-lg bg-orange-500 hover:bg-orange-400 disabled:opacity-50 px-3 py-2 text-xs font-medium">Réinitialiser à 10 crédits</button>
+                        <button onClick={() => { const answer = window.prompt(`Action critique : toutes les sessions de ${supportSnapshot.user.email || `l'utilisateur #${supportSnapshot.user.id}`} seront invalidées. Tape REVOKE pour confirmer.`); if (answer === "REVOKE") revokeSessionsMut.mutate({ userId: supportSnapshot.user.id }); else if (answer !== null) toast.error("Confirmation incorrecte — aucune action effectuée"); }} disabled={revokeSessionsMut.isPending} className="rounded-lg bg-red-500/80 hover:bg-red-500 disabled:opacity-50 px-3 py-2 text-xs font-medium">Révoquer les sessions</button>
                         <button onClick={() => { if (!supportMessage.trim()) toast.error("Message requis"); else notifyUserMut.mutate({ userId: supportSnapshot.user.id, title: supportTitle, message: supportMessage, type: "system" }); }} disabled={notifyUserMut.isPending} className="rounded-lg bg-blue-500/80 hover:bg-blue-500 disabled:opacity-50 px-3 py-2 text-xs font-medium">Envoyer la notification</button>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
