@@ -259,6 +259,40 @@ export const adminAuditLogs = mysqlTable("adminAuditLogs", {
 export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
 export type InsertAdminAuditLog = typeof adminAuditLogs.$inferInsert;
 
+/** Granular access grants for non-owner administrative operators. */
+export const adminAccess = mysqlTable("adminAccess", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  role: mysqlEnum("role", ["support", "analyst", "operator"]).notNull(),
+  permissions: json("permissions").notNull(),
+  enabled: mysqlEnum("enabled", ["yes", "no"]).default("yes").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({ userIdx: index("admin_access_user_idx").on(table.userId) }));
+
+export type AdminAccess = typeof adminAccess.$inferSelect;
+export type InsertAdminAccess = typeof adminAccess.$inferInsert;
+
+/** User-managed recurring CSV/PDF reports delivered by email. */
+export const scheduledExports = mysqlTable("scheduledExports", {
+  id: int("id").autoincrement().primaryKey(),
+  createdBy: int("createdBy").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  reportType: mysqlEnum("reportType", ["metrics", "timeline"]).notNull(),
+  format: mysqlEnum("format", ["csv", "pdf"]).notNull(),
+  cron: varchar("cron", { length: 64 }).notNull(),
+  filters: json("filters").notNull(),
+  scheduleTaskUid: varchar("scheduleTaskUid", { length: 65 }),
+  status: mysqlEnum("status", ["active", "paused", "failed"]).default("active").notNull(),
+  lastRunAt: timestamp("lastRunAt"),
+  lastError: text("lastError"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({ ownerIdx: index("scheduled_export_owner_idx").on(table.createdBy), taskIdx: index("scheduled_export_task_idx").on(table.scheduleTaskUid) }));
+
+export type ScheduledExport = typeof scheduledExports.$inferSelect;
+export type InsertScheduledExport = typeof scheduledExports.$inferInsert;
+
 /**
  * Notifications table
  */

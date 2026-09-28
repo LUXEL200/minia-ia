@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
@@ -829,6 +829,72 @@ export async function getAllUsers() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(users).orderBy(desc(users.createdAt));
+}
+
+export type AdminPermission = "reports.view" | "reports.schedule" | "users.support" | "users.revoke_sessions" | "monitoring.view" | "monitoring.manage";
+
+export async function getAdminAccess(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const row = (await db.select().from(adminAccess).where(and(eq(adminAccess.userId, userId), eq(adminAccess.enabled, "yes"))).limit(1))[0];
+  if (!row) return null;
+  const permissions = Array.isArray(row.permissions) ? row.permissions.filter((p): p is AdminPermission => typeof p === "string") : [];
+  return { ...row, permissions };
+}
+
+export async function listAdminAccess() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(adminAccess).orderBy(desc(adminAccess.updatedAt));
+}
+
+export async function upsertAdminAccess(userId: number, role: "support" | "analyst" | "operator", permissions: AdminPermission[]) {
+  const db = await getDb();
+  if (!db) return false;
+  const existing = await db.select({ id: adminAccess.id }).from(adminAccess).where(eq(adminAccess.userId, userId)).limit(1);
+  if (existing.length) await db.update(adminAccess).set({ role, permissions, enabled: "yes" }).where(eq(adminAccess.userId, userId));
+  else await db.insert(adminAccess).values({ userId, role, permissions, enabled: "yes" });
+  return true;
+}
+
+export async function revokeAdminAccess(userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(adminAccess).set({ enabled: "no" }).where(eq(adminAccess.userId, userId));
+  return getAffectedRows(result) === 1;
+}
+
+export async function listScheduledExports(createdBy: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(scheduledExports).where(eq(scheduledExports.createdBy, createdBy)).orderBy(desc(scheduledExports.createdAt));
+}
+
+export async function createScheduledExport(input: typeof scheduledExports.$inferInsert) {
+  const db = await getDb();
+  if (!db) return null;
+  const [result] = await db.insert(scheduledExports).values(input);
+  return { id: result.insertId };
+}
+
+export async function updateScheduledExportTask(id: number, taskUid: string) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(scheduledExports).set({ scheduleTaskUid: taskUid, status: "active" }).where(eq(scheduledExports.id, id));
+  return true;
+}
+
+export async function updateScheduledExportStatus(id: number, createdBy: number, status: "active" | "paused" | "failed", error?: string) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(scheduledExports).set({ status, lastError: error ?? null, lastRunAt: status === "active" ? new Date() : undefined }).where(and(eq(scheduledExports.id, id), eq(scheduledExports.createdBy, createdBy)));
+  return true;
+}
+
+export async function getScheduledExportByTaskUid(taskUid: string) {
+  const db = await getDb();
+  if (!db) return null;
+  return (await db.select().from(scheduledExports).where(eq(scheduledExports.scheduleTaskUid, taskUid)).limit(1))[0] ?? null;
 }
 
 export async function updateUserRole(userId: number, role: "user" | "admin") {

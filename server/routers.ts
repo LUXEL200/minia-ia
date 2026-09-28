@@ -4,8 +4,10 @@ import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { adminPermission, publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { generateImage, listImageModels } from "./_core/imageGeneration";
+import { createHeartbeatJob, deleteHeartbeatJob, updateHeartbeatJob } from "./_core/heartbeat";
+import { parse as parseCookie } from "cookie";
 
 /**
  * Burn the "Minia IA" watermark into a generated image for free-plan users.
@@ -46,7 +48,7 @@ async function burnWatermark(imageUrl: string): Promise<string | null> {
     return null;
   }
 }
-import { thumbnails, avatars, endCards, templateCustomizations, imageVersions, abTests } from "../drizzle/schema";
+import { thumbnails, avatars, endCards, templateCustomizations, imageVersions, abTests, scheduledExports } from "../drizzle/schema";
 import {
   getThumbnailsByUserId,
   getThumbnailById,
@@ -59,6 +61,14 @@ import {
   deductCredits,
   refundCredits,
   getDb,
+  getAdminAccess,
+  listAdminAccess,
+  upsertAdminAccess,
+  revokeAdminAccess,
+  listScheduledExports,
+  createScheduledExport,
+  updateScheduledExportTask,
+  updateScheduledExportStatus,
   getGalleryThumbnails,
   getGalleryStats,
   toggleLike,
@@ -832,7 +842,66 @@ export const notificationsRouter = router({
 
 // === Admin Router ===
 export const adminRouter = router({
+  accessMe: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.isAdminOwner) return { owner: true, enabled: true, role: "owner" as const, permissions: ["*"] as string[] };
+    const access = await getAdminAccess(ctx.user.id);
+    return access ? { owner: false, enabled: access.enabled === "yes", role: access.role, permissions: access.permissions } : { owner: false, enabled: false, role: null, permissions: [] as string[] };
+  }),
   auditLogs: adminProcedure.query(async () => getAdminAuditLogs()),
+
+  secondaryAccess: adminProcedure.query(async () => listAdminAccess()),
+
+  grantSecondaryAccess: adminProcedure
+    .input(z.object({ userId: z.number().int().positive(), role: z.enum(["support", "analyst", "operator"]), permissions: z.array(z.enum(["reports.view", "reports.schedule", "users.support", "users.revoke_sessions", "monitoring.view", "monitoring.manage"])).max(10) }))
+    .mutation(async ({ ctx, input }) => {
+      await upsertAdminAccess(input.userId, input.role, input.permissions);
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", targetUserId: input.userId, details: JSON.stringify({ kind: "admin-access-granted", role: input.role, permissions: input.permissions }) });
+      return { success: true } as const;
+    }),
+
+  revokeSecondaryAccess: adminProcedure
+    .input(z.object({ userId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      await revokeAdminAccess(input.userId);
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "session_revoked", targetUserId: input.userId, details: JSON.stringify({ kind: "admin-access-revoked" }) });
+      return { success: true } as const;
+    }),
+
+  scheduledExports: adminPermission("reports.view").query(async ({ ctx }) => listScheduledExports(ctx.user.id)),
+
+  createScheduledExport: adminPermission("reports.schedule")
+    .input(z.object({ email: z.string().email(), reportType: z.enum(["metrics", "timeline"]), format: z.enum(["csv", "pdf"]), cron: z.string().refine(value => value.trim().split(/\s+/).length === 6, "Cron UTC à 6 champs requis"), filters: z.record(z.string(), z.unknown()).default({}) }))
+    .mutation(async ({ ctx, input }) => {
+      const created = await createScheduledExport({ createdBy: ctx.user.id, email: input.email, reportType: input.reportType, format: input.format, cron: input.cron, filters: input.filters, status: "active" });
+      if (!created) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Impossible de créer l’export" });
+      const sessionToken = parseCookie(ctx.req.headers.cookie ?? "")[COOKIE_NAME] ?? "";
+      try {
+        const job = await createHeartbeatJob({ name: `minia-export-${created.id}`, cron: input.cron, path: "/api/scheduled/runExport", payload: { exportId: created.id }, description: `Export ${input.reportType} ${input.format} vers ${input.email}` }, sessionToken);
+        await updateScheduledExportTask(created.id, job.taskUid);
+        return { id: created.id, taskUid: job.taskUid } as const;
+      } catch (error) {
+        await updateScheduledExportStatus(created.id, ctx.user.id, "failed", String(error));
+        throw error;
+      }
+    }),
+
+  pauseScheduledExport: adminPermission("reports.schedule")
+    .input(z.object({ id: z.number().int().positive(), taskUid: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const sessionToken = parseCookie(ctx.req.headers.cookie ?? "")[COOKIE_NAME] ?? "";
+      await updateHeartbeatJob(input.taskUid, { enable: false }, sessionToken);
+      await updateScheduledExportStatus(input.id, ctx.user.id, "paused");
+      return { success: true } as const;
+    }),
+
+  deleteScheduledExport: adminPermission("reports.schedule")
+    .input(z.object({ id: z.number().int().positive(), taskUid: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const sessionToken = parseCookie(ctx.req.headers.cookie ?? "")[COOKIE_NAME] ?? "";
+      await deleteHeartbeatJob(input.taskUid, sessionToken);
+      await updateScheduledExportStatus(input.id, ctx.user.id, "paused");
+      return { success: true } as const;
+    }),
 
   /** Health and incident snapshot; no secrets are returned. */
   operations: adminProcedure.query(async () => getAdminOperations()),

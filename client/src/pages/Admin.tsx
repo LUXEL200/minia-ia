@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -12,7 +12,7 @@ import {
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 
-type TabId = "dashboard" | "operations" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials";
+type TabId = "dashboard" | "operations" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials" | "access";
 
 function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   const headers = rows.length ? Object.keys(rows[0]) : [];
@@ -55,14 +55,23 @@ export default function AdminPage() {
   const [metricFrom, setMetricFrom] = useState("");
   const [metricTo, setMetricTo] = useState("");
   const [metricDays, setMetricDays] = useState("14");
+  const [reportEmail, setReportEmail] = useState("");
+  const [reportType, setReportType] = useState<"metrics" | "timeline">("metrics");
+  const [reportFormat, setReportFormat] = useState<"csv" | "pdf">("csv");
+  const [reportCron, setReportCron] = useState("0 0 9 * * *");
+  const [accessUserId, setAccessUserId] = useState("");
+  const [accessRole, setAccessRole] = useState<"support" | "analyst" | "operator">("analyst");
 
 
-  // Guard: redirect if not admin
+  const { data: adminAccess, isLoading: accessLoading } = trpc.admin.accessMe.useQuery(undefined, { enabled: !loading && isAuthenticated });
+  const adminAllowed = user?.isAdminOwner === true || adminAccess?.enabled === true;
+
+  // Guard: redirect if not an owner or enabled secondary admin
   useEffect(() => {
-    if (!loading && isAuthenticated && user?.isAdminOwner !== true) {
+    if (!loading && !accessLoading && isAuthenticated && !adminAllowed) {
       navigate("/dashboard");
     }
-  }, [loading, isAuthenticated, user, navigate]);
+  }, [loading, accessLoading, isAuthenticated, adminAllowed, navigate]);
 
   // Queries
   const { data: stats, refetch: refetchStats } = trpc.admin.stats.useQuery(undefined, {
@@ -79,7 +88,15 @@ export default function AdminPage() {
   });
   const { data: operations, refetch: refetchOperations } = trpc.admin.operations.useQuery(undefined, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+    refetchInterval: 10000,
   });
+  const knownIncidentIds = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    const incidents = operations?.failedGenerations ?? [];
+    const fresh = incidents.filter(item => !knownIncidentIds.current.has(item.id));
+    if (knownIncidentIds.current.size > 0 && fresh.length > 0) toast.error(`${fresh.length} nouvel incident de génération`, { description: "Ouvre Centre Opérations pour diagnostiquer." });
+    knownIncidentIds.current = new Set(incidents.map(item => item.id));
+  }, [operations?.failedGenerations]);
   const metricInput = useMemo(() => ({
     days: Math.min(Math.max(Number(metricDays) || 14, 7), 90),
     planType: metricPlan === "all" ? undefined : metricPlan,
@@ -147,6 +164,21 @@ export default function AdminPage() {
   const { data: auditLogs, refetch: refetchAuditLogs } = trpc.admin.auditLogs.useQuery(undefined, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
+  const { data: secondaryAccess, refetch: refetchSecondaryAccess } = trpc.admin.secondaryAccess.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+  });
+  const { data: scheduledExports, refetch: refetchScheduledExports } = trpc.admin.scheduledExports.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && adminAllowed,
+    refetchInterval: 15000,
+  });
+  const createScheduledExportMut = trpc.admin.createScheduledExport.useMutation({
+    onSuccess: () => { toast.success("Export récurrent programmé"); setReportEmail(""); refetchScheduledExports(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const pauseScheduledExportMut = trpc.admin.pauseScheduledExport.useMutation({ onSuccess: () => { toast.success("Export mis en pause"); refetchScheduledExports(); }, onError: e => toast.error(e.message) });
+  const deleteScheduledExportMut = trpc.admin.deleteScheduledExport.useMutation({ onSuccess: () => { toast.success("Export supprimé"); refetchScheduledExports(); }, onError: e => toast.error(e.message) });
+  const grantAccessMut = trpc.admin.grantSecondaryAccess.useMutation({ onSuccess: () => { toast.success("Accès secondaire enregistré"); setAccessUserId(""); refetchSecondaryAccess(); }, onError: e => toast.error(e.message) });
+  const revokeAccessMut = trpc.admin.revokeSecondaryAccess.useMutation({ onSuccess: () => { toast.success("Accès révoqué"); refetchSecondaryAccess(); }, onError: e => toast.error(e.message) });
   const migrateLegacyApiKeysMut = trpc.admin.migrateLegacyApiKeys.useMutation({
     onSuccess: (data) => { toast.success(`${data.revokedCount} ancienne(s) clé(s) désactivée(s)`, { description: `${data.notifiedUserCount} utilisateur(s) notifié(s).` }); refetchLegacyApiKeys(); refetchAuditLogs(); },
     onError: (e) => toast.error(e.message),
@@ -180,7 +212,7 @@ export default function AdminPage() {
       </div>
     );
   }
-  if (!isAuthenticated || user?.isAdminOwner !== true) {
+  if (!isAuthenticated || !adminAllowed) {
     return null;
   }
 
@@ -198,6 +230,7 @@ export default function AdminPage() {
     { id: "notifications", label: "Notifications", icon: <Bell size={18} /> },
     { id: "settings", label: "Paramètres", icon: <Settings size={18} /> },
     { id: "testimonials", label: "Avis", icon: <Star size={18} /> },
+    { id: "access", label: "Accès & exports", icon: <FileText size={18} /> },
   ];
 
   const planColors: Record<string, string> = {
@@ -271,6 +304,30 @@ export default function AdminPage() {
 
         {/* Content */}
         <div className="flex-1 p-6 pb-24 md:pb-6">
+          {activeTab === "access" && (
+            <div className="space-y-6 max-w-6xl">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-orange-400">Gouvernance</p>
+                <h2 className="text-2xl font-semibold mt-1">Accès & exports automatisés</h2>
+                <p className="text-sm text-gray-400 mt-1">Les rapports sont exécutés en UTC par le planificateur et envoyés à l’adresse choisie.</p>
+              </div>
+              <div className="grid xl:grid-cols-2 gap-5">
+                <section className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                  <div><h3 className="font-semibold">Nouvel export récurrent</h3><p className="text-xs text-gray-500 mt-1">Cron à 6 champs : secondes, minutes, heures, jour, mois, semaine.</p></div>
+                  <input value={reportEmail} onChange={e => setReportEmail(e.target.value)} placeholder="email@client.com" type="email" className="w-full rounded-lg bg-background border border-border px-3 py-2 text-sm" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <select value={reportType} onChange={e => setReportType(e.target.value as "metrics" | "timeline")} className="rounded-lg bg-background border border-border px-3 py-2 text-sm"><option value="metrics">Métriques</option><option value="timeline">Timeline utilisateur</option></select>
+                    <select value={reportFormat} onChange={e => setReportFormat(e.target.value as "csv" | "pdf")} className="rounded-lg bg-background border border-border px-3 py-2 text-sm"><option value="csv">CSV</option><option value="pdf">PDF</option></select>
+                  </div>
+                  {reportType === "timeline" && <input value={supportUserId} onChange={e => setSupportUserId(e.target.value)} placeholder="ID utilisateur pour la timeline" inputMode="numeric" className="w-full rounded-lg bg-background border border-border px-3 py-2 text-sm" />}
+                  <div className="flex gap-3"><input value={reportCron} onChange={e => setReportCron(e.target.value)} className="flex-1 rounded-lg bg-background border border-border px-3 py-2 text-sm font-mono" /><button disabled={createScheduledExportMut.isPending || !reportEmail} onClick={() => createScheduledExportMut.mutate({ email: reportEmail, reportType, format: reportFormat, cron: reportCron, filters: reportType === "timeline" ? { userId: Number(supportUserId) } : { days: Number(metricDays) || 14, planType: metricPlan === "all" ? undefined : metricPlan } })} className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-black disabled:opacity-50">Programmer</button></div>
+                  {!adminAccess?.permissions.includes("reports.schedule") && !adminAccess?.owner && <p className="text-xs text-amber-400">Ton rôle peut consulter les exports, mais pas en créer. Demande la permission reports.schedule.</p>}
+                </section>
+                <section className="rounded-2xl border border-border bg-card p-5"><h3 className="font-semibold mb-3">Exports actifs</h3><div className="space-y-2">{(scheduledExports ?? []).length === 0 ? <p className="text-sm text-gray-500">Aucun export configuré.</p> : scheduledExports?.map(item => <div key={item.id} className="rounded-xl border border-border/70 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><p className="text-sm font-medium">{item.reportType.toUpperCase()} · {item.format.toUpperCase()}</p><p className="text-xs text-gray-500">{item.email} · <span className="font-mono">{item.cron}</span></p><p className="text-xs mt-1 text-orange-300">{item.status === "active" ? "Actif" : item.status === "paused" ? "En pause" : "Erreur"}</p></div><div className="flex gap-2"><button onClick={() => item.scheduleTaskUid && pauseScheduledExportMut.mutate({ id: item.id, taskUid: item.scheduleTaskUid })} disabled={!item.scheduleTaskUid || item.status !== "active"} className="text-xs rounded-md border border-border px-2 py-1 disabled:opacity-40">Pause</button><button onClick={() => item.scheduleTaskUid && deleteScheduledExportMut.mutate({ id: item.id, taskUid: item.scheduleTaskUid })} disabled={!item.scheduleTaskUid} className="text-xs rounded-md border border-red-500/40 text-red-300 px-2 py-1 disabled:opacity-40">Supprimer</button></div></div>)}</div></section>
+              </div>
+              {adminAccess?.owner && <section className="rounded-2xl border border-border bg-card p-5 space-y-4"><div><h3 className="font-semibold">Rôles Super Admin secondaires</h3><p className="text-xs text-gray-500 mt-1">Seul le propriétaire peut accorder ou révoquer un accès.</p></div><div className="flex flex-col md:flex-row gap-3"><input value={accessUserId} onChange={e => setAccessUserId(e.target.value)} placeholder="ID utilisateur" inputMode="numeric" className="rounded-lg bg-background border border-border px-3 py-2 text-sm" /><select value={accessRole} onChange={e => setAccessRole(e.target.value as typeof accessRole)} className="rounded-lg bg-background border border-border px-3 py-2 text-sm"><option value="analyst">Analyste</option><option value="support">Support</option><option value="operator">Opérateur</option></select><button disabled={!Number(accessUserId) || grantAccessMut.isPending} onClick={() => grantAccessMut.mutate({ userId: Number(accessUserId), role: accessRole, permissions: accessRole === "support" ? ["users.support", "users.revoke_sessions", "monitoring.view"] : accessRole === "operator" ? ["reports.view", "reports.schedule", "monitoring.view", "monitoring.manage"] : ["reports.view", "monitoring.view"] })} className="rounded-lg bg-white text-black px-4 py-2 text-sm font-semibold disabled:opacity-50">Accorder</button></div><div className="grid md:grid-cols-2 gap-3">{(secondaryAccess ?? []).map(item => <div key={item.id} className="flex items-center justify-between rounded-xl border border-border/70 p-3"><div><p className="text-sm">Utilisateur #{item.userId} · <span className="text-orange-300">{item.role}</span></p><p className="text-xs text-gray-500">{Array.isArray(item.permissions) ? item.permissions.join(", ") : ""}</p></div><button onClick={() => revokeAccessMut.mutate({ userId: item.userId })} className="text-xs text-red-300">Révoquer</button></div>)}</div></section>}
+            </div>
+          )}
           {/* Dashboard Tab */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
