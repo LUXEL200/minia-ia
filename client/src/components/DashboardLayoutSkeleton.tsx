@@ -1,8 +1,9 @@
 import { Skeleton } from './ui/skeleton';
+import BearLoading from './BearLoading';
 
 export function DashboardLayoutSkeleton() {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="relative flex min-h-screen bg-background">
       {/* Sidebar skeleton */}
       <div className="w-[280px] border-r border-border bg-background p-4 space-y-6">
         {/* Logo area */}
@@ -40,6 +41,9 @@ export function DashboardLayoutSkeleton() {
           <Skeleton className="h-32 rounded-xl" />
         </div>
         <Skeleton className="h-64 rounded-xl" />
+      </div>
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/35 backdrop-blur-[2px]">
+        <BearLoading label="L’ours IA prépare ton tableau de bord…" />
       </div>
     </div>
   );

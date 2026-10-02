@@ -17,8 +17,8 @@
  */
 import { useEffect, useRef, useState } from "react";
 
-const BEAR_POUR = "/manus-storage/bear-ai-pour_92862632.png";
-const BEAR_RUN = "/manus-storage/bear-ai-run_7980f85e.png";
+// Mascotte de marque partagée par le header, le chargement, la génération et le téléchargement.
+const BEAR_MASCOT = "/manus-storage/minia-bear-paint-logo-b_17324125.png";
 const DURATION_DESKTOP_MS = 3400;
 const DURATION_MOBILE_MS = 3000; // raccourci sur petit écran
 const FAILURE_AFTER_MS = 30_000; // panneau « Réessaie » si rien n'est revenu après 30 s
@@ -282,7 +282,7 @@ export function DownloadAnimation({
               className="bear-pour absolute -top-14 left-1/2 -translate-x-1/2 w-24 h-24 z-10 pointer-events-none"
               style={{ filter: "drop-shadow(0 8px 24px rgba(255,140,50,0.5))" }}
             >
-              <img src={BEAR_POUR} alt="" className="w-full h-full object-contain" />
+              <img src={BEAR_MASCOT} alt="" className="w-full h-full object-contain" onError={(event) => { event.currentTarget.src = "/minia-bear-favicon.png"; }} />
             </div>
           )}
 
@@ -309,7 +309,7 @@ export function DownloadAnimation({
           {/* Panneau « Réessaie » si toutes les générations ont échoué */}
           {phase === "failed" && (
             <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-black/50 backdrop-blur-sm">
-              <img src={BEAR_RUN} alt="" className="w-16 h-16 object-contain" />
+              <img src={BEAR_MASCOT} alt="" className="w-16 h-16 object-contain" onError={(event) => { event.currentTarget.src = "/minia-bear-favicon.png"; }} />
               <p className="text-white text-xs font-medium">Oups, la génération a échoué</p>
               {onRetry && (
                 <button
@@ -339,9 +339,10 @@ export function DownloadAnimation({
         {/* L'ours qui s'enfuit (transition finale) */}
         {bearRun && (genMode && !revealUrl ? null : (
           <img
-            src={BEAR_RUN}
+            src={BEAR_MASCOT}
             alt=""
             className="bear-flee absolute -bottom-24 -right-8 w-28 h-28 pointer-events-none"
+            onError={(event) => { event.currentTarget.src = "/minia-bear-favicon.png"; }}
           />
         ))}
       </div>

@@ -43,6 +43,7 @@ export default function Miniatures() {
   const [filterDate, setFilterDate] = useState("all");
   const [filterYoutube, setFilterYoutube] = useState("all");
   const [previewTarget, setPreviewTarget] = useState<{ id: number; imageUrl: string; prompt: string } | null>(null);
+  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
   const isAuthed = !authLoading && isAuthenticated && !!user;
 
@@ -119,8 +120,6 @@ export default function Miniatures() {
       </div>
     );
   }
-
-  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
   const handleDownload = (url: string) => {
     const link = document.createElement("a");

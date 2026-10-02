@@ -749,7 +749,66 @@ html.light .glow-btn:hover {
 }
 
 /* ===== Animation téléchargement « ours IA liquide » ===== */
-.liquid-waves {
+.brand-bear-logo {
+  position: relative;
+  isolation: isolate;
+  transition: transform 220ms var(--ease-out), filter 220ms var(--ease-out);
+}
+.brand-bear-logo::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 10%;
+  right: 0;
+  bottom: -2px;
+  height: 9px;
+  border-radius: 999px 45% 999px 45%;
+  background: linear-gradient(90deg, transparent, #f97316 25%, #ffb15c 72%, transparent);
+  opacity: 0;
+  transform: translateX(-8px) scaleX(.55) rotate(-5deg);
+  transform-origin: left center;
+  transition: opacity 180ms ease, transform 260ms var(--ease-out);
+}
+.brand-bear-logo:hover,
+.group:hover .brand-bear-logo {
+  transform: translateY(-1px) rotate(-2deg) scale(1.05);
+  filter: drop-shadow(0 5px 10px rgb(249 115 22 / 22%));
+}
+.brand-bear-logo:hover::after,
+.group:hover .brand-bear-logo::after {
+  opacity: .9;
+  transform: translateX(2px) scaleX(1) rotate(-5deg);
+}
+
+.bear-loading-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+}
+.bear-loading-mark img { animation: bear-loading-bob 1.25s ease-in-out infinite; }
+.bear-loading-paint {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  width: 80px;
+  height: 18px;
+  border-radius: 52% 40% 48% 36%;
+  background: linear-gradient(90deg, #f97316, #ffb15c, #f97316);
+  box-shadow: 0 0 24px rgb(249 115 22 / 28%);
+  animation: bear-loading-paint 1.25s ease-in-out infinite;
+}
+@keyframes bear-loading-bob {
+  0%, 100% { transform: translateY(2px) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(2deg); }
+}
+@keyframes bear-loading-paint {
+  0%, 100% { transform: scaleX(.82) rotate(-2deg); opacity: .72; }
+  50% { transform: scaleX(1.05) rotate(2deg); opacity: 1; }
+}
+
+@keyframes liquid-wave {
   background-repeat: repeat-x;
   background-size: 50% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 64'%3E%3Cpath fill='rgba(255,255,255,0.35)' d='M0 32 C120 12,240 52,360 32 C480 12,600 52,720 32 C840 12,960 52,1080 32 C1200 12,1320 52,1440 32 V64 H0 Z'/%3E%3C/svg%3E");
@@ -786,8 +845,10 @@ html.light .glow-btn:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .brand-bear-logo, .brand-bear-logo::after, .bear-loading-mark img, .bear-loading-paint,
   .liquid-waves, .bear-pour, .bear-flee, .reveal-img {
     animation: none;
+    transition: none;
   }
 }
 

@@ -62,7 +62,8 @@ export default function Navbar() {
           <img
             src="/manus-storage/minia-bear-paint-logo-b_17324125.png"
             alt="Minia IA — ours touchant la peinture"
-            className="w-10 h-10 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
+            className="brand-bear-logo w-10 h-10 object-contain shrink-0"
+            onError={(event) => { event.currentTarget.src = "/minia-bear-favicon.png"; }}
           />
           <span className={`font-display text-lg font-bold tracking-tight ${isLight ? "text-foreground" : "text-white"}`}>
             Minia<span className="gradient-text">IA</span>

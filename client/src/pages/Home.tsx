@@ -30,8 +30,8 @@ const fallbackThumbs = [
   "/manus-storage/thumbnail-dramatic_1e94decd.png",
 ];
 
-const heroDemoVideo = "/manus-storage/minia-ia-hero-demo_8c30cba8.mp4";
-const heroDemoPoster = "/manus-storage/minia-ia-hero-demo-poster_00549801.jpg";
+const heroDemoVideo = "/manus-storage/minia-ia-current-flow-demo_949660e2.mp4";
+const heroDemoPoster = "/manus-storage/minia-ia-current-flow-poster_ca0fa27a.jpg";
 
 const workflow = [
   { number: "01", icon: Wand2, title: "Décris ton idée", text: "Un sujet, une émotion, un style. Minia IA transforme ton intention en direction visuelle." },
@@ -149,7 +149,7 @@ export default function Home() {
                   <div className="flex flex-col gap-3 px-1 pt-4 text-left sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-[10px] uppercase tracking-[.18em] text-orange-300">Brief → variantes → Canvas → export</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Regarde le parcours, puis lance ta propre génération.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Créer une miniature → brief et style → génération → Canvas.</p>
                     </div>
                     <button onClick={openGenerator} className="inline-flex shrink-0 items-center justify-center rounded-lg bg-orange-400 px-3 py-2 text-[11px] font-semibold text-[#14100c] transition-transform hover:-translate-y-0.5">Essayer avec ton idée <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></button>
                   </div>
