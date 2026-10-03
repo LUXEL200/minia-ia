@@ -30,6 +30,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoPainting, setLogoPainting] = useState(false);
   const { user, loading, isAuthenticated, logout } = useAuth();
   const { theme } = useTheme();
   const isLight = theme === "light";
@@ -58,11 +59,18 @@ export default function Navbar() {
     >
       <nav className="container flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 group shrink-0"
+          onClick={() => {
+            setLogoPainting(true);
+            window.setTimeout(() => setLogoPainting(false), 700);
+          }}
+        >
           <img
             src="/manus-storage/minia-bear-paint-logo-b_17324125.png"
             alt="Minia IA — ours touchant la peinture"
-            className="brand-bear-logo w-10 h-10 object-contain shrink-0"
+            className={`brand-bear-logo w-10 h-10 object-contain shrink-0 ${logoPainting ? "logo-paint-click" : ""}`}
             onError={(event) => { event.currentTarget.src = "/minia-bear-favicon.png"; }}
           />
           <span className={`font-display text-lg font-bold tracking-tight ${isLight ? "text-foreground" : "text-white"}`}>

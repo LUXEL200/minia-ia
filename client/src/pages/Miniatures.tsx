@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { toastRich } from "@/lib/toasts";
 import PageHeader from "@/components/PageHeader";
+import BearState from "@/components/BearState";
 import {
   Image, Search, X, Plus, Download, Eye, Star, Share2, ListChecks,
   Type, Trash2, Loader2, CalendarClock, Sparkles,
@@ -217,23 +218,21 @@ export default function Miniatures() {
             <Image className="mx-auto mb-3" size={48} />
             {thumbnails && thumbnails.length === 0 ? (
               <>
-                <p className="text-lg mb-2">Aucune miniature générée</p>
-                <p className="text-sm max-w-md mx-auto mb-4">
-                  Génère ta première miniature depuis le tableau de bord et elle apparaîtra ici, avec ses filtres, favoris et modifications.
-                </p>
-                <button onClick={() => navigate("/dashboard")} className="inline-flex items-center gap-2 bg-[#ff0050] hover:bg-[#e60048] px-4 py-2 rounded-lg text-xs font-medium transition-colors">
-                  <Sparkles size={14} /> Créer ma première miniature
-                </button>
+                <BearState
+                  title="L’ours garde encore une galerie vide"
+                  description="Génère ta première miniature depuis le dashboard pour la retrouver ici, avec ses filtres, favoris et modifications."
+                  actionLabel="Créer ma première miniature"
+                  onAction={() => navigate("/dashboard")}
+                />
               </>
             ) : (
               <>
-                <p className="text-lg mb-2">Aucun résultat pour ces filtres</p>
-                <button
-                  onClick={() => { setQuery(""); setFilterStyle("all"); setFilterDate("all"); setFilterYoutube("all"); }}
-                  className="text-xs text-foreground hover:text-foreground underline mt-3 inline-block"
-                >
-                  Réinitialiser les filtres
-                </button>
+                <BearState
+                  title="L’ours ne trouve rien ici"
+                  description="Aucune miniature ne correspond à tes filtres actuels."
+                  actionLabel="Réinitialiser les filtres"
+                  onAction={() => { setQuery(""); setFilterStyle("all"); setFilterDate("all"); setFilterYoutube("all"); }}
+                />
               </>
             )}
           </div>

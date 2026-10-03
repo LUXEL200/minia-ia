@@ -8,6 +8,7 @@ import { startLogin } from "@/const";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import BearState from "@/components/BearState";
 import CalendarView from "@/components/CalendarView";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -68,6 +69,7 @@ export default function Dashboard() {
   const [style, setStyle] = useState<string>("viral");
   const [quantity, setQuantity] = useState<number>(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"home" | "generate">("home");
   const [batchPrompts, setBatchPrompts] = useState("");
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
@@ -295,6 +297,7 @@ export default function Dashboard() {
 
     const submittedPrompt = prompt.trim();
     setIsGenerating(true);
+    setGenerationError(null);
     // L'ours IA remplit le rectangle pendant la génération API
     setGenAnimResultUrl(null);
     setGenAnimPhase(null);
@@ -339,7 +342,9 @@ export default function Dashboard() {
       resetGenAnimation();
       setGenAnimResultUrl(null);
       setGenAnimPhase(null);
-      toast.error(err.message || "Erreur lors de la génération");
+      const message = err.message || "Erreur lors de la génération";
+      setGenerationError(message);
+      toast.error(message);
     } finally {
       setIsGenerating(false);
     }
@@ -357,6 +362,7 @@ export default function Dashboard() {
     }
 
     setIsBatchGenerating(true);
+    setGenerationError(null);
     setGenAnimResultUrl(null);
     setGenAnimPhase(null);
     runGenerate();
@@ -388,7 +394,9 @@ export default function Dashboard() {
       resetGenAnimation();
       setGenAnimResultUrl(null);
       setGenAnimPhase(null);
-      toast.error(err.message || "Erreur lors de la génération en lot");
+      const message = err.message || "Erreur lors de la génération en lot";
+      setGenerationError(message);
+      toast.error(message);
     } finally {
       setIsBatchGenerating(false);
     }
@@ -686,9 +694,12 @@ export default function Dashboard() {
           <div className="aspect-video rounded-[20px] bg-muted animate-pulse" />
         ) : recentThumbnails.length === 0 ? (
           <div className="bg-muted rounded-[20px] p-8 text-center">
-            <Image className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-xs text-muted-foreground">Aucune miniature générée</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Va dans Générer pour créer ta première miniature !</p>
+            <BearState
+              title="L’ours attend ta première idée"
+              description="Aucune miniature générée pour le moment. Décris une vidéo et laisse Minia IA préparer la première version."
+              actionLabel="Créer une miniature"
+              onAction={() => setActiveView("generate")}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -854,6 +865,18 @@ export default function Dashboard() {
         <h1 className="text-lg font-semibold text-white" data-tour="create">Générer</h1>
         <p className="text-xs text-muted-foreground mt-1">Crée ta miniature virale</p>
       </div>
+
+      {generationError && (
+        <div className="mb-5">
+          <BearState
+            tone="error"
+            title="L’ours n’a pas réussi cette génération"
+            description={generationError}
+            actionLabel="Réessayer"
+            onAction={() => { setGenerationError(null); setActiveView("generate"); }}
+          />
+        </div>
+      )}
 
       {/* Generate tabs */}
       <div className="mb-6">

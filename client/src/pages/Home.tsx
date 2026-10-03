@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import InteractiveDemo from "@/components/InteractiveDemo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
@@ -152,6 +153,9 @@ export default function Home() {
                       <p className="mt-1 text-xs text-muted-foreground">Créer une miniature → brief et style → génération → Canvas.</p>
                     </div>
                     <button onClick={openGenerator} className="inline-flex shrink-0 items-center justify-center rounded-lg bg-orange-400 px-3 py-2 text-[11px] font-semibold text-[#14100c] transition-transform hover:-translate-y-0.5">Essayer avec ton idée <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></button>
+                  </div>
+                  <div className="mt-5 border-t border-border/60 pt-5">
+                    <InteractiveDemo onStart={openGenerator} />
                   </div>
                 </div>
               </div>
