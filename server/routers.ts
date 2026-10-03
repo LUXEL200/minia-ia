@@ -113,6 +113,8 @@ import {
   getUserSupportSnapshot,
   getUserEventTimeline,
   getAdminHistoricalMetrics,
+  getAppSettings,
+  setAppSetting,
   getAllUsers,
   updateUserRole,
   updateUserCredits,
@@ -165,6 +167,25 @@ import {
   deleteTestimonial as dbDeleteTestimonial,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
+
+const guestDemoUsage = new Map<string, { startedAt: number; count: number }>();
+const GUEST_WINDOW_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_CLIENT_SETTINGS = {
+  "client.guestDemoEnabled": "yes",
+  "client.guestDailyLimit": "2",
+  "client.generationEnabled": "yes",
+  "client.batchEnabled": "yes",
+  "client.freeWatermark": "yes",
+};
+
+function getGuestKey(req: { ip?: string | undefined; socket?: { remoteAddress?: string | undefined }; headers: Record<string, unknown> }) {
+  return req.ip || req.socket?.remoteAddress || "unknown-client";
+}
+
+async function getClientSettings() {
+  const saved = await getAppSettings(Object.keys(DEFAULT_CLIENT_SETTINGS));
+  return { ...DEFAULT_CLIENT_SETTINGS, ...saved };
+}
 
 // === Sub-routers (defined before appRouter to avoid TDZ) ===
 
@@ -840,6 +861,39 @@ export const notificationsRouter = router({
   }),
 });
 
+// === Guest demo Router ===
+export const demoRouter = router({
+  config: publicProcedure.query(async () => {
+    const settings = await getClientSettings();
+    return {
+      enabled: settings["client.guestDemoEnabled"] === "yes" && settings["client.generationEnabled"] === "yes",
+      dailyLimit: Math.min(Math.max(Number(settings["client.guestDailyLimit"]) || 2, 1), 5),
+    } as const;
+  }),
+  generate: publicProcedure
+    .input(z.object({ prompt: z.string().trim().min(10).max(500), style: z.enum(["viral", "mrbeast", "minimalist", "dramatic", "tech", "retro"]).default("viral") }))
+    .mutation(async ({ ctx, input }) => {
+      const settings = await getClientSettings();
+      if (settings["client.guestDemoEnabled"] !== "yes" || settings["client.generationEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La démo invitée est temporairement désactivée." });
+      const limit = Math.min(Math.max(Number(settings["client.guestDailyLimit"]) || 2, 1), 5);
+      const key = getGuestKey(ctx.req);
+      const now = Date.now();
+      const usage = guestDemoUsage.get(key);
+      if (!usage || now - usage.startedAt >= GUEST_WINDOW_MS) guestDemoUsage.set(key, { startedAt: now, count: 1 });
+      else if (usage.count >= limit) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: `Limite atteinte : ${limit} génération(s) invitée(s) par jour.` });
+      else usage.count += 1;
+      try {
+        const result = await generateImage({ prompt: `YouTube thumbnail, ${input.style} style. ${input.prompt}. High contrast, bold readable composition, no logos, no watermark text.`, model: "MODEL_GPT_IMAGE_2", quality: "medium" });
+        if (!result.url) throw new Error("Aucune image n’a été retournée");
+        return { imageUrl: result.url, remaining: Math.max(0, limit - (guestDemoUsage.get(key)?.count ?? 1)) } as const;
+      } catch (error) {
+        const current = guestDemoUsage.get(key);
+        if (current) current.count = Math.max(0, current.count - 1);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error instanceof Error ? error.message : "La génération invitée a échoué." });
+      }
+    }),
+});
+
 // === Admin Router ===
 export const adminRouter = router({
   accessMe: protectedProcedure.query(async ({ ctx }) => {
@@ -847,6 +901,16 @@ export const adminRouter = router({
     const access = await getAdminAccess(ctx.user.id);
     return access ? { owner: false, enabled: access.enabled === "yes", role: access.role, permissions: access.permissions } : { owner: false, enabled: false, role: null, permissions: [] as string[] };
   }),
+  clientSettings: adminProcedure.query(async () => getClientSettings()),
+  updateClientSetting: adminProcedure
+    .input(z.object({ key: z.enum(["client.guestDemoEnabled", "client.guestDailyLimit", "client.generationEnabled", "client.batchEnabled", "client.freeWatermark"]), value: z.string().max(32) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.key === "client.guestDailyLimit" && !/^[1-5]$/.test(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "La limite invitée doit être comprise entre 1 et 5." });
+      if (input.key !== "client.guestDailyLimit" && input.value !== "yes" && input.value !== "no") throw new TRPCError({ code: "BAD_REQUEST", message: "Valeur oui/non attendue." });
+      await setAppSetting(input.key, input.value, ctx.user.id);
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", details: JSON.stringify({ kind: "settings-updated", key: input.key, value: input.value }) });
+      return { success: true } as const;
+    }),
   auditLogs: adminProcedure.query(async () => getAdminAuditLogs()),
 
   secondaryAccess: adminProcedure.query(async () => listAdminAccess()),
@@ -1062,6 +1126,7 @@ export const adminRouter = router({
 
 export const appRouter = router({
   system: systemRouter,
+  demo: demoRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -1169,6 +1234,8 @@ export const appRouter = router({
         inspirationMime: z.string().max(64).default("image/jpeg"),
       }))
       .mutation(async ({ ctx, input }) => {
+        const clientSettings = await getClientSettings();
+        if (clientSettings["client.generationEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La génération est temporairement désactivée par l’administrateur." });
         // Reserve credits atomically before external AI work.
         const credits = await ensureUserCredits(ctx.user.id);
         if (!(await deductCredits(ctx.user.id, input.quantity))) {
@@ -1224,7 +1291,7 @@ export const appRouter = router({
             if (url) {
               let finalUrl = url;
               // Free-plan users get a watermarked version stored
-              if (credits.planType === "free") {
+              if (credits.planType === "free" && clientSettings["client.freeWatermark"] === "yes") {
                 const wmB64 = await burnWatermark(url);
                 if (wmB64) {
                   const { storagePut } = await import("./storage");
@@ -1343,6 +1410,9 @@ export const appRouter = router({
         style: z.enum(["viral", "mrbeast", "minimalist", "dramatic", "tech", "retro"]).default("viral"),
       }))
       .mutation(async ({ ctx, input }) => {
+        const clientSettings = await getClientSettings();
+        if (clientSettings["client.generationEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La génération est temporairement désactivée par l’administrateur." });
+        if (clientSettings["client.batchEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La génération en lot est désactivée par l’administrateur." });
         const credits = await ensureUserCredits(ctx.user.id);
         const reserved = await deductCredits(ctx.user.id, input.prompts.length);
         if (!reserved) {

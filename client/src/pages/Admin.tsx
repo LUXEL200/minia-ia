@@ -171,6 +171,13 @@ export default function AdminPage() {
     enabled: !loading && isAuthenticated && adminAllowed,
     refetchInterval: 15000,
   });
+  const { data: clientSettings, refetch: refetchClientSettings } = trpc.admin.clientSettings.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && adminAllowed,
+  });
+  const updateClientSettingMut = trpc.admin.updateClientSetting.useMutation({
+    onSuccess: () => { toast.success("Paramètre client mis à jour"); refetchClientSettings(); },
+    onError: (e) => toast.error(e.message),
+  });
   const createScheduledExportMut = trpc.admin.createScheduledExport.useMutation({
     onSuccess: () => { toast.success("Export récurrent programmé"); setReportEmail(""); refetchScheduledExports(); },
     onError: (e) => toast.error(e.message),
@@ -804,6 +811,30 @@ export default function AdminPage() {
           {activeTab === "settings" && (
             <div className="space-y-6">
               <h3 className="font-semibold">Paramètres Super Admin</h3>
+              <div className="bg-muted border border-orange-500/20 rounded-xl p-5 space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-orange-300">Pilotage des fonctionnalités client</h4>
+                  <p className="text-xs text-gray-500 mt-1">Ces réglages sont persistants et s’appliquent immédiatement à l’environnement utilisateur.</p>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {([
+                    ["client.generationEnabled", "Génération authentifiée", "Autoriser les utilisateurs connectés à générer des miniatures."],
+                    ["client.batchEnabled", "Génération en lot", "Afficher et autoriser le workflow Batch Upload."],
+                    ["client.freeWatermark", "Filigrane plan gratuit", "Appliquer le filigrane Minia IA aux exports gratuits."],
+                    ["client.guestDemoEnabled", "Démo invitée", "Autoriser la génération réelle depuis la landing sans compte."],
+                  ] as const).map(([key, label, description]) => {
+                    const enabled = clientSettings?.[key] === "yes";
+                    return <button key={key} type="button" onClick={() => updateClientSettingMut.mutate({ key, value: enabled ? "no" : "yes" })} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/60 p-3 text-left hover:border-orange-400/50 transition-colors">
+                      <span><span className="block text-sm font-medium">{label}</span><span className="mt-1 block text-[11px] text-gray-500">{description}</span></span>
+                      <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${enabled ? "bg-orange-500" : "bg-gray-700"}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${enabled ? "translate-x-6" : "translate-x-1"}`} /></span>
+                    </button>;
+                  })}
+                </div>
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/60 p-3">
+                  <span><span className="block text-sm font-medium">Quota démo invitée</span><span className="mt-1 block text-[11px] text-gray-500">Nombre maximal de générations réelles par adresse IP et par 24 h (1 à 5).</span></span>
+                  <select value={clientSettings?.["client.guestDailyLimit"] ?? "2"} onChange={event => updateClientSettingMut.mutate({ key: "client.guestDailyLimit", value: event.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-sm"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+                </div>
+              </div>
               <div className="bg-muted border border-orange-500/20 rounded-xl p-5 space-y-4">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="text-orange-400 mt-0.5 shrink-0" size={18} />

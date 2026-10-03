@@ -293,6 +293,18 @@ export const scheduledExports = mysqlTable("scheduledExports", {
 export type ScheduledExport = typeof scheduledExports.$inferSelect;
 export type InsertScheduledExport = typeof scheduledExports.$inferInsert;
 
+/** Paramètres runtime contrôlés par le propriétaire et consommés par le client. */
+export const appSettings = mysqlTable("appSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  settingKey: varchar("settingKey", { length: 96 }).notNull().unique(),
+  settingValue: text("settingValue").notNull(),
+  updatedBy: int("updatedBy"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AppSetting = typeof appSettings.$inferSelect;
+export type InsertAppSetting = typeof appSettings.$inferInsert;
+
 /**
  * Notifications table
  */

@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
@@ -1504,4 +1504,21 @@ export async function listAllTestimonials() {
     .from(testimonials)
     .orderBy(desc(testimonials.createdAt))
     .limit(100);
+}
+
+export async function getAppSettings(keys?: string[]) {
+  const db = await getDb();
+  if (!db) return {} as Record<string, string>;
+  const rows = keys?.length
+    ? await db.select().from(appSettings).where(sql`${appSettings.settingKey} in (${sql.join(keys.map(key => sql`${key}`), sql`, `)})`)
+    : await db.select().from(appSettings);
+  return Object.fromEntries(rows.map(row => [row.settingKey, row.settingValue]));
+}
+
+export async function setAppSetting(settingKey: string, settingValue: string, updatedBy: number) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(appSettings).values({ settingKey, settingValue, updatedBy }).onDuplicateKeyUpdate({ set: { settingValue, updatedBy, updatedAt: new Date() } });
+  const rows = await db.select().from(appSettings).where(eq(appSettings.settingKey, settingKey)).limit(1);
+  return rows[0] ?? null;
 }
