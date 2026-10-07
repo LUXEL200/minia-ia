@@ -2,20 +2,22 @@ import type { Express, Request } from "express";
 import { ENV } from "./env";
 import { sdk } from "./sdk";
 import { rateLimit } from "./rateLimit";
+import { canReadPrivateAsset } from "../db";
 
-const PUBLIC_PREFIXES = ["generated/", "templates/"];
+// Les assets administratifs restent publics ; les générations et uploads clients ne le sont jamais.
+const PUBLIC_PREFIXES = ["templates/", "demo/"];
 
 function isSafeKey(key: string) {
   return key.length <= 512 && !key.includes("..") && !key.startsWith("/") && !key.includes("\\") && /^[a-zA-Z0-9/_:.()-]+$/.test(key);
 }
 
-async function canReadKey(req: Request, key: string) {
+export async function canReadStorageKey(req: Request, key: string) {
   if (PUBLIC_PREFIXES.some(prefix => key.startsWith(prefix))) return true;
   const ownerMatch = key.match(/^(?:user-images|thumbnails)\/(\d+)\//);
   if (!ownerMatch) return false;
   try {
     const user = await sdk.authenticateRequest(req);
-    return Boolean(user && user.id === Number(ownerMatch[1]));
+    return Boolean(user && await canReadPrivateAsset(user.id, Number(ownerMatch[1])));
   } catch {
     return false;
   }
@@ -30,7 +32,7 @@ export function registerStorageProxy(app: Express) {
       return;
     }
 
-    if (!(await canReadKey(req, key))) {
+    if (!(await canReadStorageKey(req, key))) {
       res.status(404).send("Asset not found");
       return;
     }

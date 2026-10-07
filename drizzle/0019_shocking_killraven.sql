@@ -1,0 +1,1 @@
+ALTER TABLE `adminAuditLogs` MODIFY COLUMN `action` enum('legacy_keys_revoked','legacy_images_migrated','users_notified','credits_reset','session_revoked') NOT NULL;

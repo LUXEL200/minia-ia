@@ -1,9 +1,10 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, publicGallery, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger, InsertPublicGalleryItem } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
+import { storageGetSignedUrl, storagePut } from "./storage";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -191,7 +192,7 @@ export async function listCreditLedger(userId: number) {
     .limit(100);
 }
 
-// === Public Gallery ===
+// === Public Gallery (admin-curated only) ===
 
 export async function getGalleryThumbnails(params: {
   style?: string;
@@ -206,27 +207,21 @@ export async function getGalleryThumbnails(params: {
   const offset = params.offset ?? 0;
   const sortBy = params.sortBy ?? "recent";
 
-  const whereConditions = [eq(thumbnails.status, "completed")];
+  const whereConditions = [eq(publicGallery.isVisible, 1)];
   if (params.style && params.style !== "all") {
-    whereConditions.push(eq(thumbnails.style, params.style));
+    whereConditions.push(eq(publicGallery.style, params.style));
   }
 
   const queryBuilder = db
-    .select({
-      id: thumbnails.id,
-      imageUrl: thumbnails.imageUrl,
-      prompt: thumbnails.prompt,
-      style: thumbnails.style,
-      createdAt: thumbnails.createdAt,
-    })
-    .from(thumbnails)
+    .select()
+    .from(publicGallery)
     .where(and(...whereConditions));
 
   let results: any[];
   if (sortBy === "popular") {
     // Join with likes to count, order by likes desc
     const allResults = await queryBuilder
-      .orderBy(desc(thumbnails.createdAt))
+      .orderBy(desc(publicGallery.sortOrder), desc(publicGallery.createdAt))
       .limit(200) // fetch more to sort client-side by likes
       .offset(0);
 
@@ -243,7 +238,7 @@ export async function getGalleryThumbnails(params: {
     results = enrichedResults.slice(offset, offset + limit);
   } else {
     results = await queryBuilder
-      .orderBy(desc(thumbnails.createdAt))
+      .orderBy(desc(publicGallery.sortOrder), desc(publicGallery.createdAt))
       .limit(limit)
       .offset(offset);
   }
@@ -257,8 +252,8 @@ export async function getGalleryStats() {
 
   const totalResult = await db
     .select()
-    .from(thumbnails)
-    .where(eq(thumbnails.status, "completed"));
+    .from(publicGallery)
+    .where(eq(publicGallery.isVisible, 1));
 
   const total = totalResult.length;
 
@@ -269,6 +264,118 @@ export async function getGalleryStats() {
   }
 
   return { total, styles: styleCounts };
+}
+
+export async function listPublicGalleryAdmin() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(publicGallery).orderBy(desc(publicGallery.sortOrder), desc(publicGallery.createdAt));
+}
+
+export async function createPublicGalleryItem(data: InsertPublicGalleryItem) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] = await db.insert(publicGallery).values(data);
+  return { id: result.insertId };
+}
+
+export async function updatePublicGalleryItem(id: number, data: Partial<InsertPublicGalleryItem>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(publicGallery).set(data).where(eq(publicGallery.id, id));
+}
+
+export async function deletePublicGalleryItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(publicGallery).where(eq(publicGallery.id, id));
+}
+
+export async function isVisiblePublicGalleryItem(id: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const rows = await db.select({ id: publicGallery.id })
+    .from(publicGallery)
+    .where(and(eq(publicGallery.id, id), eq(publicGallery.isVisible, 1)))
+    .limit(1);
+  return rows.length > 0;
+}
+
+export async function getVisiblePublicGalleryIds(ids: number[]) {
+  if (ids.length === 0) return [];
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select({ id: publicGallery.id })
+    .from(publicGallery)
+    .where(and(eq(publicGallery.isVisible, 1), or(...ids.map(id => eq(publicGallery.id, id)))));
+  return rows.map(row => row.id);
+}
+
+/** Autorise le propriétaire ou un membre d'une équipe dont le propriétaire est en plan Max. */
+export async function canReadPrivateAsset(userId: number, ownerId: number) {
+  if (userId === ownerId) return true;
+  const db = await getDb();
+  if (!db) return false;
+  const ownerPlan = await db.select({ planType: userCredits.planType })
+    .from(userCredits)
+    .where(and(eq(userCredits.userId, ownerId), eq(userCredits.planType, "max")))
+    .limit(1);
+  if (ownerPlan.length === 0) return false;
+  const membership = await db.select({ id: teamMembers.id })
+    .from(teamMembers)
+    .where(and(eq(teamMembers.ownerId, ownerId), eq(teamMembers.userId, userId)))
+    .limit(1);
+  return membership.length > 0;
+}
+
+function legacyStorageKey(imageUrl: string) {
+  const marker = "/manus-storage/";
+  const markerIndex = imageUrl.indexOf(marker);
+  if (markerIndex >= 0) return decodeURIComponent(imageUrl.slice(markerIndex + marker.length));
+  if (/^(generated|thumbnails)\//.test(imageUrl)) return imageUrl;
+  return null;
+}
+
+async function readLegacyImage(imageUrl: string): Promise<{ buffer: Buffer; contentType: string } | null> {
+  try {
+    const dataMatch = imageUrl.match(/^data:(image\/(?:png|jpe?g|webp));base64,(.+)$/i);
+    if (dataMatch) return { buffer: Buffer.from(dataMatch[2], "base64"), contentType: dataMatch[1].toLowerCase().replace("jpg", "jpeg") };
+    const key = legacyStorageKey(imageUrl);
+    const sourceUrl = key ? await storageGetSignedUrl(key) : imageUrl;
+    const response = await fetch(sourceUrl);
+    if (!response.ok) return null;
+    const contentType = response.headers.get("content-type")?.split(";")[0] || "image/png";
+    return { buffer: Buffer.from(await response.arrayBuffer()), contentType };
+  } catch {
+    return null;
+  }
+}
+
+/** Migre les anciens assets générés hors user-images vers un chemin privé propriétaire. */
+export async function migrateLegacyPrivateImages(limit = 500) {
+  const db = await getDb();
+  if (!db) return { scanned: 0, migrated: 0, failed: 0 };
+  const sources: Array<{ label: string; table: any; idColumn: any; rows: any[] }> = [
+    { label: "thumbnail", table: thumbnails, idColumn: thumbnails.id, rows: await db.select().from(thumbnails).limit(limit) },
+    { label: "avatar", table: avatars, idColumn: avatars.id, rows: await db.select().from(avatars).limit(limit) },
+    { label: "end-card", table: endCards, idColumn: endCards.id, rows: await db.select().from(endCards).limit(limit) },
+  ];
+  let scanned = 0;
+  let migrated = 0;
+  let failed = 0;
+  for (const source of sources) {
+    for (const row of source.rows) {
+      if (!row.imageUrl || String(row.imageUrl).includes("/user-images/")) continue;
+      scanned += 1;
+      const image = await readLegacyImage(String(row.imageUrl));
+      if (!image) { failed += 1; continue; }
+      const extension = image.contentType.includes("jpeg") ? "jpg" : image.contentType.split("/")[1] || "png";
+      const { url } = await storagePut(`user-images/${row.userId}/migrated-${source.label}-${row.id}.${extension}`, image.buffer, image.contentType);
+      await db.update(source.table).set({ imageUrl: url }).where(eq(source.idColumn, row.id));
+      migrated += 1;
+    }
+  }
+  return { scanned, migrated, failed };
 }
 
 // === Likes ===
@@ -614,7 +721,7 @@ export async function migrateLegacyApiKeys() {
 
 export async function createAdminAuditLog(data: {
   actorUserId: number;
-  action: "legacy_keys_revoked" | "users_notified" | "credits_reset" | "session_revoked";
+  action: "legacy_keys_revoked" | "legacy_images_migrated" | "users_notified" | "credits_reset" | "session_revoked";
   targetUserId?: number;
   details?: string;
 }) {

@@ -12,7 +12,7 @@ import {
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 
-type TabId = "dashboard" | "operations" | "users" | "templates" | "api" | "notifications" | "settings" | "testimonials" | "access";
+type TabId = "dashboard" | "operations" | "users" | "templates" | "publicGallery" | "api" | "notifications" | "settings" | "testimonials" | "access";
 
 function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   const headers = rows.length ? Object.keys(rows[0]) : [];
@@ -61,6 +61,11 @@ export default function AdminPage() {
   const [reportCron, setReportCron] = useState("0 0 9 * * *");
   const [accessUserId, setAccessUserId] = useState("");
   const [accessRole, setAccessRole] = useState<"support" | "analyst" | "operator">("analyst");
+  const [galleryTitle, setGalleryTitle] = useState("");
+  const [galleryImageUrl, setGalleryImageUrl] = useState("");
+  const [galleryStyle, setGalleryStyle] = useState("viral");
+  const [galleryCategory, setGalleryCategory] = useState("featured");
+  const [galleryFile, setGalleryFile] = useState<File | null>(null);
 
 
   const { data: adminAccess, isLoading: accessLoading } = trpc.admin.accessMe.useQuery(undefined, { enabled: !loading && isAuthenticated });
@@ -81,6 +86,9 @@ export default function AdminPage() {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
   const { data: allTemplates, refetch: refetchTemplates } = trpc.admin.templates.useQuery(undefined, {
+    enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
+  });
+  const { data: publicGalleryItems, refetch: refetchPublicGallery } = trpc.admin.publicGallery.useQuery(undefined, {
     enabled: !loading && isAuthenticated && user?.isAdminOwner === true,
   });
   const { data: models, refetch: refetchModels } = trpc.admin.models.useQuery(undefined, {
@@ -194,6 +202,22 @@ export default function AdminPage() {
     onSuccess: () => { toast.success("Template créé"); refetchTemplates(); setShowNewTemplateForm(false); setNewTemplateTitle(""); setNewTemplateImageUrl(""); },
     onError: (e) => toast.error(e.message),
   });
+  const createPublicGalleryMut = trpc.admin.createPublicGallery.useMutation({
+    onSuccess: () => { toast.success("Image ajoutée à la galerie publique"); refetchPublicGallery(); setGalleryTitle(""); setGalleryImageUrl(""); setGalleryFile(null); },
+    onError: (e) => toast.error(e.message),
+  });
+  const uploadPublicGalleryMut = trpc.admin.uploadPublicGallery.useMutation({
+    onSuccess: () => { toast.success("Image uploadée dans la galerie publique"); refetchPublicGallery(); setGalleryTitle(""); setGalleryImageUrl(""); setGalleryFile(null); },
+    onError: (e) => toast.error(e.message),
+  });
+  const updatePublicGalleryMut = trpc.admin.updatePublicGallery.useMutation({
+    onSuccess: () => { toast.success("Galerie publique mise à jour"); refetchPublicGallery(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deletePublicGalleryMut = trpc.admin.deletePublicGallery.useMutation({
+    onSuccess: () => { toast.success("Image retirée de la galerie publique"); refetchPublicGallery(); },
+    onError: (e) => toast.error(e.message),
+  });
 
   // Testimonial moderation
   const { data: allTestimonials, refetch: refetchTestimonials } = trpc.testimonials.list.useQuery(undefined, {
@@ -233,6 +257,7 @@ export default function AdminPage() {
     { id: "operations", label: "Opérations", icon: <Activity size={18} /> },
     { id: "users", label: "Utilisateurs", icon: <Users size={18} /> },
     { id: "templates", label: "Templates", icon: <Layers size={18} /> },
+    { id: "publicGallery", label: "Galerie publique", icon: <Globe size={18} /> },
     { id: "api", label: "API & Modèles", icon: <Key size={18} /> },
     { id: "notifications", label: "Notifications", icon: <Bell size={18} /> },
     { id: "settings", label: "Paramètres", icon: <Settings size={18} /> },
@@ -596,6 +621,72 @@ export default function AdminPage() {
                   <div className="text-center py-12 text-gray-500">Aucun utilisateur trouvé</div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Public gallery management */}
+          {activeTab === "publicGallery" && (
+            <div className="space-y-6 max-w-6xl">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-orange-400">Publication contrôlée</p>
+                <h2 className="text-2xl font-semibold mt-1">Galerie publique</h2>
+                <p className="text-sm text-gray-400 mt-1">Seul le Super Admin peut ajouter ou rendre visible une image. Les générations clients restent privées.</p>
+              </div>
+
+              <section className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                <h3 className="font-semibold">Ajouter une inspiration</h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <input value={galleryTitle} onChange={e => setGalleryTitle(e.target.value)} placeholder="Titre de la miniature" className="rounded-lg bg-background border border-border px-3 py-2 text-sm" />
+                  <input value={galleryImageUrl} onChange={e => setGalleryImageUrl(e.target.value)} placeholder="URL d’image admin (ou sélectionne un fichier)" className="rounded-lg bg-background border border-border px-3 py-2 text-sm" />
+                  <select value={galleryStyle} onChange={e => setGalleryStyle(e.target.value)} className="rounded-lg bg-background border border-border px-3 py-2 text-sm"><option value="viral">Viral</option><option value="mrbeast">MrBeast</option><option value="minimalist">Minimaliste</option><option value="dramatic">Dramatique</option><option value="tech">Tech</option><option value="retro">Rétro</option></select>
+                  <input value={galleryCategory} onChange={e => setGalleryCategory(e.target.value)} placeholder="Catégorie : featured, tech…" className="rounded-lg bg-background border border-border px-3 py-2 text-sm" />
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="rounded-lg border border-border px-3 py-2 text-sm cursor-pointer hover:bg-muted">
+                    Choisir un fichier
+                    <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e => setGalleryFile(e.target.files?.[0] ?? null)} />
+                  </label>
+                  {galleryFile && <span className="text-xs text-orange-300 truncate max-w-[220px]">{galleryFile.name}</span>}
+                  <button
+                    disabled={!galleryTitle.trim() || (!galleryImageUrl.trim() && !galleryFile) || createPublicGalleryMut.isPending || uploadPublicGalleryMut.isPending}
+                    onClick={() => {
+                      if (galleryFile) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          const value = String(reader.result ?? "");
+                          const [header, b64] = value.split(",");
+                          uploadPublicGalleryMut.mutate({ b64, mime: header.match(/data:(.*?);/)?.[1] as "image/png" | "image/jpeg" | "image/webp" || "image/png", title: galleryTitle.trim(), style: galleryStyle, category: galleryCategory.trim() });
+                        };
+                        reader.readAsDataURL(galleryFile);
+                      } else {
+                        createPublicGalleryMut.mutate({ imageUrl: galleryImageUrl.trim(), title: galleryTitle.trim(), style: galleryStyle, category: galleryCategory.trim() });
+                      }
+                    }}
+                    className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+                  >
+                    {createPublicGalleryMut.isPending || uploadPublicGalleryMut.isPending ? "Publication…" : "Publier dans la galerie"}
+                  </button>
+                </div>
+              </section>
+
+              <section className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {(publicGalleryItems ?? []).map(item => (
+                  <article key={item.id} className={`rounded-2xl border border-border bg-card overflow-hidden ${item.isVisible ? "" : "opacity-60"}`}>
+                    <img src={item.imageUrl} alt={item.title} className="w-full aspect-video object-cover" />
+                    <div className="p-4 space-y-3">
+                      <div><p className="font-medium truncate">{item.title}</p><p className="text-xs text-gray-500">{item.style} · {item.category} · ordre {item.sortOrder}</p></div>
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => updatePublicGalleryMut.mutate({ id: item.id, isVisible: !Boolean(item.isVisible) })} className="text-xs rounded-md border border-border px-2.5 py-1.5">{item.isVisible ? "Masquer" : "Afficher"}</button>
+                        <button onClick={() => updatePublicGalleryMut.mutate({ id: item.id, sortOrder: item.sortOrder + 1 })} className="text-xs rounded-md border border-border px-2.5 py-1.5">Monter</button>
+                        <button onClick={() => updatePublicGalleryMut.mutate({ id: item.id, sortOrder: item.sortOrder - 1 })} className="text-xs rounded-md border border-border px-2.5 py-1.5">Descendre</button>
+                        <button onClick={() => { const title = window.prompt("Nouveau titre", item.title); if (title?.trim()) updatePublicGalleryMut.mutate({ id: item.id, title: title.trim() }); }} className="text-xs rounded-md border border-border px-2.5 py-1.5">Renommer</button>
+                        <button onClick={() => { if (window.confirm("Supprimer cette image de la galerie publique ?")) deletePublicGalleryMut.mutate({ id: item.id }); }} className="text-xs rounded-md border border-red-500/40 text-red-300 px-2.5 py-1.5">Supprimer</button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+                {(publicGalleryItems ?? []).length === 0 && <div className="sm:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-gray-500">Aucune image publiée. Les miniatures clients ne sont jamais ajoutées automatiquement.</div>}
+              </section>
             </div>
           )}
 

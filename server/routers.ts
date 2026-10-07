@@ -71,6 +71,13 @@ import {
   updateScheduledExportStatus,
   getGalleryThumbnails,
   getGalleryStats,
+  listPublicGalleryAdmin,
+  createPublicGalleryItem,
+  updatePublicGalleryItem,
+  deletePublicGalleryItem,
+  isVisiblePublicGalleryItem,
+  getVisiblePublicGalleryIds,
+  migrateLegacyPrivateImages,
   toggleLike,
   getLikesForThumbnails,
   getTeamMembers,
@@ -582,6 +589,7 @@ export const avatarsRouter = router({
 
       try {
         const { url } = await generateImage({
+          ownerId: ctx.user.id,
           prompt: `${input.prompt} — avatar portrait, professional headshot style`,
           model: "MODEL_GPT_IMAGE_2",
           quality: "high",
@@ -630,6 +638,7 @@ export const endCardsRouter = router({
 
       try {
         const { url } = await generateImage({
+          ownerId: ctx.user.id,
           prompt: `${input.prompt} — YouTube end card, subscribe button area, video suggestion boxes, CTA text`,
           model: "MODEL_GPT_IMAGE_2",
           quality: "high",
@@ -883,7 +892,7 @@ export const demoRouter = router({
       else if (usage.count >= limit) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: `Limite atteinte : ${limit} génération(s) invitée(s) par jour.` });
       else usage.count += 1;
       try {
-        const result = await generateImage({ prompt: `YouTube thumbnail, ${input.style} style. ${input.prompt}. High contrast, bold readable composition, no logos, no watermark text.`, model: "MODEL_GPT_IMAGE_2", quality: "medium" });
+        const result = await generateImage({ publicAsset: true, prompt: `YouTube thumbnail, ${input.style} style. ${input.prompt}. High contrast, bold readable composition, no logos, no watermark text.`, model: "MODEL_GPT_IMAGE_2", quality: "medium" });
         if (!result.url) throw new Error("Aucune image n’a été retournée");
         return { imageUrl: result.url, remaining: Math.max(0, limit - (guestDemoUsage.get(key)?.count ?? 1)) } as const;
       } catch (error) {
@@ -1087,6 +1096,79 @@ export const adminRouter = router({
       return { success: true } as const;
     }),
 
+  // Public gallery management: only the owner Super Admin can publish assets.
+  publicGallery: adminProcedure.query(async () => listPublicGalleryAdmin()),
+
+  migrateLegacyImages: adminProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(500).default(100) }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await migrateLegacyPrivateImages(input.limit);
+      if (result.migrated > 0 || result.failed > 0) {
+        await createAdminAuditLog({ actorUserId: ctx.user.id, action: "legacy_images_migrated", details: JSON.stringify(result) });
+      }
+      return result;
+    }),
+
+  createPublicGallery: adminProcedure
+    .input(z.object({
+      imageUrl: z.string().min(1).max(2000).refine(value => /^https?:\/\//i.test(value) || value.startsWith("/manus-storage/templates/"), "Utilise une URL HTTP(S) ou un asset templates admin."),
+      title: z.string().min(1).max(200),
+      style: z.string().min(1).max(64).default("viral"),
+      category: z.string().min(1).max(64).default("featured"),
+      isVisible: z.boolean().default(true),
+      sortOrder: z.number().int().min(-100000).max(100000).default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const result = await createPublicGalleryItem({
+        imageUrl: input.imageUrl,
+        title: input.title,
+        style: input.style,
+        category: input.category,
+        isVisible: input.isVisible ? 1 : 0,
+        sortOrder: input.sortOrder,
+      });
+      return { success: true, id: result.id } as const;
+    }),
+
+  uploadPublicGallery: adminProcedure
+    .input(z.object({
+      b64: z.string().min(100).max(12_000_000),
+      mime: z.enum(["image/png", "image/jpeg", "image/webp"]).default("image/png"),
+      title: z.string().min(1).max(200),
+      style: z.string().min(1).max(64).default("viral"),
+      category: z.string().min(1).max(64).default("featured"),
+      sortOrder: z.number().int().min(-100000).max(100000).default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const { storagePut } = await import("./storage");
+      const { url } = await storagePut(`templates/public-gallery/${Date.now()}.${input.mime.split("/")[1]}`, input.b64, input.mime);
+      const result = await createPublicGalleryItem({ imageUrl: url, title: input.title, style: input.style, category: input.category, isVisible: 1, sortOrder: input.sortOrder });
+      return { success: true, id: result.id, imageUrl: url } as const;
+    }),
+
+  updatePublicGallery: adminProcedure
+    .input(z.object({
+      id: z.number().int().positive(),
+      imageUrl: z.string().min(1).max(2000).optional(),
+      title: z.string().min(1).max(200).optional(),
+      style: z.string().min(1).max(64).optional(),
+      category: z.string().min(1).max(64).optional(),
+      isVisible: z.boolean().optional(),
+      sortOrder: z.number().int().min(-100000).max(100000).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const { id, isVisible, ...rest } = input;
+      await updatePublicGalleryItem(id, { ...rest, ...(isVisible === undefined ? {} : { isVisible: isVisible ? 1 : 0 }) });
+      return { success: true } as const;
+    }),
+
+  deletePublicGallery: adminProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      await deletePublicGalleryItem(input.id);
+      return { success: true } as const;
+    }),
+
   // API models list
   models: adminProcedure.query(async () => {
     return listImageModels();
@@ -1282,6 +1364,7 @@ export const appRouter = router({
           try {
             // Generate image via Forge API (with optional reference image for style inspiration)
             const { url } = await generateImage({
+              ownerId: ctx.user.id,
               prompt: fullPrompt,
               originalImages: referenceImages,
               model: "MODEL_GPT_IMAGE_2",
@@ -1295,7 +1378,7 @@ export const appRouter = router({
                 const wmB64 = await burnWatermark(url);
                 if (wmB64) {
                   const { storagePut } = await import("./storage");
-                  const key = `thumbnails/${ctx.user.id}/${thumbId}-watermarked.png`;
+                  const key = `user-images/${ctx.user.id}/${thumbId}-watermarked.png`;
                   const { url: wmUrl } = await storagePut(key, wmB64, "image/png");
                   finalUrl = wmUrl;
                 }
@@ -1389,6 +1472,9 @@ export const appRouter = router({
     toggle: protectedProcedure
       .input(z.object({ thumbnailId: z.number() }))
       .mutation(async ({ ctx, input }) => {
+        if (!(await isVisiblePublicGalleryItem(input.thumbnailId))) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Cette image n'est pas dans la galerie publique." });
+        }
         return toggleLike(ctx.user.id, input.thumbnailId);
       }),
 
@@ -1397,7 +1483,8 @@ export const appRouter = router({
       .input(z.object({ thumbnailIds: z.array(z.number()) }))
       .query(async ({ input, ctx }) => {
         const userId = ctx.user?.id;
-        return getLikesForThumbnails(input.thumbnailIds, userId);
+        const visibleIds = await getVisiblePublicGalleryIds(input.thumbnailIds);
+        return getLikesForThumbnails(visibleIds, userId);
       }),
   }),
 
@@ -1449,6 +1536,7 @@ export const appRouter = router({
 
           try {
             const { url } = await generateImage({
+              ownerId: ctx.user.id,
               prompt: `${prompt}\n\nStyle: ${fullPrompt}`,
               model: "MODEL_GPT_IMAGE_2",
               quality: "high",

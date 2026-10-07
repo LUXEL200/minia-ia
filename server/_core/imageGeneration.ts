@@ -25,6 +25,10 @@ const DEFAULT_IMAGE_QUALITY = "medium";
 
 export type GenerateImageOptions = {
   prompt: string;
+  /** Owner of a private generated asset. Required for authenticated user output. */
+  ownerId?: number;
+  /** Explicitly allow a public demo asset; never use for client generations. */
+  publicAsset?: boolean;
   originalImages?: Array<{
     url?: string;
     b64Json?: string;
@@ -96,8 +100,13 @@ export async function generateImage(
   const buffer = Buffer.from(base64Data, "base64");
 
   // Save to S3
+  const storagePath = options.ownerId
+    ? `user-images/${options.ownerId}/${Date.now()}-${crypto.randomUUID()}.png`
+    : options.publicAsset
+      ? `demo/${Date.now()}-${crypto.randomUUID()}.png`
+      : `generated/${Date.now()}-${crypto.randomUUID()}.png`;
   const { url } = await storagePut(
-    `generated/${Date.now()}.png`,
+    storagePath,
     buffer,
     result.image.mimeType
   );

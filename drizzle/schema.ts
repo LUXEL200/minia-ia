@@ -170,6 +170,24 @@ export const templates = mysqlTable("templates", {
 export type Template = typeof templates.$inferSelect;
 export type InsertTemplate = typeof templates.$inferInsert;
 
+/** Galerie publique administrée exclusivement par le propriétaire Super Admin. */
+export const publicGallery = mysqlTable("publicGallery", {
+  id: int("id").autoincrement().primaryKey(),
+  imageUrl: text("imageUrl").notNull(),
+  title: text("title").notNull(),
+  style: varchar("style", { length: 64 }).default("viral").notNull(),
+  category: varchar("category", { length: 64 }).default("featured").notNull(),
+  isVisible: int("isVisible").default(1).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  visibleIdx: index("public_gallery_visible_idx").on(table.isVisible, table.sortOrder),
+  categoryIdx: index("public_gallery_category_idx").on(table.category),
+}));
+
+export type PublicGalleryItem = typeof publicGallery.$inferSelect;
+export type InsertPublicGalleryItem = typeof publicGallery.$inferInsert;
+
 /**
  * Avatars table — generated avatar images
  */
@@ -247,7 +265,7 @@ export type InsertApiKey = typeof apiKeys.$inferInsert;
 export const adminAuditLogs = mysqlTable("adminAuditLogs", {
   id: int("id").autoincrement().primaryKey(),
   actorUserId: int("actorUserId").notNull(),
-  action: mysqlEnum("action", ["legacy_keys_revoked", "users_notified", "credits_reset", "session_revoked"]).notNull(),
+  action: mysqlEnum("action", ["legacy_keys_revoked", "legacy_images_migrated", "users_notified", "credits_reset", "session_revoked"]).notNull(),
   targetUserId: int("targetUserId"),
   details: text("details"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
