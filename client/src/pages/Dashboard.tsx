@@ -14,6 +14,7 @@ import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
 import { toastRich } from "@/lib/toasts";
+import { getPlanDefinition } from "@shared/plans";
 import {
   Image, CreditCard, Download, Trash2, Loader2, Sparkles,
   ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
@@ -180,6 +181,8 @@ export default function Dashboard() {
   // tRPC queries
   const { data: thumbnails, isLoading: loadingThumbs, refetch: refetchThumbs } = trpc.thumbnail.list.useQuery(undefined, { enabled: isAuthed });
   const { data: credits, refetch: refetchCredits } = trpc.thumbnail.credits.useQuery(undefined, { enabled: isAuthed });
+  const activePlan = getPlanDefinition(credits?.planType);
+  const availableStyles = STYLES.filter(option => activePlan.id === "max" || (activePlan.styles as readonly string[]).includes(option.id));
   const { data: teamMembers, refetch: refetchTeam } = trpc.team.members.useQuery(undefined, { enabled: isAuthed });
   const { data: teamTasks, refetch: refetchTasks } = trpc.team.tasks.useQuery(undefined, { enabled: isAuthed });
 
@@ -1001,7 +1004,7 @@ export default function Dashboard() {
       <div className="mb-6">
         <label className="block text-xs text-muted-foreground mb-2">Style</label>
         <div className="flex flex-wrap gap-2">
-          {STYLES.map(s => (
+          {availableStyles.map(s => (
             <button
               key={s.id}
               onClick={() => setStyle(s.id)}
@@ -1024,7 +1027,7 @@ export default function Dashboard() {
       <div className="mb-6">
         <label className="block text-xs text-muted-foreground mb-2">Quantité</label>
         <div className="flex gap-2">
-          {[1, 2, 3, 4].map(q => (
+          {[1, 2, 3, 4].filter(q => q <= activePlan.maxParallel).map(q => (
             <button
               key={q}
               onClick={() => setQuantity(q)}
@@ -1043,7 +1046,7 @@ export default function Dashboard() {
       {/* Cost + Generate button */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
-          Coût : {quantity} crédit{quantity > 1 ? "s" : ""} ({credits?.credits ?? 10} restants)
+          Coût : {quantity} crédit{quantity > 1 ? "s" : ""} ({credits?.credits ?? activePlan.quota} restant{credits?.credits === 1 ? "" : "s"})
         </span>
         <Button
           onClick={handleGenerate}

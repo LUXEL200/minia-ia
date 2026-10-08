@@ -6,12 +6,15 @@ import { motion } from "framer-motion";
 import { Check, Zap, Star, Crown, ArrowRight, Loader2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import { PLAN_DEFINITIONS } from "@shared/plans";
 
-const plans = [
-  { id: "free" as const, name: "Gratuit", price: "0", description: "Pour découvrir Minia IA sans engagement.", icon: Zap, features: ["5 miniatures gratuites", "3 styles disponibles", "1 génération parallèle", "Espace personnel"], popular: false },
-  { id: "pro" as const, name: "Pro", price: "19", description: "Pour les créateurs réguliers qui publient chaque semaine.", icon: Star, features: ["50 miniatures par mois", "6 styles professionnels", "4 générations parallèles", "Export HD", "Support prioritaire"], popular: true },
-  { id: "max" as const, name: "Max", price: "49", description: "Pour les équipes, agences et workflows collaboratifs.", icon: Crown, features: ["Miniatures illimitées", "Tous les styles + futurs", "Batch Upload", "Interface équipe", "Accès API", "Support dédié"], popular: false },
-];
+const planVisuals = { free: { icon: Zap, popular: false }, pro: { icon: Star, popular: true }, max: { icon: Crown, popular: false } } as const;
+const plans = Object.values(PLAN_DEFINITIONS).map(plan => ({
+  ...plan,
+  ...planVisuals[plan.id],
+  price: String(plan.priceCents / 100),
+  description: plan.features[0],
+}));
 
 export default function Pricing() {
   const { isAuthenticated, user } = useAuth();
@@ -19,7 +22,7 @@ export default function Pricing() {
   const choosePlan = trpc.plans.choose.useMutation({
     onSuccess: (result) => {
       toast.success(`Forfait ${result.planType === "free" ? "Gratuit" : result.planType === "pro" ? "Pro" : "Max"} sélectionné`, {
-        description: "Sélection enregistrée en mode simulation. Aucun paiement réel n’a été effectué.",
+        description: "Ton forfait est actif.",
       });
       navigate("/dashboard");
     },
@@ -45,7 +48,7 @@ export default function Pricing() {
             <span className="text-sm text-[#A1A1AA]">Forfaits clairs et évolutifs</span>
           </div>
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">Un plan pour chaque <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">créateur</span></h1>
-          <p className="text-lg text-[#A1A1AA]">Choisis un forfait pour créer ton espace Minia IA. Le paiement réel sera branché plus tard.</p>
+          <p className="text-lg text-[#A1A1AA]">Choisis le niveau de création adapté à ton rythme et à ton équipe.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">

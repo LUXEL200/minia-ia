@@ -52,8 +52,9 @@ export type InsertThumbnail = typeof thumbnails.$inferInsert;
 export const userCredits = mysqlTable("userCredits", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
-  credits: int("credits").default(10).notNull(),
+  credits: int("credits").default(5).notNull(),
   planType: mysqlEnum("planType", ["free", "pro", "max"]).default("free").notNull(),
+  quotaPeriodStart: timestamp("quotaPeriodStart").defaultNow().notNull(),
   notifiedLowCredit: int("notifiedLowCredit").default(0).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({

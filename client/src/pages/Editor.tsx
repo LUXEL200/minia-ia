@@ -150,6 +150,7 @@ export default function Editor() {
 
   const { data: creditsData } = trpc.thumbnail.credits.useQuery();
   const isFreePlan = creditsData?.planType !== "pro" && creditsData?.planType !== "max";
+  const { data: exportPolicy } = trpc.thumbnail.exportPolicy.useQuery();
 
   const { data: versions } = trpc.imageVersions.list.useQuery(
     { thumbnailId },
@@ -618,6 +619,11 @@ export default function Editor() {
     if (!canvasRef.current) return;
     try {
       const { w: exportWidth, h: exportHeight } = exportDimensions;
+      const isHdExport = Math.max(exportWidth, exportHeight) > (exportPolicy?.maxStandardDimension ?? 1280);
+      if (isHdExport && !exportPolicy?.hdExport) {
+        toast.error("L’export HD est réservé aux forfaits Pro et Max. Passe à un forfait supérieur pour exporter ce format.");
+        return;
+      }
       const dataUrl = await toPng(canvasRef.current, {
         width: exportWidth,
         height: exportHeight,

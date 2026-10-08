@@ -5,6 +5,7 @@ import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
 import { storageGetSignedUrl, storagePut } from "./storage";
+import { getPlanDefinition, isQuotaPeriodExpired } from "../shared/plans";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -138,11 +139,23 @@ export async function getUserCredits(userId: number) {
 
 export async function ensureUserCredits(userId: number) {
   const db = await getDb();
-  if (!db) return { credits: 10, planType: "free" };
+  if (!db) return { credits: 5, planType: "free", quotaPeriodStart: new Date() };
   const existing = await getUserCredits(userId);
   if (!existing) {
-    await db.insert(userCredits).values({ userId, credits: 10, planType: "free" });
-    return { credits: 10, planType: "free" };
+    await db.insert(userCredits).values({ userId, credits: 5, planType: "free", quotaPeriodStart: new Date() });
+    return (await getUserCredits(userId)) ?? { credits: 5, planType: "free", quotaPeriodStart: new Date() };
+  }
+  const plan = getPlanDefinition(existing.planType);
+  const periodStart = existing.quotaPeriodStart ?? existing.updatedAt;
+  if (isQuotaPeriodExpired(plan, periodStart)) {
+    await db.update(userCredits)
+      .set({ credits: plan.quota, quotaPeriodStart: new Date(), notifiedLowCredit: 0 })
+      .where(eq(userCredits.userId, userId));
+    return (await getUserCredits(userId)) ?? existing;
+  }
+  if (existing.planType === "free" && existing.credits > plan.quota) {
+    await db.update(userCredits).set({ credits: plan.quota }).where(eq(userCredits.userId, userId));
+    return (await getUserCredits(userId)) ?? existing;
   }
   return existing;
 }
@@ -1027,11 +1040,12 @@ export async function updateUserCredits(userId: number, credits: number) {
 export async function updateUserPlan(userId: number, planType: "free" | "pro" | "max") {
   const db = await getDb();
   if (!db) return false;
+  const plan = getPlanDefinition(planType);
   const existing = await db.select().from(userCredits).where(eq(userCredits.userId, userId)).limit(1);
   if (existing.length === 0) {
-    await db.insert(userCredits).values({ userId, credits: 0, planType });
+    await db.insert(userCredits).values({ userId, credits: plan.quota, planType, quotaPeriodStart: new Date() });
   } else {
-    await db.update(userCredits).set({ planType }).where(eq(userCredits.userId, userId));
+    await db.update(userCredits).set({ planType, credits: plan.quota, quotaPeriodStart: new Date(), notifiedLowCredit: 0 }).where(eq(userCredits.userId, userId));
   }
   return true;
 }

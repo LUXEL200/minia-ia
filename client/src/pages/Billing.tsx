@@ -6,8 +6,6 @@ import {
   ArrowLeft,
   CreditCard,
   Zap,
-  Crown,
-  Sparkles,
   Plus,
   ShoppingCart,
   Loader2,
@@ -25,34 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-const plans = [
-  {
-    name: "Gratuit",
-    price: "0€",
-    credits: 5,
-    features: ["5 crédits / mois", "Génération standard", "1 style"],
-    icon: Zap,
-    current: true,
-  },
-  {
-    name: "Pro",
-    price: "19€",
-    credits: 100,
-    features: ["100 crédits / mois", "Tous les styles", "Batch upload", "Priorité génération"],
-    icon: Crown,
-    current: false,
-    popular: true,
-  },
-  {
-    name: "Max",
-    price: "49€",
-    credits: 500,
-    features: ["500 crédits / mois", "Tout illimité", "Équipe (5 membres)", "API access"],
-    icon: Sparkles,
-    current: false,
-  },
-];
+import { getPlanDefinition } from "@shared/plans";
 
 function formatPrice(amountCents: number): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(amountCents / 100);
@@ -132,8 +103,8 @@ export default function BillingPage() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-lg font-medium">Gratuit</p>
-              <p className="text-sm text-zinc-400">{credits?.credits ?? 0} crédits restants</p>
+              <p className="text-lg font-medium">{getPlanDefinition(credits?.planType).name}</p>
+              <p className="text-sm text-zinc-400">{credits?.credits ?? 0} crédits restants sur le quota actif</p>
             </div>
             <button
               onClick={() => {
@@ -152,12 +123,11 @@ export default function BillingPage() {
             <ShoppingCart className="text-[#00e0ff]" size={20} />
             <h2 className="text-lg font-semibold">Recharger des crédits</h2>
             <span className="text-[10px] bg-[#00e0ff]/10 text-[#00e0ff] border border-[#00e0ff]/20 px-2 py-0.5 rounded-full ml-auto">
-              Paiement simulé — prêt pour Stripe
+              Packs de crédits
             </span>
           </div>
           <p className="text-xs text-zinc-500 mb-4">
-            Choisis un pack, paie en simulation et tes crédits sont ajoutés immédiatement. Le parcours est
-            identique à celui d'un vrai paiement Stripe : il suffit de brancher la clé Stripe plus tard.
+            Les packs rechargeables resteront disponibles après activation du paiement Stripe.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {catalog?.map((pack) => (

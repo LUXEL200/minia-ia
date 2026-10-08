@@ -8,6 +8,7 @@ import { adminPermission, publicProcedure, protectedProcedure, router } from "./
 import { generateImage, listImageModels } from "./_core/imageGeneration";
 import { createHeartbeatJob, deleteHeartbeatJob, updateHeartbeatJob } from "./_core/heartbeat";
 import { parse as parseCookie } from "cookie";
+import { getPlanDefinition, isStyleAllowed, planCatalog, UPGRADE_MESSAGE } from "../shared/plans";
 
 /**
  * Burn the "Minia IA" watermark into a generated image for free-plan users.
@@ -707,6 +708,10 @@ export const apiKeysRouter = router({
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1).max(255), expiryMonths: z.number().min(1).max(24).optional() }))
     .mutation(async ({ ctx, input }) => {
+      const credits = await ensureUserCredits(ctx.user.id);
+      if (!getPlanDefinition(credits.planType).api) {
+        throw new TRPCError({ code: "FORBIDDEN", message: UPGRADE_MESSAGE });
+      }
       const key = await createApiKey(ctx.user.id, input.name, input.expiryMonths);
       return key;
     }),
@@ -785,6 +790,10 @@ export const orgRouter = router({
   invite: protectedProcedure
     .input(z.object({ email: z.string().email(), role: z.enum(["member", "admin"]) }))
     .mutation(async ({ ctx, input }) => {
+      const credits = await ensureUserCredits(ctx.user.id);
+      if (!getPlanDefinition(credits.planType).team) {
+        throw new TRPCError({ code: "FORBIDDEN", message: UPGRADE_MESSAGE });
+      }
       const org = await getOrCreateOrganization(ctx.user.id);
       if (!org) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const ok = await sendOrgInvitation({ orgId: org.id, orgOwner: ctx.user.id, email: input.email, role: input.role });
@@ -824,21 +833,17 @@ export const orgRouter = router({
     }),
 
   usage: protectedProcedure.query(async ({ ctx }) => {
-    const credits = await getUserCredits(ctx.user.id);
+    const credits = await ensureUserCredits(ctx.user.id);
     const members = await getOrgMembers({ id: -1, ownerId: ctx.user.id });
-    const planType = credits?.planType || "free";
-    const limits: Record<string, { credits: number; members: number }> = {
-      free: { credits: 2, members: 2 },
-      pro: { credits: 100, members: 5 },
-      max: { credits: 500, members: 10 },
-    };
-    const limit = limits[planType] ?? limits.free;
+    const plan = getPlanDefinition(credits.planType);
     return {
-      planType,
-      credits: credits?.credits ?? 0,
-      creditsLimit: limit.credits,
+      planType: plan.id,
+      credits: credits.credits,
+      creditsLimit: plan.quota,
       memberCount: members.length,
-      membersLimit: limit.members,
+      membersLimit: plan.membersLimit,
+      batchEnabled: plan.batch,
+      apiEnabled: plan.api,
     };
   }),
 });
@@ -1320,6 +1325,13 @@ export const appRouter = router({
         if (clientSettings["client.generationEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La génération est temporairement désactivée par l’administrateur." });
         // Reserve credits atomically before external AI work.
         const credits = await ensureUserCredits(ctx.user.id);
+        const plan = getPlanDefinition(credits.planType);
+        if (!isStyleAllowed(plan.id, input.style)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: `Le style ${input.style} n'est pas disponible avec le forfait ${plan.name}. Passe à un forfait supérieur pour le débloquer.` });
+        }
+        if (input.quantity > plan.maxParallel) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Le forfait ${plan.name} autorise ${plan.maxParallel} génération${plan.maxParallel > 1 ? "s" : ""} parallèle${plan.maxParallel > 1 ? "s" : ""} au maximum.` });
+        }
         if (!(await deductCredits(ctx.user.id, input.quantity))) {
           const currentCredits = await getUserCredits(ctx.user.id);
           throw new TRPCError({
@@ -1346,21 +1358,16 @@ export const appRouter = router({
           referenceImages = [{ b64Json: input.inspirationB64, mimeType: input.inspirationMime || "image/jpeg" }];
         }
 
-        // Create thumbnail records and generate images
-        const results: Array<{ id: number; status: string; imageUrl: string | null }> = [];
-        let successfulCount = 0;
-
-        for (let i = 0; i < input.quantity; i++) {
-          // Create placeholder record
-          const { id: thumbId } = await createThumbnail({
+        // Create placeholders first, then generate every variation concurrently.
+        const placeholders = await Promise.all(Array.from({ length: input.quantity }, () => createThumbnail({
             userId: ctx.user.id,
             prompt: input.prompt,
             style: input.style,
             imageUrl: "",
             status: "generating",
             creditsUsed: 1,
-          });
-
+          })));
+        const settled = await Promise.allSettled(placeholders.map(async ({ id: thumbId }) => {
           try {
             // Generate image via Forge API (with optional reference image for style inspiration)
             const { url } = await generateImage({
@@ -1384,20 +1391,23 @@ export const appRouter = router({
                 }
               }
               await updateThumbnailStatus(thumbId, "completed", finalUrl);
-              results.push({ id: thumbId, status: "completed", imageUrl: finalUrl });
-              successfulCount++;
+              return { id: thumbId, status: "completed", imageUrl: finalUrl };
             } else {
               await updateThumbnailStatus(thumbId, "failed");
               await refundCredits(ctx.user.id, 1);
-              results.push({ id: thumbId, status: "failed", imageUrl: null });
+              return { id: thumbId, status: "failed", imageUrl: null };
             }
           } catch (error) {
             console.error(`[Thumbnail] Generation failed for ${thumbId}:`, error);
             await updateThumbnailStatus(thumbId, "failed");
             await refundCredits(ctx.user.id, 1);
-            results.push({ id: thumbId, status: "failed", imageUrl: null });
+            return { id: thumbId, status: "failed", imageUrl: null };
           }
-        }
+        }));
+        const results = settled.map((entry, index) => entry.status === "fulfilled"
+          ? entry.value
+          : { id: placeholders[index].id, status: "failed", imageUrl: null });
+        const successfulCount = results.filter(result => result.status === "completed").length;
 
         const updatedCredits = await getUserCredits(ctx.user.id);
 
@@ -1413,6 +1423,12 @@ export const appRouter = router({
     credits: protectedProcedure.query(async ({ ctx }) => {
       const credits = await ensureUserCredits(ctx.user.id);
       return { ...credits, planType: credits.planType };
+    }),
+
+    exportPolicy: protectedProcedure.query(async ({ ctx }) => {
+      const credits = await ensureUserCredits(ctx.user.id);
+      const plan = getPlanDefinition(credits.planType);
+      return { planType: plan.id, hdExport: plan.hdExport, maxStandardDimension: 1280 } as const;
     }),
 
     /** Historique immuable des débits, remboursements et recharges. */
@@ -1501,6 +1517,9 @@ export const appRouter = router({
         if (clientSettings["client.generationEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La génération est temporairement désactivée par l’administrateur." });
         if (clientSettings["client.batchEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La génération en lot est désactivée par l’administrateur." });
         const credits = await ensureUserCredits(ctx.user.id);
+        const plan = getPlanDefinition(credits.planType);
+        if (!plan.batch) throw new TRPCError({ code: "FORBIDDEN", message: UPGRADE_MESSAGE });
+        if (!isStyleAllowed(plan.id, input.style)) throw new TRPCError({ code: "FORBIDDEN", message: `Le style ${input.style} n'est pas disponible avec le forfait ${plan.name}.` });
         const reserved = await deductCredits(ctx.user.id, input.prompts.length);
         if (!reserved) {
           const currentCredits = await getUserCredits(ctx.user.id);
@@ -1580,6 +1599,8 @@ export const appRouter = router({
     invite: protectedProcedure
       .input(z.object({ userId: z.number(), role: z.enum(["member", "admin"]).default("member") }))
       .mutation(async ({ ctx, input }) => {
+        const credits = await ensureUserCredits(ctx.user.id);
+        if (!getPlanDefinition(credits.planType).team) throw new TRPCError({ code: "FORBIDDEN", message: UPGRADE_MESSAGE });
         const success = await inviteTeamMember(ctx.user.id, input.userId, input.role);
         if (!success) {
           throw new TRPCError({ code: "CONFLICT", message: "Membre dj dans l'quipe ou erreur" });
@@ -1591,6 +1612,8 @@ export const appRouter = router({
     remove: protectedProcedure
       .input(z.object({ userId: z.number() }))
       .mutation(async ({ ctx, input }) => {
+        const credits = await ensureUserCredits(ctx.user.id);
+        if (!getPlanDefinition(credits.planType).team) throw new TRPCError({ code: "FORBIDDEN", message: UPGRADE_MESSAGE });
         await removeTeamMember(ctx.user.id, input.userId);
         return { success: true };
       }),
@@ -1609,6 +1632,8 @@ export const appRouter = router({
         comment: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        const credits = await ensureUserCredits(ctx.user.id);
+        if (!getPlanDefinition(credits.planType).team) throw new TRPCError({ code: "FORBIDDEN", message: UPGRADE_MESSAGE });
         const thumbnail = await getThumbnailByIdWithCheck(input.thumbnailId, ctx.user.id);
         if (!thumbnail) throw new TRPCError({ code: "NOT_FOUND", message: "Miniature introuvable ou non autorisée" });
         return createTeamTask({
@@ -1629,6 +1654,8 @@ export const appRouter = router({
         comment: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        const credits = await ensureUserCredits(ctx.user.id);
+        if (!getPlanDefinition(credits.planType).team) throw new TRPCError({ code: "FORBIDDEN", message: UPGRADE_MESSAGE });
         const updated = await updateTaskStatus(ctx.user.id, input.taskId, input.status, input.comment);
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Tâche introuvable ou non autorisée" });
         return { success: true };
@@ -1757,24 +1784,23 @@ export const appRouter = router({
         return { fired } as const;
       }),
   }),
-  // === Subscription plans (selection is simulated until billing is connected) ===
+  // === Subscription plans ===
   plans: router({
-    catalog: publicProcedure.query(() => ([
-      { id: "free", name: "Gratuit", priceCents: 0, description: "Pour découvrir Minia IA sans engagement.", features: ["5 miniatures gratuites", "3 styles", "Espace personnel"] },
-      { id: "pro", name: "Pro", priceCents: 1900, description: "Pour les créateurs réguliers qui publient chaque semaine.", features: ["50 miniatures par mois", "6 styles professionnels", "Export HD", "Support prioritaire"] },
-      { id: "max", name: "Max", priceCents: 4900, description: "Pour les équipes, agences et workflows collaboratifs.", features: ["Miniatures illimitées", "Batch Upload", "Interface équipe", "Accès API"] },
-    ] as const)),
+    catalog: publicProcedure.query(() => planCatalog()),
     choose: protectedProcedure
       .input(z.object({ planType: z.enum(["free", "pro", "max"]) }))
       .mutation(async ({ ctx, input }) => {
+        if (input.planType !== "free" && !ctx.user.isAdminOwner) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Le paiement Stripe est requis pour activer ce forfait. Aucun upgrade gratuit n'est autorisé." });
+        }
         await updateUserPlan(ctx.user.id, input.planType);
         await createNotification({
           userId: ctx.user.id,
           title: "Forfait sélectionné",
-          message: `Le forfait ${input.planType === "free" ? "Gratuit" : input.planType === "pro" ? "Pro" : "Max"} a été sélectionné. La facturation réelle sera activée ultérieurement.`,
+          message: `Le forfait ${getPlanDefinition(input.planType).name} est maintenant actif.`,
           type: "system",
         });
-        return { success: true, planType: input.planType, simulated: true } as const;
+        return { success: true, planType: input.planType, simulated: false } as const;
       }),
   }),
 
