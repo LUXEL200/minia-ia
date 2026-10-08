@@ -12,7 +12,7 @@ interface PageHeaderProps {
 export default function PageHeader({ title, subtitle, backTo = "/dashboard", breadcrumb, right }: PageHeaderProps) {
   return (
     <div className="mb-6">
-      {/* Breadcrumb — le menu hamburger global (FloatingMenu) reste fixe en haut à droite */}
+      {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3 overflow-x-auto">
         <Link href={backTo} className="flex items-center gap-1 hover:text-gray-300 transition-colors shrink-0">
           <Home size={13} />

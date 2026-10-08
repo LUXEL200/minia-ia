@@ -46,7 +46,44 @@ import TemplateEditor from "./pages/TemplateEditor";
 import AbTest from "./pages/AbTest";
 import ShareAbTest from "./pages/ShareAbTest";
 import Admin from "./pages/Admin";
-import FloatingMenu from "./components/FloatingMenu";
+import BatchUpload from "./pages/BatchUpload";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AppShell from "./components/AppShell";
+import type { ComponentType } from "react";
+
+function privatePage(Page: ComponentType) {
+  return function ProtectedPage() {
+    return (
+      <ProtectedRoute>
+        <AppShell>
+          <Page />
+        </AppShell>
+      </ProtectedRoute>
+    );
+  };
+}
+
+const DashboardRoute = privatePage(Dashboard);
+const MiniaturesRoute = privatePage(Miniatures);
+const PersonnesRoute = privatePage(Personnes);
+const GalleryRoute = privatePage(Gallery);
+const AvatarsRoute = privatePage(Avatars);
+const EndCardsRoute = privatePage(EndCards);
+const FavoritesRoute = privatePage(Favorites);
+const TrashRoute = privatePage(Trash);
+const NotificationsRoute = privatePage(Notifications);
+const AccountRoute = privatePage(Account);
+const ApiKeysRoute = privatePage(ApiKeys);
+const OrganizationRoute = privatePage(Organization);
+const InvitationsRoute = privatePage(Invitations);
+const SettingsRoute = privatePage(Settings);
+const BillingRoute = privatePage(Billing);
+const ThumbnailPreviewRoute = privatePage(ThumbnailPreview);
+const EditorRoute = privatePage(Editor);
+const TemplateEditorRoute = privatePage(TemplateEditor);
+const AbTestRoute = privatePage(AbTest);
+const BatchUploadRoute = privatePage(BatchUpload);
+const AdminRoute = privatePage(Admin);
 
 function Router() {
   return (
@@ -73,27 +110,28 @@ function Router() {
       <Route path={"/contact"} component={Contact} />
       <Route path={"/cgv"} component={Cgv} />
       {/* Auth */}
-      <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/miniatures"} component={Miniatures} />
-      <Route path={"/personnes"} component={Personnes} />
-      <Route path={"/gallery"} component={Gallery} />
-      <Route path={"/avatars"} component={Avatars} />
-      <Route path={"/endcards"} component={EndCards} />
-      <Route path={"/favorites"} component={Favorites} />
-      <Route path={"/trash"} component={Trash} />
-      <Route path={"/notifications"} component={Notifications} />
-      <Route path={"/account"} component={Account} />
-      <Route path={"/api-keys"} component={ApiKeys} />
-      <Route path={"/organisation"} component={Organization} />
-      <Route path={"/invitations"} component={Invitations} />
-      <Route path={"/settings"} component={Settings} />
-      <Route path={"/billing"} component={Billing} />
-      <Route path={"/preview"} component={ThumbnailPreview} />
-      <Route path={"/editor"} component={Editor} />
-      <Route path={"/template-editor"} component={TemplateEditor} />
-      <Route path={"/ab-test"} component={AbTest} />
+      <Route path={"/dashboard"} component={DashboardRoute} />
+      <Route path={"/miniatures"} component={MiniaturesRoute} />
+      <Route path={"/personnes"} component={PersonnesRoute} />
+      <Route path={"/gallery"} component={GalleryRoute} />
+      <Route path={"/avatars"} component={AvatarsRoute} />
+      <Route path={"/endcards"} component={EndCardsRoute} />
+      <Route path={"/favorites"} component={FavoritesRoute} />
+      <Route path={"/trash"} component={TrashRoute} />
+      <Route path={"/notifications"} component={NotificationsRoute} />
+      <Route path={"/account"} component={AccountRoute} />
+      <Route path={"/api-keys"} component={ApiKeysRoute} />
+      <Route path={"/organisation"} component={OrganizationRoute} />
+      <Route path={"/invitations"} component={InvitationsRoute} />
+      <Route path={"/settings"} component={SettingsRoute} />
+      <Route path={"/billing"} component={BillingRoute} />
+      <Route path={"/preview"} component={ThumbnailPreviewRoute} />
+      <Route path={"/editor"} component={EditorRoute} />
+      <Route path={"/template-editor"} component={TemplateEditorRoute} />
+      <Route path={"/ab-test"} component={AbTestRoute} />
       <Route path={"/share-ab/:token"} component={ShareAbTest} />
-      <Route path={"/admin"} component={Admin} />
+      <Route path={"/batch-upload"} component={BatchUploadRoute} />
+      <Route path={"/admin"} component={AdminRoute} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -112,7 +150,6 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Router />
-            <FloatingMenu />
           </TooltipProvider>
           </DownloadEffectsProvider>
         </ActionEffectsProvider>

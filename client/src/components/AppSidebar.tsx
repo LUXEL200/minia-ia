@@ -54,7 +54,7 @@ export function AppSidebar({
   const { data: unreadCount } = trpc.notifications.unreadCount.useQuery(undefined, { enabled: !!user });
 
   const { data: credits } = trpc.thumbnail.credits.useQuery(undefined, {
-    enabled: false, // never auto-fetch in the shared sidebar: pages fetch it themselves when authenticated
+    enabled: !!user,
   });
 
   // Close the profile dropdown when the sidebar closes
@@ -170,6 +170,12 @@ export function AppSidebar({
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <Users className="w-4 h-4" /> Personnes
             </Link>
+            {credits?.planType === "max" && (
+              <Link href="/batch-upload" onClick={onClose}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-orange-400 hover:bg-orange-400/10 transition-colors">
+                <ImagePlus className="w-4 h-4" /> Batch Upload <span className="ml-auto text-[9px] font-bold">MAX</span>
+              </Link>
+            )}
             <Link href="/templates" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <Grid3X3 className="w-4 h-4" /> Modèles
@@ -344,7 +350,7 @@ export function AppSidebar({
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                   <CreditCard className="w-4 h-4" /> Facturation
                 </Link>
-                {/* Cloche : clic direct vers la page Notifications (rappels J-1 visibles dedans) */}
+                {/* Cloche : clic direct vers la page Notifications */}
                 <Link href="/notifications" onClick={onClose}
                   className="flex items-center gap-3 px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >

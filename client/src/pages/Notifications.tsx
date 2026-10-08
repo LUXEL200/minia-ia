@@ -9,7 +9,6 @@ import {
   Bell,
   BellRing,
   CheckCheck,
-  CalendarClock,
   Image as ImageIcon,
   Zap,
   Users,
@@ -24,22 +23,9 @@ function parseMeta(n: { metadata?: string | null }): { kind?: string } {
   }
 }
 
-function isPlanningReminder(n: { metadata?: string | null }): boolean {
-  return parseMeta(n).kind === "planning-reminder";
-}
-
-function getThumbId(metadata: string): number | null {
-  try {
-    return JSON.parse(metadata)?.thumbnailId ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /** Icône par type de notification (métadonnées kind) */
 function notifIcon(n: { metadata?: string | null }) {
   const kind = parseMeta(n).kind;
-  if (kind === "planning-reminder") return <CalendarClock className="w-4.5 h-4.5" />;
   if (kind === "generation-ready") return <ImageIcon className="w-4.5 h-4.5" />;
   if (kind === "low-credit") return <Zap className="w-4.5 h-4.5" />;
   if (kind === "team-invite" || kind === "team-task") return <Users className="w-4.5 h-4.5" />;
@@ -56,7 +42,7 @@ export default function NotificationsPage() {
   }, [loading, isAuthenticated, navigate]);
 
   const utils = trpc.useUtils();
-  const { data: notifications, isLoading, refetch } = trpc.notifications.list.useQuery();
+  const { data: notifications, isLoading } = trpc.notifications.list.useQuery();
   const markOneRead = trpc.notifications.markRead.useMutation();
   const markAllRead = trpc.notifications.markAllRead.useMutation();
   // Marquage lu optimiste : l'UI se met à jour immédiatement
@@ -172,26 +158,12 @@ export default function NotificationsPage() {
                     <p className={`text-sm ${isRead ? "text-muted-foreground" : "text-foreground font-medium"}`}>
                       {n.message}
                     </p>
-                    {isPlanningReminder(n) && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-400/15 text-[10px] font-bold text-orange-400">
-                        <CalendarClock className="w-3 h-3" /> J-1
-                      </span>
-                    )}
                   </div>
                   <p className="text-xs text-muted-foreground/70 mt-1">
                     {n.createdAt
                       ? formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: fr })
                       : new Date(n.createdAt).toLocaleString("fr-FR")}
                   </p>
-                  {isPlanningReminder(n) && n.metadata && (
-                    <Link
-                      href={`/editor?imageId=${getThumbId(n.metadata)}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-orange-400 hover:text-orange-300 transition-colors"
-                    >
-                      <ImageIcon className="w-3.5 h-3.5" /> Voir la miniature à publier
-                    </Link>
-                  )}
                 </div>
               </div>
               );

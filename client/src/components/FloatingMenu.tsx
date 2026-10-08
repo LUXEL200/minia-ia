@@ -1,17 +1,15 @@
 /**
  * FloatingMenu — bouton hamburger fixe en haut à gauche de l'écran.
- * Présent sur toutes les pages (publices + internes + paramètres/éditeur)
- * pour éviter les allers-retours : il ouvre la sidebar complète avec
+ * Présent uniquement dans AppShell sur les pages privées pour éviter les allers-retours :
+ * il ouvre la sidebar complète avec
  * tous les sous-menus (AppSidebar partagé).
  */
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
 import { Menu, X } from "lucide-react";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function FloatingMenu({ pageLabel = "Minia IA" }: { pageLabel?: string }) {
-  const [location] = useLocation();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { theme } = useTheme();
@@ -32,8 +30,6 @@ export default function FloatingMenu({ pageLabel = "Minia IA" }: { pageLabel?: s
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Ne pas afficher le bouton Menu sur la landing page (la Navbar gère déjà la navigation publique)
-  if (location === "/") return null;
 
   return (
     <>

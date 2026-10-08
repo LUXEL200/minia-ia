@@ -19,9 +19,9 @@ import {
   ArrowRight, Home, MessageSquare, Plus, Users, ListChecks,
   Heart, CheckCircle2, XCircle, ChevronRight, UserCircle2,
   Menu, LayoutDashboard, UserRound, Grid3X3, Eye,
-  RectangleHorizontal, Star, Trash, Zap, Sun, Key, TrendingUp, Globe,
-  Settings, Bell, LogOut, Type, Shield, Upload, Share2, Copy,
-  Search, CalendarRange, Youtube, CalendarClock, X,
+Star, Trash, Zap, Sun, Key, TrendingUp, Globe,
+Bell, LogOut, Type, Shield, Upload, Share2, Copy,
+  Search, X,
 } from "lucide-react";
 
 const STYLES = [

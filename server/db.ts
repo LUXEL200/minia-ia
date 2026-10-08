@@ -1378,13 +1378,13 @@ export async function globalSearch(userId: number, query: string, params: { limi
   const q = `%${query.trim()}%`;
   const limit = params.limit ?? 25;
 
-  // User history: prompt + youtubeTitle
+  // User history: prompt
   const thumbs = await db.select().from(thumbnails)
     .where(and(eq(thumbnails.userId, userId), like(thumbnails.prompt, q)))
     .orderBy(desc(thumbnails.createdAt))
     .limit(limit);
 
-  // Favorites (filter client-side on prompt / youtubeTitle)
+  // Favorites (filter client-side on prompt)
   const favs = await db.select().from(favorites).where(eq(favorites.userId, userId)).limit(200);
   const matchText = (text: string | null) =>
     text ? text.toLowerCase().includes(query.trim().toLowerCase()) : false;

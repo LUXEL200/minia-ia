@@ -22,6 +22,7 @@ import {
   serializeEditorDraft,
   type EditorDraftSnapshot,
 } from "@/lib/editorDraft";
+import { getCanvasFitZoom } from "@/lib/canvasResponsive";
 
 
 interface EditorTextElement {
@@ -420,9 +421,7 @@ export default function Editor() {
   }, [isNarrow]);
   const effectiveZoom = useMemo(() => {
     if (!isNarrow || !containerWidth) return zoom;
-    const availableWidth = Math.max(1, containerWidth - 16);
-    const fitZoom = Math.min(1, availableWidth / canvasSize.w);
-    return Math.max(0.35, fitZoom) * zoom;
+    return getCanvasFitZoom(containerWidth, canvasSize.w, zoom);
   }, [isNarrow, containerWidth, zoom, canvasSize.w]);
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
