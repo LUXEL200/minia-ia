@@ -1,11 +1,8 @@
 import SubPageLayout from "@/components/SubPageLayout";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
-import { Check, Zap, Star, Crown, ArrowRight, Loader2 } from "lucide-react";
-import { Link, useLocation } from "wouter";
-import { toast } from "sonner";
+import { Check, Zap, Star, Crown, ArrowRight } from "lucide-react";
+import { Link } from "wouter"
 import { PLAN_DEFINITIONS } from "@shared/plans";
 
 const planVisuals = { free: { icon: Zap, popular: false }, pro: { icon: Star, popular: true }, max: { icon: Crown, popular: false } } as const;
@@ -17,27 +14,9 @@ const plans = Object.values(PLAN_DEFINITIONS).map(plan => ({
 }));
 
 export default function Pricing() {
-  const { isAuthenticated, user } = useAuth();
-  const [, navigate] = useLocation();
-  const choosePlan = trpc.plans.choose.useMutation({
-    onSuccess: (result) => {
-      toast.success(`Forfait ${result.planType === "free" ? "Gratuit" : result.planType === "pro" ? "Pro" : "Max"} sélectionné`, {
-        description: "Ton forfait est actif.",
-      });
-      navigate("/dashboard");
-    },
-    onError: (error) => toast.error(error.message),
-  });
+  const { isAuthenticated } = useAuth();
 
-  const handleChoose = (planId: "free" | "pro" | "max") => {
-    if (!isAuthenticated) {
-      const returnPath = `/pricing?plan=${planId}`;
-      window.history.replaceState({}, "", returnPath);
-      startLogin();
-      return;
-    }
-    choosePlan.mutate({ planType: planId });
-  };
+  const handleChoose = (planId: "free") => { if (!isAuthenticated) { window.location.href = "/dashboard"; return; } void planId; };
 
   return (
     <SubPageLayout>
@@ -58,9 +37,7 @@ export default function Pricing() {
               <div className="mb-6"><plan.icon className={`w-8 h-8 mb-3 ${plan.popular ? "text-orange-400" : "text-[#71717A]"}`} /><h3 className="text-xl font-bold text-white">{plan.name}</h3><p className="text-sm text-[#A1A1AA] mt-1 min-h-10">{plan.description}</p></div>
               <div className="mb-6"><span className="text-4xl font-bold text-white">{plan.price}€</span><span className="text-[#71717A]">/mois</span></div>
               <ul className="space-y-3 mb-8">{plan.features.map((feature) => <li key={feature} className="flex items-start gap-2 text-sm text-[#D4D4D8]"><Check className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" />{feature}</li>)}</ul>
-              <button type="button" disabled={choosePlan.isPending} onClick={() => handleChoose(plan.id)} className={`flex items-center justify-center gap-2 w-full py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-60 ${plan.popular ? "bg-orange-500 text-white hover:bg-orange-400" : "bg-[#27272A] text-white hover:bg-[#3F3F46]"}`}>
-                {choosePlan.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{plan.id === "free" ? "Créer mon compte" : `Choisir ${plan.name}`}<ArrowRight className="w-4 h-4" /></>}
-              </button>
+              <button type="button" onClick={() => plan.id === "free" ? handleChoose(plan.id) : undefined} disabled={plan.id !== "free"} className={`flex items-center justify-center gap-2 w-full py-3 rounded-lg font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70 ${plan.id === "free" ? "bg-[#27272A] text-white hover:bg-[#3F3F46]" : "bg-[#27272A]/70 text-[#A1A1AA]"}`}>{plan.id === "free" ? <>Créer mon compte<ArrowRight className="w-4 h-4" /></> : "Bientôt disponible"}</button>
             </motion.div>
           ))}
         </div>

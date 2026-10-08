@@ -29,16 +29,10 @@ export const ONBOARDING_STEPS = [
       "Point de départ : clique ici pour décrire ta miniature et laisser l'IA en générer jusqu'à 4 variantes en quelques secondes.",
   },
   {
-    selector: "[data-tour=\"calendar\"]",
-    title: "Calendrier de publication",
-    description:
-      "Planifie tes sorties YouTube : clique sur le bouton calendrier d'une miniature, puis retrouve ton planning ici (bascule mois/semaine, clic sur un événement pour l'éditer).",
-  },
-  {
     selector: "[data-tour=\"recent\"]",
     title: "Tes générations",
     description:
-      "Toutes tes miniatures apparaissent ici. Passe la souris pour accéder aux actions : favori, partager, valider, planifier, modifier ou supprimer (restaurable depuis la Poubelle).",
+      "Toutes tes miniatures apparaissent ici. Passe la souris pour accéder aux actions : favori, partager, valider, modifier ou supprimer (restaurable depuis la Poubelle).",
   },
   {
     selector: "[data-tour=\"search\"]",

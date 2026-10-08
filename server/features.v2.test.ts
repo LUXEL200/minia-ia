@@ -21,10 +21,9 @@ vi.mock("./db", () => ({
   deleteAbTest: vi.fn(),
   getThumbnailById: vi.fn(),
   getThumbnailsByUserIdFiltered: vi.fn(),
-  setThumbnailYoutube: vi.fn(),
 }));
 
-import { getDb, createTemplateCustomization, createImageVersion, createAbTest, updateAbTest, getAbTestById, getThumbnailById, getAbTestByShareToken, setAbTestShareToken, getThumbnailsByUserIdFiltered, setThumbnailYoutube } from "./db";
+import { getDb, createTemplateCustomization, createImageVersion, createAbTest, updateAbTest, getAbTestById, getThumbnailById, getAbTestByShareToken, setAbTestShareToken, getThumbnailsByUserIdFiltered } from "./db";
 import { appRouter } from "./routers";
 
 const limitChain = vi.fn();
@@ -80,6 +79,28 @@ describe("customizationsRouter", () => {
   it("rejects unauthenticated users", async () => {
     const caller = appRouter.createCaller({ user: null } as never);
     await expect(caller.customizations.list()).rejects.toThrow();
+  });
+});
+
+describe("thumbnailRouter Phase 3", () => {
+  it("keeps text, style and date filters without a planning filter", async () => {
+    const { caller } = createCaller();
+    (getThumbnailsByUserIdFiltered as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    await caller.thumbnail.listFiltered({
+      query: "voyage",
+      style: "viral",
+      dateFrom: "2026-09-01T00:00:00.000Z",
+      dateTo: "2026-09-30T23:59:59.999Z",
+    });
+
+    expect(getThumbnailsByUserIdFiltered).toHaveBeenCalledWith({
+      userId: 1,
+      query: "voyage",
+      style: "viral",
+      dateFrom: new Date("2026-09-01T00:00:00.000Z"),
+      dateTo: new Date("2026-09-30T23:59:59.999Z"),
+    });
   });
 });
 
@@ -246,42 +267,5 @@ describe("abTestsRouter", () => {
     const { caller } = createCaller();
     (getAbTestByShareToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
     await expect(caller.abTests.getByShareToken({ token: "invalid" })).rejects.toThrow();
-  });
-});
-
-describe("thumbnailRouter (v5: listFiltered + planYoutube)", () => {
-  it("lists filtered thumbnails with query, style and date range", async () => {
-    const { caller } = createCaller();
-    const rows = [{ id: 1, prompt: "test viral", style: "viral", status: "completed" }];
-    (getThumbnailsByUserIdFiltered as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(rows);
-
-    const res = await caller.thumbnail.listFiltered({
-      query: "viral",
-      style: "viral",
-      dateFrom: "2026-08-01T00:00:00.000Z",
-    });
-    expect(res).toEqual(rows);
-    expect(getThumbnailsByUserIdFiltered).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 1, query: "viral", style: "viral" })
-    );
-  });
-
-  it("plans a thumbnail for YouTube with ownership check", async () => {
-    const { caller } = createCaller();
-    (setThumbnailYoutube as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-
-    const res = await caller.thumbnail.planYoutube({ thumbnailId: 5, title: "Ma vidéo #1" });
-    expect(res.success).toBe(true);
-    expect(setThumbnailYoutube).toHaveBeenCalledWith(5, 1, { youtubeTitle: "Ma vidéo #1", youtubeStatus: "planned" });
-  });
-
-  it("rejects planning with an empty title", async () => {
-    const { caller } = createCaller();
-    await expect(caller.thumbnail.planYoutube({ thumbnailId: 5, title: "" })).rejects.toThrow();
-  });
-
-  it("rejects unauthenticated users on filtered list", async () => {
-    const caller = appRouter.createCaller({ user: null } as never);
-    await expect(caller.thumbnail.listFiltered({})).rejects.toThrow();
   });
 });

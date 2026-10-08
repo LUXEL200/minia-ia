@@ -17,7 +17,7 @@ import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 
 /**
  * AppSidebar — menu hamburger complet (tous les sous-menus de gauche) réutilisable
- * sur toutes les pages du dashboard. S'ouvre avec un overlay + slide-in depuis la gauche.
+ * sur toutes les pages du dashboard. S'ouvre avec un overlay + slide-in depuis la droite.
  *
  * Usage : <AppSidebar pageLabel="Mon tableau de bord"> ... </AppSidebar>
  * L'enfant reçoit le bouton hamburger via {open} ou on utilise AppHeader avec le bouton intégré.
@@ -109,8 +109,8 @@ export function AppSidebar({
   // ===== Sidebar panel =====
   const panel = (
     <aside
-      className={`fixed top-0 left-0 h-full w-[300px] max-w-[85vw] z-[70] bg-background border-r border-border shadow-2xl transition-transform duration-300 ${
-        open ? "translate-x-0" : "-translate-x-full"
+      className={`fixed top-0 right-0 h-full w-[300px] max-w-[85vw] z-[70] bg-background border-l border-border shadow-2xl transition-transform duration-300 ${
+        open ? "translate-x-0" : "translate-x-full"
       }`}
     >
       <div className="flex flex-col h-full overflow-y-auto overscroll-contain pb-[calc(1rem+env(safe-area-inset-bottom))]">

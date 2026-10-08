@@ -8,7 +8,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { sdk } from "./sdk";
-import { getRemindersToFire, markScheduleReminded, getJ5RemindersToFire, markScheduleJ5Reminded, getUsersWithLowCredits, markLowCreditNotified, createNotification, getScheduledExportByTaskUid, updateScheduledExportStatus, getAdminHistoricalMetrics, getUserEventTimeline } from "../db";
+import { getUsersWithLowCredits, markLowCreditNotified, createNotification, getScheduledExportByTaskUid, updateScheduledExportStatus, getAdminHistoricalMetrics, getUserEventTimeline } from "../db";
 import { serveStatic, setupVite } from "./vite";
 import { rateLimit } from "./rateLimit";
 import { ENV } from "./env";
@@ -65,65 +65,6 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app, rateLimit({ name: "oauth", windowMs: 60_000, max: 20 }));
-  // Cron Heartbeat — planning reminders (J-1 notifications)
-  app.post("/api/scheduled/fireReminders", async (req, res) => {
-    try {
-      const user = await sdk.authenticateRequest(req);
-      if (!user.isCron || !user.taskUid) {
-        return res.status(403).json({ error: "cron-only" });
-      }
-      const window = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      const due = await getRemindersToFire(window);
-      const fired: { scheduleId: number; userId: number; title: string }[] = [];
-      for (const s of due) {
-        try {
-          await createNotification({
-            userId: s.userId,
-            title: "Rappel de planification",
-            message: `« ${s.youtubeTitle} » est programmé pour demain. Prépare ta vidéo et publie la miniature à temps !`,
-            type: "system",
-          });
-          await markScheduleReminded(s.id);
-          fired.push({ scheduleId: s.id, userId: s.userId, title: s.youtubeTitle });
-        } catch {
-          // Continuer sur les autres schedules même si un échoue (idempotent au global)
-        }
-      }
-      res.json({ ok: true, fired });
-    } catch (err) {
-      res.status(500).json(JSON.parse(JSON.stringify({ error: String(err), context: { url: req.originalUrl }, timestamp: new Date().toISOString() })));
-    }
-  });
-
-  // Cron Heartbeat — planning reminders (J-5 notifications)
-  app.post("/api/scheduled/fireJ5Reminders", async (req, res) => {
-    try {
-      const user = await sdk.authenticateRequest(req);
-      if (!user.isCron || !user.taskUid) {
-        return res.status(403).json({ error: "cron-only" });
-      }
-      const due = await getJ5RemindersToFire();
-      const fired: { scheduleId: number; userId: number; title: string }[] = [];
-      for (const s of due) {
-        try {
-          await createNotification({
-            userId: s.userId,
-            title: "Rappel J-5 : planification à venir",
-            message: `« ${s.youtubeTitle} » est programmé dans environ 5 jours. Anticipe la préparation de ta vidéo et reste en avance !`,
-            type: "system",
-          });
-          await markScheduleJ5Reminded(s.id);
-          fired.push({ scheduleId: s.id, userId: s.userId, title: s.youtubeTitle });
-        } catch {
-          // Continuer sur les autres schedules même si un échoue (idempotent au global)
-        }
-      }
-      res.json({ ok: true, fired });
-    } catch (err) {
-      res.status(500).json(JSON.parse(JSON.stringify({ error: String(err), context: { url: req.originalUrl }, timestamp: new Date().toISOString() })));
-    }
-  });
-
   // Cron Heartbeat — alertes de crédits bas (solde <= 5)
   app.post("/api/scheduled/fireLowCreditAlerts", async (req, res) => {
     try {

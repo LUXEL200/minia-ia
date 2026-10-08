@@ -142,7 +142,6 @@ import {
   getAbTestByShareToken,
   setAbTestShareToken,
   getThumbnailsByUserIdFiltered,
-  setThumbnailYoutube,
   getOrCreateOrganization,
   updateOrganization,
   getOrgMembers,
@@ -157,14 +156,6 @@ import {
   getAbTestContributions,
   deleteAbTestContribution,
   globalSearch,
-  createPublishedSchedule,
-  deletePublishedSchedule,
-  getScheduleByIdWithCheck,
-  updatePublishedSchedule as updatePublishedScheduleDb,
-  getUpcomingSchedules,
-  getSchedulesByMonth,
-  getRemindersToFire,
-  markScheduleReminded,
   getThumbnailByIdWithCheck,
   listCreditPackPurchases,
   createCreditPackPurchase,
@@ -1230,12 +1221,11 @@ export const appRouter = router({
       return getThumbnailsByUserId(ctx.user.id);
     }),
 
-    /** List with search & filters (keywords, style, period, youtube status) */
+    /** List with search & filters (keywords, style and period) */
     listFiltered: protectedProcedure
       .input(z.object({
         query: z.string().max(200).optional(),
         style: z.string().max(64).optional(),
-        youtubeStatus: z.string().max(32).optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
       }).optional())
@@ -1247,35 +1237,9 @@ export const appRouter = router({
           userId: ctx.user.id,
           query: p.query,
           style: p.style,
-          youtubeStatus: p.youtubeStatus,
           dateFrom,
           dateTo,
         });
-      }),
-
-    /** Plan a thumbnail for YouTube Studio (title + mark as planned) */
-    planYoutube: protectedProcedure
-      .input(z.object({
-        thumbnailId: z.number(),
-        title: z.string().min(1).max(200),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        await setThumbnailYoutube(input.thumbnailId, ctx.user.id, {
-          youtubeTitle: input.title,
-          youtubeStatus: "planned",
-        });
-        return { success: true } as const;
-      }),
-
-    /** Remove the YouTube plan for a thumbnail */
-    unplanYoutube: protectedProcedure
-      .input(z.object({ thumbnailId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        await setThumbnailYoutube(input.thumbnailId, ctx.user.id, {
-          youtubeTitle: null,
-          youtubeStatus: "unplanned",
-        });
-        return { success: true } as const;
       }),
 
     /** Save an editor/custom image (base64) as a new thumbnail in the user's gallery */
@@ -1701,89 +1665,6 @@ export const appRouter = router({
       }),
   }),
 
-  // === Planning reminders (countdown to publication) ===
-  schedules: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
-      return getUpcomingSchedules(ctx.user.id);
-    }),
-
-    create: protectedProcedure
-      .input(z.object({
-        thumbnailId: z.number(),
-        youtubeTitle: z.string().min(1).max(200),
-        scheduledAt: z.string().datetime(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const t = await getThumbnailByIdWithCheck(input.thumbnailId, ctx.user.id);
-        if (!t) throw new TRPCError({ code: "NOT_FOUND", message: "Miniature introuvable" });
-        return createPublishedSchedule({
-          userId: ctx.user.id,
-          thumbnailId: input.thumbnailId,
-          youtubeTitle: input.youtubeTitle,
-          scheduledAt: new Date(input.scheduledAt),
-        });
-      }),
-
-        delete: protectedProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        await deletePublishedSchedule(input.id, ctx.user.id);
-        return { success: true } as const;
-      }),
-    /** Vue Calendrier : schedules d'un mois donné (année, mois 1-12) */
-    listMonth: protectedProcedure
-      .input(z.object({ year: z.number().int().min(2000).max(2100), month: z.number().int().min(1).max(12) }))
-      .query(async ({ ctx, input }) => {
-        return getSchedulesByMonth(ctx.user.id, input.year, input.month);
-      }),
-    /** Édition depuis le calendrier : titre et/ou date (ownership vérifié) */
-    update: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-        youtubeTitle: z.string().min(1).max(200).optional(),
-        scheduledAt: z.string().datetime().optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const existing = await getScheduleByIdWithCheck(input.id, ctx.user.id);
-        if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Planification introuvable" });
-        if (input.scheduledAt && new Date(input.scheduledAt).getTime() < Date.now()) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "La date doit être dans le futur" });
-        }
-        await updatePublishedScheduleDb(input.id, ctx.user.id, {
-          ...(input.youtubeTitle !== undefined ? { youtubeTitle: input.youtubeTitle } : {}),
-          ...(input.scheduledAt !== undefined ? { scheduledAt: new Date(input.scheduledAt) } : {}),
-        });
-        return { success: true } as const;
-      }),
-  }),
-  // === Planning reminders (cron J-1) ===
-  reminders: router({
-    /** Handler déclenché par le cron Heartbeat quotidien — crée les notifications J-1 */
-    fire: publicProcedure
-      .input(z.object({ nowIso: z.string().datetime().optional() }).optional())
-      .mutation(async ({ input }) => {
-        const now = input?.nowIso ? new Date(input.nowIso) : new Date();
-        const window = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        const due = await getRemindersToFire(window);
-        const fired: { scheduleId: number; userId: number; title: string }[] = [];
-        for (const s of due) {
-          try {
-            await createNotification({
-              userId: s.userId,
-              title: "Rappel de planification",
-              message: `« ${s.youtubeTitle} » est programmé pour demain. Prépare ta vidéo et publie la miniature à temps !`,
-              type: "system",
-              metadata: JSON.stringify({ thumbnailId: s.thumbnailId, scheduleId: s.id, kind: "planning-reminder" }),
-            });
-            await markScheduleReminded(s.id);
-            fired.push({ scheduleId: s.id, userId: s.userId, title: s.youtubeTitle });
-          } catch {
-            // Continuer sur les autres schedules même si un échoue (idempotent au global)
-          }
-        }
-        return { fired } as const;
-      }),
-  }),
   // === Subscription plans ===
   plans: router({
     catalog: publicProcedure.query(() => planCatalog()),

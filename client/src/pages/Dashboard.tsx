@@ -9,7 +9,6 @@ import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import BearState from "@/components/BearState";
-import CalendarView from "@/components/CalendarView";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
@@ -45,23 +44,6 @@ const STYLE_DESCRIPTIONS: Record<string, string> = {
   retro: "Palette vintage, grain de film, typographie nostalgique années 80/90.",
 };
 
-function getDateFromPeriod(period: string): string | undefined {
-  const now = new Date();
-  if (period === "today") {
-    now.setHours(0, 0, 0, 0);
-    return now.toISOString();
-  }
-  if (period === "7days") {
-    now.setDate(now.getDate() - 7);
-    return now.toISOString();
-  }
-  if (period === "30days") {
-    now.setDate(now.getDate() - 30);
-    return now.toISOString();
-  }
-  return undefined;
-}
-
 export default function Dashboard() {
   const { user, loading: authLoading, isAuthenticated, logout } = useAuth();
   const { triggerConfetti, triggerFlash, triggerShake, triggerPop } = useActionEffect();
@@ -72,8 +54,6 @@ export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"home" | "generate">("home");
-  const [batchPrompts, setBatchPrompts] = useState("");
-  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [sidebarPlatform, setSidebarPlatform] = useState<"compte" | "miniatures" | "personnes" | "modèles">("compte");
@@ -103,81 +83,6 @@ export default function Dashboard() {
             ? "Le fournisseur de connexion n'a pas renvoyé un profil complet. Relance la connexion."
             : null;
 
-  // v8 : YouTube planning dialog state + upcoming schedules countdown
-  const [planTarget, setPlanTarget] = useState<{ id: number; imageUrl: string; prompt: string } | null>(null);
-  const [planTitle, setPlanTitle] = useState("");
-  const [planWhen, setPlanWhen] = useState<"tomorrow" | "in2h" | "+1week">("tomorrow");
-
-  const defaultScheduleAt = useCallback((when: "tomorrow" | "in2h" | "+1week") => {
-    const d = new Date();
-    if (when === "in2h") d.setHours(d.getHours() + 2);
-    else if (when === "+1week") d.setDate(d.getDate() + 7);
-    else { d.setDate(d.getDate() + 1); d.setHours(10, 0, 0, 0); }
-    return d;
-  }, []);
-
-  // tick pour le compte à rebours live
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setTick(x => x + 1), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  // v8 : rappels de planification (schedules)
-  const { data: upcomingSchedules, refetch: refetchSchedules } = trpc.schedules.list.useQuery(undefined, { enabled: isAuthed });
-  const deleteSchedule = trpc.schedules.delete.useMutation({
-    onSuccess: () => {
-      refetchSchedules();
-      refetchThumbs();
-      utils.schedules.list.invalidate();
-      utils.notifications.list.invalidate();
-      utils.notifications.unreadCount.invalidate();
-      toastRich("warning", "Planification annulée", { description: "La miniature a été retirée du calendrier." });
-    },
-    onError: () => toastRich("error", "Erreur lors de l'annulation"),
-  });
-  const createSchedule = trpc.schedules.create.useMutation({
-    onSuccess: () => {
-      refetchSchedules();
-      utils.schedules.list.invalidate();
-      utils.schedules.listMonth.invalidate();
-      utils.notifications.list.invalidate();
-      utils.notifications.unreadCount.invalidate();
-      toastRich("success", "Nouvelle planification créée", { description: "Un rappel J-1 sera affiché dans la cloche." });
-    },
-    onError: (err) => toastRich("error", "Impossible de créer la planification", { description: err.message }),
-  });
-
-  /** Formate un compte à rebours : "dans 1j 4h 12m" ou "En retard !" */
-  const countdownOf = (scheduledAt: Date) => {
-    const diff = new Date(scheduledAt).getTime() - Date.now();
-    if (diff <= 0) return "En retard !";
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    if (d > 0) return `dans ${d}j ${h}h ${m}m`;
-    if (h > 0) return `dans ${h}h ${m}m`;
-    return `dans ${m}m`;
-  };
-  const planMutation = trpc.thumbnail.planYoutube.useMutation({
-    onSuccess: () => {
-      triggerFlash();
-      refetchThumbs();
-      refetchSchedules();
-      utils.schedules.list.invalidate();
-      toastRich("success", "Miniature planifiée !", { description: "Elle apparaît dans le calendrier. Ouvre YouTube Studio pour l'importer." });
-    },
-    onError: (err) => toastRich("error", "Impossible de planifier", { description: err.message || "Une erreur est survenue" }),
-  });
-  const unplanMutation = trpc.thumbnail.unplanYoutube.useMutation({
-    onSuccess: () => {
-      refetchThumbs();
-      utils.schedules.list.invalidate();
-      toastRich("warning", "Planification annulée", { description: "La miniature a été retirée du calendrier." });
-    },
-    onError: () => toastRich("error", "Impossible d'annuler la planification"),
-  });
-
   // tRPC queries
   const { data: thumbnails, isLoading: loadingThumbs, refetch: refetchThumbs } = trpc.thumbnail.list.useQuery(undefined, { enabled: isAuthed });
   const { data: credits, refetch: refetchCredits } = trpc.thumbnail.credits.useQuery(undefined, { enabled: isAuthed });
@@ -198,7 +103,6 @@ export default function Dashboard() {
   const utils = trpc.useUtils();
   const trashRestoreMutation = trpc.trash.restore.useMutation();
   const generateMutation = trpc.thumbnail.generate.useMutation();
-  const batchMutation = trpc.batch.generate.useMutation();
   const deleteMutation = trpc.thumbnail.delete.useMutation({
     onSuccess: (_data, vars) => {
       triggerShake();
@@ -353,59 +257,7 @@ export default function Dashboard() {
     }
   }, [prompt, credits, quantity, style, generateMutation, refetchThumbs, refetchCredits, runGenerate, resetGenAnimation]);
 
-  const handleBatchGenerate = useCallback(async () => {
-    const prompts = batchPrompts.split("\n").filter(p => p.trim().length >= 10);
-    if (prompts.length === 0) {
-      toast.error("Entre au moins une description par ligne (10 caractères minimum)");
-      return;
-    }
-    if (credits && credits.credits < prompts.length) {
-      toast.error(`Crédits insuffisants. Il te reste ${credits.credits} crédit(s) pour ${prompts.length} descriptions.`);
-      return;
-    }
-
-    setIsBatchGenerating(true);
-    setGenerationError(null);
-    setGenAnimResultUrl(null);
-    setGenAnimPhase(null);
-    runGenerate();
-    try {
-      const result = await batchMutation.mutateAsync({
-        prompts,
-        style: style as any,
-      });
-      const first = result.thumbnails?.find(t => t.status === "completed" && t.imageUrl);
-      if (first?.imageUrl) {
-        setCanvasTransition({
-          imageUrl: first.imageUrl,
-          prompt: prompts[0] ?? "",
-          style,
-          styleLabel: STYLE_LABELS[style] ?? style,
-        });
-        setGenAnimResultUrl(first.imageUrl);
-        setGenAnimPhase("reveal");
-      } else {
-        resetGenAnimation();
-      }
-      triggerConfetti();
-      toast.success(`${result.successful} sur ${prompts.length} miniatures générées ! Solde : ${result.creditsRemaining} crédit(s).`);
-      setBatchPrompts("");
-      refetchThumbs();
-      refetchCredits();
-      setActiveView("home");
-    } catch (err: any) {
-      resetGenAnimation();
-      setGenAnimResultUrl(null);
-      setGenAnimPhase(null);
-      const message = err.message || "Erreur lors de la génération en lot";
-      setGenerationError(message);
-      toast.error(message);
-    } finally {
-      setIsBatchGenerating(false);
-    }
-  }, [batchPrompts, credits, style, batchMutation, refetchThumbs, refetchCredits, resetGenAnimation]);
-
-  const genAnimActive = isGenerating || isBatchGenerating || genAnimationRunning || genAnimPhase === "reveal";
+  const genAnimActive = isGenerating || genAnimationRunning || genAnimPhase === "reveal";
 
   const handleDelete = (id: number) => deleteMutation.mutate({ id });
 
@@ -432,46 +284,6 @@ export default function Dashboard() {
   };
 
   const handleCreateTask = (thumbnailId: number) => createTaskMutation.mutate({ thumbnailId, status: "pending" });
-
-  const handleOpenPlan = (thumb: { id: number; imageUrl: string; prompt: string; youtubeTitle?: string | null }) => {
-    setPlanTarget({ id: thumb.id, imageUrl: thumb.imageUrl, prompt: thumb.prompt });
-    setPlanTitle(thumb.youtubeTitle?.trim() ? thumb.youtubeTitle || "" : "");
-  };
-
-  const handlePlanConfirm = async () => {
-    if (!planTarget || !planTitle.trim()) {
-      toast.error("Entre un titre pour ta vidéo YouTube");
-      return;
-    }
-    await planMutation.mutateAsync({ thumbnailId: planTarget.id, title: planTitle.trim() });
-    // v8 : créer aussi le rappel de publication avec date/heure
-    const scheduledAt = defaultScheduleAt(planWhen);
-    try {
-      await createSchedule.mutateAsync({
-        thumbnailId: planTarget.id,
-        youtubeTitle: planTitle.trim(),
-        scheduledAt: scheduledAt.toISOString(),
-      });
-    } catch (err: any) {
-      // Le rappel échoue sans bloquer la planification du titre
-      toast.error(`Rappel : ${err.message || "non enregistré"}`);
-    }
-  };
-
-  const copyShare = async (thumbnailId: number, imageUrl: string) => {
-    const url = `${window.location.origin}${imageUrl}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Lien de l'image copié !");
-    } catch {
-      // Clipboard unavailable — noop
-    }
-  };
-
-  const handlePlanCancel = () => {
-    setPlanTarget(null);
-    setPlanTitle("");
-  };
 
   const [previewTarget, setPreviewTarget] = useState<{ id: number; imageUrl: string; prompt: string } | null>(null);
 
@@ -594,48 +406,6 @@ export default function Dashboard() {
           <p className="text-2xl font-bold text-white mt-2">{credits?.credits ?? 10}</p>
           <span className="text-[10px] text-muted-foreground">Disponible</span>
         </div>
-      </div>
-
-      {/* v8 : Miniatures planifiées avec compte à rebours */}
-      {(upcomingSchedules ?? []).length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-              <CalendarClock className="w-4 h-4 text-orange-400" /> À publier bientôt
-            </h2>
-            <span className="text-[10px] text-muted-foreground">Rappels automatiques</span>
-          </div>
-          <div className="space-y-2">
-            {(upcomingSchedules ?? []).map((s: any) => (
-              <div key={s.id} className="flex items-center gap-3 p-3 bg-muted border border-border rounded-[20px]">
-                <div className="w-24 flex-shrink-0">
-                  {s.imageUrl && <img src={s.imageUrl} alt="" className="w-full aspect-video object-cover rounded-lg" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-white font-medium truncate">{s.youtubeTitle || s.title}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {new Date(s.scheduledAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
-                  </p>
-                  <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-orange-400/15 text-[10px] text-orange-300">
-                    <CalendarClock className="w-3 h-3" /> {countdownOf(s.scheduledAt)}
-                  </span>
-                </div>
-                <button
-                  onClick={() => deleteSchedule.mutate({ id: s.id })}
-                  className="p-2 text-muted-foreground hover:text-red-400 transition-colors flex-shrink-0"
-                  title="Annuler la planification"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* v9 : Vue Calendrier des publications planifiées */}
-      <div data-tour="calendar">
-        <CalendarView />
       </div>
 
       {/* Vos personnes */}
@@ -881,123 +651,21 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Generate tabs */}
+      {/* Brief unique avec inspiration optionnelle */}
       <div className="mb-6">
-        <div className="flex gap-1 p-1 bg-muted rounded-[20px]">
-          <button
-            onClick={() => setGenerateTab("text")}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-              generateTab === "text" ? "bg-white text-black" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Type className="w-3.5 h-3.5 inline mr-1.5" />
-            Texte
-          </button>
-          <button
-            onClick={() => setGenerateTab("image")}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-              generateTab === "image" ? "bg-white text-black" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Image className="w-3.5 h-3.5 inline mr-1.5" />
-            Image inspirée
-          </button>
+        <div className="flex gap-1 p-1 bg-muted rounded-[20px] mb-4">
+          <button onClick={() => setGenerateTab("text")} className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${generateTab === "text" ? "bg-white text-black" : "text-muted-foreground hover:text-foreground"}`}><Type className="w-3.5 h-3.5 inline mr-1.5" />Texte</button>
+          <button onClick={() => setGenerateTab("image")} className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${generateTab === "image" ? "bg-white text-black" : "text-muted-foreground hover:text-foreground"}`}><Image className="w-3.5 h-3.5 inline mr-1.5" />Image inspirée</button>
         </div>
-      </div>
-
-      {/* Image inspiration tab */}
-      {generateTab === "image" && (
-        <div className="mb-6">
+        {generateTab === "image" && (<div className="mb-5">
           <label className="block text-xs text-muted-foreground mb-2">Image d'inspiration (upload ou lien Pinterest)</label>
-          <div className="flex flex-col sm:flex-row gap-2 mb-2">
-            <button
-              onClick={() => inspirationFileInputRef.current?.click()}
-              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[20px] bg-muted border border-dashed border-border text-foreground hover:text-foreground hover:border-primary text-xs transition-all flex-1"
-            >
-              <Upload className="w-3.5 h-3.5" /> Importer une image depuis mon appareil
-            </button>
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={inspirationUrl}
-              onChange={(e) => setInspirationUrl(e.target.value)}
-              placeholder="https://www.pinterest.com/pin/... ou URL directe d'une image"
-              className="flex-1 px-4 py-2.5 rounded-[20px] bg-muted border border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-border outline-none transition-all"
-            />
-            <Button
-              onClick={handleInspirationSubmit}
-              className="h-10 px-4 text-xs bg-orange-500 text-white hover:bg-cyan-700 rounded-[20px]"
-            >
-              Charger
-            </Button>
-          </div>
-          <input ref={inspirationFileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={handleInspirationFileUpload} />
-          {inspirationImage && (
-            <div className="mt-3 relative rounded-[20px] overflow-hidden">
-              <img src={inspirationImage} alt="Inspiration" className="w-full h-48 object-cover rounded-[20px] border border-border" />
-              <button
-                onClick={() => { setInspirationImage(null); setInspirationUrl(""); }}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors"
-              >
-                <XCircle className="w-4 h-4" />
-              </button>
-              <p className="text-[10px] text-muted-foreground mt-1.5 text-right">Image utilisée comme référence de style</p>
-            </div>
-          )}
-          <p className="text-[10px] text-muted-foreground mt-2">
-            Importe une image depuis ton appareil ou colle un lien Pinterest / URL d'image pour t'en inspirer. L'IA reproduira le style, les couleurs et la composition.
-          </p>
-        </div>
-      )}
-
-      {/* Text tab */}
-      {generateTab === "text" && (
-        <>
-      {/* Prompt input */}
-      <div className="mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 mb-2"><button onClick={() => inspirationFileInputRef.current?.click()} className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[20px] bg-muted border border-dashed border-border text-foreground hover:border-primary text-xs transition-all flex-1"><Upload className="w-3.5 h-3.5" />Importer une image depuis mon appareil</button><input ref={inspirationFileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={handleInspirationFileUpload} /></div>
+          <div className="flex gap-2"><input type="url" value={inspirationUrl} onChange={e => setInspirationUrl(e.target.value)} placeholder="https://www.pinterest.com/pin/... ou URL directe d'une image" className="flex-1 px-4 py-2.5 rounded-[20px] bg-muted border border-border text-foreground placeholder:text-muted-foreground text-sm outline-none transition-all" /><Button onClick={handleInspirationSubmit} className="h-10 px-4 text-xs bg-orange-500 text-white hover:bg-orange-400 rounded-[20px]">Charger</Button></div>
+          {inspirationImage && (<div className="mt-3 relative rounded-[20px] overflow-hidden"><img src={inspirationImage} alt="Inspiration" className="w-full h-48 object-cover rounded-[20px] border border-border" /><button onClick={() => { setInspirationImage(null); setInspirationUrl(""); }} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors"><XCircle className="w-4 h-4" /></button></div>)}
+        </div>)}
         <label className="block text-xs text-muted-foreground mb-2">Décris ta miniature</label>
-        <div className="relative">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ex: Un homme surpris avec un gros plan, fond bleu électrique, texte 'IL A GAGNÉ 100 000€' en gros..."
-            className="w-full h-32 px-4 py-3 rounded-[20px] bg-muted border border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-border focus:ring-0 outline-none resize-none transition-all"
-            maxLength={500}
-          />
-          <span className="absolute bottom-2 right-3 text-[10px] text-muted-foreground">{prompt.length}/500</span>
-        </div>
-      </div>
-        </>
-      )}
-
-      {/* Prompt input always visible for image tab too */}
-      {generateTab === "image" && !prompt && (
-        <div className="mb-6">
-          <label className="block text-xs text-muted-foreground mb-2">Instructions supplémentaires (optionnel)</label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ex: Ajoute du texte 'TOP 10', rends-le plus dramatique..."
-            className="w-full h-20 px-4 py-3 rounded-[20px] bg-muted border border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-border outline-none resize-none transition-all"
-            maxLength={500}
-          />
-        </div>
-      )}
-
-      {/* Prompt input */}
-      <div className="mb-6">
-        <label className="block text-xs text-muted-foreground mb-2">Décris ta miniature</label>
-        <div className="relative">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ex: Un homme surpris avec un gros plan, fond bleu électrique, texte 'IL A GAGNÉ 100 000€' en gros..."
-            className="w-full h-32 px-4 py-3 rounded-[20px] bg-muted border border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-border focus:ring-0 outline-none resize-none transition-all"
-            maxLength={500}
-          />
-          <span className="absolute bottom-2 right-3 text-[10px] text-muted-foreground">{prompt.length}/500</span>
-        </div>
+        <div className="relative"><textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Ex : un homme surpris, fond bleu électrique, texte « IL A GAGNÉ 100 000 € » en gros..." className="w-full h-32 px-4 py-3 rounded-[20px] bg-muted border border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-border focus:ring-0 outline-none resize-none transition-all" maxLength={500} /><span className="absolute bottom-2 right-3 text-[10px] text-muted-foreground">{prompt.length}/500</span></div>
+        <p className="text-[10px] text-muted-foreground mt-2">Décris le sujet, le texte à afficher et l'ambiance souhaitée. L'image inspirée sert uniquement de référence visuelle.</p>
       </div>
 
       {/* Style selector */}
@@ -1061,29 +729,6 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* Batch mode toggle */}
-      <div className="mt-8 pt-6 border-t border-border">
-        <label className="block text-xs text-muted-foreground mb-2">Mode lot (une description par ligne)</label>
-        <textarea
-          value={batchPrompts}
-          onChange={(e) => setBatchPrompts(e.target.value)}
-          placeholder={`Un scientifique dans un labo futuriste\nUn chat sur un skateboard\nUn paysage de montagnes au coucher du soleil`}
-          className="w-full h-40 px-4 py-3 rounded-[20px] bg-muted border border-border text-foreground placeholder:text-muted-foreground text-sm focus:border-border outline-none resize-none transition-all font-mono text-xs"
-        />
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-xs text-muted-foreground">
-            {batchPrompts.split("\n").filter(p => p.trim().length >= 10).length} miniature(s)
-          </span>
-          <Button
-            onClick={handleBatchGenerate}
-            disabled={isBatchGenerating || !batchPrompts.trim()}
-            variant="outline"
-            className="bg-muted border-border text-foreground hover:text-foreground rounded-[20px] px-4 h-9 text-xs"
-          >
-            {isBatchGenerating ? <><Loader2 className="mr-1.5 w-3.5 h-3.5 animate-spin" />En cours...</> : "Générer le lot"}
-          </Button>
-        </div>
-      </div>
     </div>
   );
 
@@ -1118,11 +763,7 @@ export default function Dashboard() {
           onRetry={() => {
             setGenAnimPhase(null);
             setGenAnimResultUrl(null);
-            if (isBatchGenerating) {
-              void handleBatchGenerate();
-            } else {
-              void handleGenerate();
-            }
+            void handleGenerate();
           }}
           disableSound={typeof window !== "undefined" && localStorage.getItem("minia-anim-sound") === "0"}
         />
@@ -1173,114 +814,6 @@ export default function Dashboard() {
 
       {/* Bottom spacing for floating nav */}
       <div className="h-24" />
-
-      {/* v5 : YouTube Planning Dialog */}
-      {planTarget && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={handlePlanCancel}>
-          <div className="bg-muted border border-border rounded-[20px] p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Youtube className="w-4 h-4 text-red-500" /> Planifier pour YouTube Studio
-              </h3>
-              <button onClick={handlePlanCancel} className="text-muted-foreground hover:text-foreground transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="grid grid-cols-[140px_1fr] gap-4 mb-4">
-              <img src={planTarget.imageUrl} alt={planTarget.prompt} className="w-full aspect-video object-cover rounded-lg border border-border" />
-              <div>
-                <p className="text-xs text-muted-foreground line-clamp-4">{planTarget.prompt}</p>
-                {displayThumbnails.find(t => t.id === planTarget.id)?.youtubeStatus === "planned" && (
-                  <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full bg-orange-400/15 border border-orange-400/30 text-[10px] text-orange-300">
-                    <CalendarClock className="w-3 h-3" /> Déjà planifiée
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs text-muted-foreground mb-1.5">Titre de la vidéo YouTube</label>
-                <input
-                  value={planTitle}
-                  onChange={e => setPlanTitle(e.target.value)}
-                  placeholder="Colle le titre de ta vidéo…"
-                  className="w-full px-4 py-2.5 rounded-[20px] bg-[#09090B] border border-border text-white text-sm placeholder:text-muted-foreground focus:border-border outline-none"
-                  maxLength={200}
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-muted-foreground mb-1.5">Date de publication (rappel)</label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {([
-                    { key: "in2h", label: "Dans 2h" },
-                    { key: "tomorrow", label: "Demain 10h" },
-                    { key: "+1week", label: "Dans 7 jours" },
-                  ] as const).map(opt => (
-                    <button
-                      key={opt.key}
-                      onClick={() => setPlanWhen(opt.key)}
-                      className={`px-2 py-1.5 rounded-lg text-[10px] font-medium border transition-colors ${
-                        planWhen === opt.key
-                          ? "bg-white text-black border-white"
-                          : "bg-[#09090B] text-muted-foreground border-border hover:border-white/15 hover:text-foreground"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1.5">
-                  Publication prévue : {defaultScheduleAt(planWhen).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })} (avec rappel sur le Tableau de bord).
-                </p>
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                Le titre et l'image PNG 1280×720 seront prêts à copier-coller dans YouTube Studio (Contenu → Importer).
-              </p>
-              <button
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(planTitle.trim());
-                    toast.success("Titre copié !");
-                  } catch {
-                    // Clipboard unavailable — noop
-                  }
-                }}
-                disabled={!planTitle.trim()}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-muted hover:bg-muted/80 border border-border text-[11px] text-foreground transition-colors disabled:opacity-40"
-              >
-                <Copy className="w-3 h-3" /> Copier le titre de la vidéo
-              </button>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handlePlanConfirm}
-                  disabled={!planTitle.trim() || planMutation.isPending}
-                  className="bg-white text-black hover:bg-white/90 rounded-[20px] flex-1 text-sm h-9"
-                >
-                  {planMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CalendarClock className="w-4 h-4 mr-1.5" />}
-                  Planifier
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => copyShare(planTarget.id, planTarget.imageUrl)}
-                  className="border-border text-foreground rounded-[20px] text-sm h-9 px-3"
-                >
-                  Copier l'image
-                </Button>
-                {displayThumbnails.find(t => t.id === planTarget.id)?.youtubeStatus === "planned" && (
-                  <Button
-                    variant="outline"
-                    onClick={() => { unplanMutation.mutate({ thumbnailId: planTarget.id }); handlePlanCancel(); }}
-                    className="border-border text-foreground hover:text-red-400 rounded-[20px] text-sm h-9 px-3"
-                  >
-                    Annuler le plan
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Invite Modal */}
       {showInviteModal && (

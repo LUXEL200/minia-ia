@@ -89,8 +89,8 @@ export default function BillingPage() {
           subtitle="Gère ton abonnement, recharge tes crédits et vois ton historique"
           breadcrumb={[{ label: "Facturation" }]}
           right={
-            <Link href="/pricing" className="bg-[#ff0050] hover:bg-[#e60048] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors inline-block">
-              Mettre à niveau
+            <Link href="/pricing" aria-disabled="true" onClick={(event) => event.preventDefault()} className="bg-zinc-800 text-zinc-400 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors inline-block cursor-not-allowed">
+              Bientôt disponible
             </Link>
           }
         />

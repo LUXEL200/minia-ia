@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, publicGallery, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, templateCustomizations, imageVersions, abTests, abTestContributions, publishedSchedules, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger, InsertPublicGalleryItem } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, publicGallery, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, templateCustomizations, imageVersions, abTests, abTestContributions, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger, InsertPublicGalleryItem } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
@@ -1153,7 +1153,6 @@ export async function getThumbnailsByUserIdFiltered(params: {
   userId: number;
   query?: string;
   style?: string;
-  youtubeStatus?: string;
   dateFrom?: Date;
   dateTo?: Date;
   limit?: number;
@@ -1166,14 +1165,11 @@ export async function getThumbnailsByUserIdFiltered(params: {
   if (params.query && params.query.trim().length > 0) {
     const q = `%${params.query.trim()}%`;
     conditions.push(
-      or(like(thumbnails.prompt, q), like(thumbnails.youtubeTitle, q)) ?? like(thumbnails.prompt, q),
+      like(thumbnails.prompt, q),
     );
   }
   if (params.style && params.style !== "all") {
     conditions.push(eq(thumbnails.style, params.style));
-  }
-  if (params.youtubeStatus && params.youtubeStatus !== "all") {
-    conditions.push(eq(thumbnails.youtubeStatus, params.youtubeStatus as "unplanned" | "planned"));
   }
   if (params.dateFrom) conditions.push(gte(thumbnails.createdAt, params.dateFrom));
   if (params.dateTo) conditions.push(lte(thumbnails.createdAt, params.dateTo));
@@ -1185,23 +1181,7 @@ export async function getThumbnailsByUserIdFiltered(params: {
     .offset(params.offset ?? 0);
 }
 
-export async function setThumbnailYoutube(id: number, userId: number, data: { youtubeTitle?: string | null; youtubeStatus?: "unplanned" | "planned" }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  await db.update(thumbnails).set(data).where(and(eq(thumbnails.id, id), eq(thumbnails.userId, userId)));
-}
-
-// === Organizations ===
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-}
+function slugify(value: string) { return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 
 export async function getOrCreateOrganization(ownerId: number) {
   const db = await getDb();
@@ -1400,7 +1380,7 @@ export async function globalSearch(userId: number, query: string, params: { limi
 
   // User history: prompt + youtubeTitle
   const thumbs = await db.select().from(thumbnails)
-    .where(and(eq(thumbnails.userId, userId), or(like(thumbnails.prompt, q), like(thumbnails.youtubeTitle, q)) ?? like(thumbnails.prompt, q)))
+    .where(and(eq(thumbnails.userId, userId), like(thumbnails.prompt, q)))
     .orderBy(desc(thumbnails.createdAt))
     .limit(limit);
 
@@ -1411,14 +1391,14 @@ export async function globalSearch(userId: number, query: string, params: { limi
   const favThumbs = [];
   for (const f of favs) {
     const t = await getThumbnailById(f.thumbnailId);
-    if (t && (matchText(t.prompt) || matchText(t.youtubeTitle))) {
+    if (t && (matchText(t.prompt))) {
       favThumbs.push({ ...t, favoritedAt: f.createdAt });
     }
   }
 
   // Public gallery
   const gallery = await db.select().from(thumbnails)
-    .where(and(eq(thumbnails.status, "completed"), or(like(thumbnails.prompt, q), like(thumbnails.youtubeTitle, q)) ?? like(thumbnails.prompt, q)))
+    .where(and(eq(thumbnails.status, "completed"), like(thumbnails.prompt, q)))
     .orderBy(desc(thumbnails.createdAt))
     .limit(limit);
 
@@ -1428,98 +1408,6 @@ export async function globalSearch(userId: number, query: string, params: { limi
     .limit(limit);
 
   return { thumbnails: thumbs, favorites: favThumbs, gallery, trash };
-}
-
-// === Published schedules (planning reminders) ===
-
-export async function createPublishedSchedule(data: { userId: number; thumbnailId: number; youtubeTitle: string; scheduledAt: Date }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database unavailable");
-  const [result] = await db.insert(publishedSchedules).values({
-    userId: data.userId,
-    thumbnailId: data.thumbnailId,
-    youtubeTitle: data.youtubeTitle,
-    scheduledAt: data.scheduledAt,
-  });
-  return { id: result.insertId };
-}
-
-export async function deletePublishedSchedule(id: number, userId: number) {
-  const db = await getDb();
-  if (!db) return false;
-  await db.delete(publishedSchedules).where(and(eq(publishedSchedules.id, id), eq(publishedSchedules.userId, userId)));
-  return true;
-}
-
-export async function getScheduleByIdWithCheck(id: number, userId: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const [row] = await db.select().from(publishedSchedules)
-    .where(and(eq(publishedSchedules.id, id), eq(publishedSchedules.userId, userId)));
-  return row;
-}
-
-export async function updatePublishedSchedule(id: number, userId: number, data: { youtubeTitle?: string; scheduledAt?: Date }) {
-  const db = await getDb();
-  if (!db) return false;
-  await db.update(publishedSchedules)
-    .set({ ...(data.youtubeTitle !== undefined ? { youtubeTitle: data.youtubeTitle } : {}), ...(data.scheduledAt !== undefined ? { scheduledAt: data.scheduledAt } : {}) })
-    .where(and(eq(publishedSchedules.id, id), eq(publishedSchedules.userId, userId)));
-  return true;
-}
-
-export async function getUpcomingSchedules(userId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  const rows = await db.select().from(publishedSchedules)
-    .where(and(eq(publishedSchedules.userId, userId), gte(publishedSchedules.scheduledAt, new Date())))
-    .orderBy(publishedSchedules.scheduledAt)
-    .limit(10);
-  // Attach thumbnail image
-  const enriched = [];
-  for (const s of rows) {
-    const t = await getThumbnailById(s.thumbnailId);
-    if (t) enriched.push({ ...s, imageUrl: t.imageUrl, style: t.style });
-  }
-  return enriched;
-}
-
-// === Planning reminders (J-1 notifications) ===
-
-export async function getRemindersToFire(before: Date) {
-  const db = await getDb();
-  if (!db) return [];
-  // Schedules whose publication time is within 24h (future <= before) and not yet reminded
-  return db.select().from(publishedSchedules)
-    .where(and(gte(publishedSchedules.scheduledAt, new Date()), lte(publishedSchedules.scheduledAt, before), eq(publishedSchedules.reminded, 0)))
-    .orderBy(publishedSchedules.scheduledAt);
-}
-
-export async function markScheduleReminded(id: number) {
-  const db = await getDb();
-  if (!db) return false;
-  await db.update(publishedSchedules).set({ reminded: 1 }).where(eq(publishedSchedules.id, id));
-  return true;
-}
-
-// === Planning reminders J-5 (notifications 5 jours avant publication) ===
-
-export async function getJ5RemindersToFire() {
-  const db = await getDb();
-  if (!db) return [];
-  // Schedules whose publication time is within 4–5 days (4d..6d from now) and not yet reminded
-  const from = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
-  const before = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
-  return db.select().from(publishedSchedules)
-    .where(and(gte(publishedSchedules.scheduledAt, from), lt(publishedSchedules.scheduledAt, before), eq(publishedSchedules.remindedJ5, 0)))
-    .orderBy(publishedSchedules.scheduledAt);
-}
-
-export async function markScheduleJ5Reminded(id: number) {
-  const db = await getDb();
-  if (!db) return false;
-  await db.update(publishedSchedules).set({ remindedJ5: 1 }).where(eq(publishedSchedules.id, id));
-  return true;
 }
 
 // === Low credit alerts (email-style in-app when balance <= 5) ===
@@ -1536,22 +1424,6 @@ export async function markLowCreditNotified(userId: number) {
   if (!db) return false;
   await db.update(userCredits).set({ notifiedLowCredit: 1 }).where(eq(userCredits.userId, userId));
   return true;
-}
-
-export async function getSchedulesByMonth(userId: number, year: number, month: number) {
-  const db = await getDb();
-  if (!db) return [];
-  const start = new Date(Date.UTC(year, month - 1, 1));
-  const end = new Date(Date.UTC(year, month, 1));
-  const rows = await db.select().from(publishedSchedules)
-    .where(and(eq(publishedSchedules.userId, userId), gte(publishedSchedules.scheduledAt, start), lt(publishedSchedules.scheduledAt, end)))
-    .orderBy(publishedSchedules.scheduledAt);
-  const enriched = [];
-  for (const s of rows) {
-    const t = await getThumbnailById(s.thumbnailId);
-    enriched.push({ ...s, imageUrl: t?.imageUrl ?? null });
-  }
-  return enriched;
 }
 
 export async function getThumbnailByIdWithCheck(id: number, userId?: number) {

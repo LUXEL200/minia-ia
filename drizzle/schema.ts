@@ -34,9 +34,6 @@ export const thumbnails = mysqlTable("thumbnails", {
   status: mysqlEnum("status", ["generating", "completed", "failed"]).default("generating").notNull(),
   /** Number of credits used */
   creditsUsed: int("creditsUsed").default(1).notNull(),
-  /** YouTube Studio scheduling fields */
-  youtubeTitle: text("youtubeTitle"),
-  youtubeStatus: mysqlEnum("youtubeStatus", ["unplanned", "planned"]).default("unplanned").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -481,26 +478,6 @@ export const abTestContributions = mysqlTable("abTestContributions", {
 
 export type AbTestContribution = typeof abTestContributions.$inferSelect;
 export type InsertAbTestContribution = typeof abTestContributions.$inferInsert;
-
-/**
- * Planned schedules — publication reminders with countdown
- */
-export const publishedSchedules = mysqlTable("publishedSchedules", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  thumbnailId: int("thumbnailId").notNull(),
-  youtubeTitle: text("youtubeTitle").notNull(),
-  scheduledAt: timestamp("scheduledAt").notNull(),
-  reminded: int("reminded").default(0).notNull(),
-  remindedJ5: int("remindedJ5").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  userIdIdx: index("sched_user_idx").on(table.userId),
-  thumbIdx: index("sched_thumb_idx").on(table.thumbnailId),
-}));
-
-export type PublishedSchedule = typeof publishedSchedules.$inferSelect;
-export type InsertPublishedSchedule = typeof publishedSchedules.$inferInsert;
 
 /**
  * Credit pack purchases — simulated (fake) payments, ready for a future Stripe

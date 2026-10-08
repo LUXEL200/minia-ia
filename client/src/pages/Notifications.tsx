@@ -12,12 +12,10 @@ import {
   CalendarClock,
   Image as ImageIcon,
   Zap,
-  Trash2,
   Users,
-  FileText,
 } from "lucide-react";
 
-function parseMeta(n: { metadata?: string | null }): { kind?: string; thumbnailId?: number } {
+function parseMeta(n: { metadata?: string | null }): { kind?: string } {
   if (!n.metadata) return {};
   try {
     return JSON.parse(n.metadata);
@@ -151,7 +149,7 @@ export default function NotificationsPage() {
           <div className="text-center py-16 text-muted-foreground">
             <Bell className="mx-auto mb-4" size={48} />
             <p className="text-lg mb-2 font-medium text-foreground">Aucune notification</p>
-            <p className="text-sm">Tu seras notifié quand une miniature est prête, planifiée ou tes crédits sont bas.</p>
+            <p className="text-sm">Tu seras notifié quand une miniature est prête ou si tes crédits sont bas.</p>
           </div>
         ) : (
           <div className="space-y-2">
