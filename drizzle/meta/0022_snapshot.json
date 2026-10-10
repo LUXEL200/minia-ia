@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "7a1590c7-7403-4213-a450-ea4d56c9e8c0",
-  "prevId": "6b023404-58d5-4619-9b83-6b31d41f3afa",
+  "id": "c1b33790-d9a0-45cf-9490-c25dd4c4cf74",
+  "prevId": "7a1590c7-7403-4213-a450-ea4d56c9e8c0",
   "tables": {
     "abTestContributions": {
       "name": "abTestContributions",
@@ -802,6 +802,83 @@
       "compositePrimaryKeys": {
         "creditPackPurchases_id": {
           "name": "creditPackPurchases_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "editorProjects": {
+      "name": "editorProjects",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "thumbnailId": {
+          "name": "thumbnailId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "canvas": {
+          "name": "canvas",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "onUpdate": true,
+          "default": "(now())"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "editor_project_owner_idx": {
+          "name": "editor_project_owner_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "editor_project_thumbnail_idx": {
+          "name": "editor_project_thumbnail_idx",
+          "columns": [
+            "thumbnailId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "editorProjects_id": {
+          "name": "editorProjects_id",
           "columns": [
             "id"
           ]

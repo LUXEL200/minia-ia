@@ -318,6 +318,36 @@ export const appSettings = mysqlTable("appSettings", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Compteur de démo invité persistant, réinitialisé par période UTC. */
+export const guestDemoUsage = mysqlTable("guestDemoUsage", {
+  id: int("id").autoincrement().primaryKey(),
+  usageKey: varchar("usageKey", { length: 191 }).notNull().unique(),
+  periodStart: timestamp("periodStart").notNull(),
+  count: int("count").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  periodIdx: index("guest_demo_period_idx").on(table.periodStart),
+}));
+
+export type GuestDemoUsage = typeof guestDemoUsage.$inferSelect;
+export type InsertGuestDemoUsage = typeof guestDemoUsage.$inferInsert;
+
+/** Brouillon Canvas persistant, limité à son propriétaire. */
+export const editorProjects = mysqlTable("editorProjects", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  thumbnailId: int("thumbnailId"),
+  canvas: json("canvas").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  ownerIdx: index("editor_project_owner_idx").on(table.userId),
+  thumbnailIdx: index("editor_project_thumbnail_idx").on(table.thumbnailId),
+}));
+
+export type EditorProject = typeof editorProjects.$inferSelect;
+export type InsertEditorProject = typeof editorProjects.$inferInsert;
+
 export type AppSetting = typeof appSettings.$inferSelect;
 export type InsertAppSetting = typeof appSettings.$inferInsert;
 

@@ -8,6 +8,7 @@ import { adminPermission, publicProcedure, protectedProcedure, router } from "./
 import { generateImage, listImageModels } from "./_core/imageGeneration";
 import { createHeartbeatJob, deleteHeartbeatJob, updateHeartbeatJob } from "./_core/heartbeat";
 import { parse as parseCookie } from "cookie";
+import { createHash } from "node:crypto";
 import { getPlanDefinition, isStyleAllowed, planCatalog, UPGRADE_MESSAGE } from "../shared/plans";
 
 /**
@@ -123,7 +124,12 @@ import {
   getAdminHistoricalMetrics,
   getAppSettings,
   setAppSetting,
+  consumeGuestDemoUsage,
+  refundGuestDemoUsage,
+  getEditorProject,
+  upsertEditorProject,
   getAllUsers,
+  getAdminUsers,
   updateUserRole,
   updateUserCredits,
   updateUserPlan,
@@ -167,18 +173,22 @@ import {
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
 
-const guestDemoUsage = new Map<string, { startedAt: number; count: number }>();
-const GUEST_WINDOW_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_CLIENT_SETTINGS = {
   "client.guestDemoEnabled": "yes",
   "client.guestDailyLimit": "2",
+  "client.guestGlobalDailyLimit": "100",
   "client.generationEnabled": "yes",
   "client.batchEnabled": "yes",
   "client.freeWatermark": "yes",
 };
 
 function getGuestKey(req: { ip?: string | undefined; socket?: { remoteAddress?: string | undefined }; headers: Record<string, unknown> }) {
-  return req.ip || req.socket?.remoteAddress || "unknown-client";
+  const address = req.ip || req.socket?.remoteAddress || "unknown-client";
+  return `ip:${createHash("sha256").update(address).digest("hex")}`;
+}
+
+function getUtcPeriodStart(now = new Date()) {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
 async function getClientSettings() {
@@ -873,6 +883,7 @@ export const demoRouter = router({
     return {
       enabled: settings["client.guestDemoEnabled"] === "yes" && settings["client.generationEnabled"] === "yes",
       dailyLimit: Math.min(Math.max(Number(settings["client.guestDailyLimit"]) || 2, 1), 5),
+      globalDailyLimit: Math.min(Math.max(Number(settings["client.guestGlobalDailyLimit"]) || 100, 1), 10000),
     } as const;
   }),
   generate: publicProcedure
@@ -881,19 +892,22 @@ export const demoRouter = router({
       const settings = await getClientSettings();
       if (settings["client.guestDemoEnabled"] !== "yes" || settings["client.generationEnabled"] !== "yes") throw new TRPCError({ code: "FORBIDDEN", message: "La démo invitée est temporairement désactivée." });
       const limit = Math.min(Math.max(Number(settings["client.guestDailyLimit"]) || 2, 1), 5);
+      const globalLimit = Math.min(Math.max(Number(settings["client.guestGlobalDailyLimit"]) || 100, 1), 10000);
       const key = getGuestKey(ctx.req);
-      const now = Date.now();
-      const usage = guestDemoUsage.get(key);
-      if (!usage || now - usage.startedAt >= GUEST_WINDOW_MS) guestDemoUsage.set(key, { startedAt: now, count: 1 });
-      else if (usage.count >= limit) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: `Limite atteinte : ${limit} génération(s) invitée(s) par jour.` });
-      else usage.count += 1;
+      const periodStart = getUtcPeriodStart();
+      const ipUsage = await consumeGuestDemoUsage(key, limit, periodStart);
+      if (!ipUsage.allowed) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: `Limite atteinte : ${limit} génération(s) invitée(s) par jour.` });
+      const globalUsage = await consumeGuestDemoUsage("global", globalLimit, periodStart);
+      if (!globalUsage.allowed) {
+        await refundGuestDemoUsage(key, periodStart);
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "La capacité quotidienne de la démo est atteinte. Réessaie demain." });
+      }
       try {
         const result = await generateImage({ publicAsset: true, prompt: `YouTube thumbnail, ${input.style} style. ${input.prompt}. High contrast, bold readable composition, no logos, no watermark text.`, model: "MODEL_GPT_IMAGE_2", quality: "medium" });
         if (!result.url) throw new Error("Aucune image n’a été retournée");
-        return { imageUrl: result.url, remaining: Math.max(0, limit - (guestDemoUsage.get(key)?.count ?? 1)) } as const;
+        return { imageUrl: result.url, remaining: Math.max(0, limit - ipUsage.count), globalRemaining: Math.max(0, globalLimit - globalUsage.count) } as const;
       } catch (error) {
-        const current = guestDemoUsage.get(key);
-        if (current) current.count = Math.max(0, current.count - 1);
+        await Promise.all([refundGuestDemoUsage(key, periodStart), refundGuestDemoUsage("global", periodStart)]);
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error instanceof Error ? error.message : "La génération invitée a échoué." });
       }
     }),
@@ -908,9 +922,10 @@ export const adminRouter = router({
   }),
   clientSettings: adminProcedure.query(async () => getClientSettings()),
   updateClientSetting: adminProcedure
-    .input(z.object({ key: z.enum(["client.guestDemoEnabled", "client.guestDailyLimit", "client.generationEnabled", "client.batchEnabled", "client.freeWatermark"]), value: z.string().max(32) }))
+    .input(z.object({ key: z.enum(["client.guestDemoEnabled", "client.guestDailyLimit", "client.guestGlobalDailyLimit", "client.generationEnabled", "client.batchEnabled", "client.freeWatermark"]), value: z.string().max(32) }))
     .mutation(async ({ ctx, input }) => {
       if (input.key === "client.guestDailyLimit" && !/^[1-5]$/.test(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "La limite invitée doit être comprise entre 1 et 5." });
+      if (input.key === "client.guestGlobalDailyLimit" && !/^[1-9][0-9]{0,3}$/.test(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "Le plafond global doit être compris entre 1 et 9999." });
       if (input.key !== "client.guestDailyLimit" && input.value !== "yes" && input.value !== "no") throw new TRPCError({ code: "BAD_REQUEST", message: "Valeur oui/non attendue." });
       await setAppSetting(input.key, input.value, ctx.user.id);
       await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", details: JSON.stringify({ kind: "settings-updated", key: input.key, value: input.value }) });
@@ -1029,6 +1044,8 @@ export const adminRouter = router({
   users: adminProcedure.query(async () => {
     return getAllUsers();
   }),
+
+  adminUsers: adminProcedure.query(async () => getAdminUsers()),
 
   updateRole: adminProcedure
     .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))
@@ -1212,6 +1229,15 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+  }),
+
+  editor: router({
+    project: protectedProcedure
+      .input(z.object({ thumbnailId: z.number().int().positive().optional() }).optional())
+      .query(async ({ ctx, input }) => getEditorProject(ctx.user.id, input?.thumbnailId)),
+    save: protectedProcedure
+      .input(z.object({ thumbnailId: z.number().int().positive().optional(), canvas: z.record(z.string(), z.unknown()) }))
+      .mutation(async ({ ctx, input }) => upsertEditorProject(ctx.user.id, input.thumbnailId, input.canvas)),
   }),
 
   // === Thumbnail Generation ===

@@ -46,6 +46,9 @@ import TemplateEditor from "./pages/TemplateEditor";
 import AbTest from "./pages/AbTest";
 import ShareAbTest from "./pages/ShareAbTest";
 import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminModels from "./pages/AdminModels";
+import AdminUsers from "./pages/AdminUsers";
 import BatchUpload from "./pages/BatchUpload";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppShell from "./components/AppShell";
@@ -131,7 +134,10 @@ function Router() {
       <Route path={"/ab-test"} component={AbTestRoute} />
       <Route path={"/share-ab/:token"} component={ShareAbTest} />
       <Route path={"/batch-upload"} component={BatchUploadRoute} />
-      <Route path={"/admin"} component={AdminRoute} />
+      <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/admin/models"} component={AdminModels} />
+      <Route path={"/admin/users"} component={AdminUsers} />
+      <Route path={"/admin/legacy"} component={AdminRoute} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

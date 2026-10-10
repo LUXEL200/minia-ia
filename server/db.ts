@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, publicGallery, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, templateCustomizations, imageVersions, abTests, abTestContributions, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger, InsertPublicGalleryItem } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, publicGallery, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, guestDemoUsage, editorProjects, templateCustomizations, imageVersions, abTests, abTestContributions, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger, InsertPublicGalleryItem } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
@@ -951,6 +951,13 @@ export async function getAllUsers() {
   return db.select().from(users).orderBy(desc(users.createdAt));
 }
 
+export async function getAdminUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(users).leftJoin(userCredits, eq(users.id, userCredits.userId)).orderBy(desc(users.createdAt));
+  return rows.map(({ users: user, userCredits: credits }) => ({ ...user, planType: credits?.planType ?? "free", credits: credits?.credits ?? 0 }));
+}
+
 export type AdminPermission = "reports.view" | "reports.schedule" | "users.support" | "users.revoke_sessions" | "monitoring.view" | "monitoring.manage";
 
 export async function getAdminAccess(userId: number) {
@@ -1514,4 +1521,47 @@ export async function setAppSetting(settingKey: string, settingValue: string, up
   await db.insert(appSettings).values({ settingKey, settingValue, updatedBy }).onDuplicateKeyUpdate({ set: { settingValue, updatedBy, updatedAt: new Date() } });
   const rows = await db.select().from(appSettings).where(eq(appSettings.settingKey, settingKey)).limit(1);
   return rows[0] ?? null;
+}
+
+/** Réserve une génération invitée dans MySQL, sans état mémoire de processus. */
+export async function consumeGuestDemoUsage(usageKey: string, limit: number, periodStart: Date) {
+  const db = await getDb();
+  if (!db || limit < 1) return { allowed: false, count: 0 };
+  const existing = (await db.select().from(guestDemoUsage).where(eq(guestDemoUsage.usageKey, usageKey)).limit(1))[0];
+  if (!existing || existing.periodStart.getTime() < periodStart.getTime()) {
+    await db.insert(guestDemoUsage).values({ usageKey, periodStart, count: 1 }).onDuplicateKeyUpdate({ set: { periodStart, count: 1, updatedAt: new Date() } });
+    return { allowed: true, count: 1 };
+  }
+  const result = await db.update(guestDemoUsage)
+    .set({ count: sql`${guestDemoUsage.count} + 1`, updatedAt: new Date() })
+    .where(and(eq(guestDemoUsage.usageKey, usageKey), lt(guestDemoUsage.count, limit), gte(guestDemoUsage.periodStart, periodStart)));
+  if (getAffectedRows(result) !== 1) return { allowed: false, count: existing.count };
+  return { allowed: true, count: existing.count + 1 };
+}
+
+export async function refundGuestDemoUsage(usageKey: string, periodStart: Date) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(guestDemoUsage)
+    .set({ count: sql`greatest(0, ${guestDemoUsage.count} - 1)`, updatedAt: new Date() })
+    .where(and(eq(guestDemoUsage.usageKey, usageKey), gte(guestDemoUsage.periodStart, periodStart)));
+}
+
+export async function getEditorProject(userId: number, thumbnailId?: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const conditions = [eq(editorProjects.userId, userId), thumbnailId ? eq(editorProjects.thumbnailId, thumbnailId) : sql`${editorProjects.thumbnailId} is null`];
+  return (await db.select().from(editorProjects).where(and(...conditions)).limit(1))[0];
+}
+
+export async function upsertEditorProject(userId: number, thumbnailId: number | undefined, canvas: unknown) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await getEditorProject(userId, thumbnailId);
+  if (existing) {
+    await db.update(editorProjects).set({ canvas: canvas as any, updatedAt: new Date() }).where(and(eq(editorProjects.id, existing.id), eq(editorProjects.userId, userId)));
+    return { id: existing.id, updatedAt: new Date() };
+  }
+  const [result] = await db.insert(editorProjects).values({ userId, thumbnailId, canvas: canvas as any });
+  return { id: Number(result.insertId), updatedAt: new Date() };
 }

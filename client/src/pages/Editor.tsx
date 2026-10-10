@@ -152,6 +152,8 @@ export default function Editor() {
   const { data: creditsData } = trpc.thumbnail.credits.useQuery();
   const isFreePlan = creditsData?.planType !== "pro" && creditsData?.planType !== "max";
   const { data: exportPolicy } = trpc.thumbnail.exportPolicy.useQuery();
+  const { data: serverProject } = trpc.editor.project.useQuery(thumbnailId > 0 ? { thumbnailId } : undefined);
+  const saveServerProject = trpc.editor.save.useMutation();
 
   const { data: versions } = trpc.imageVersions.list.useQuery(
     { thumbnailId },
@@ -603,6 +605,24 @@ export default function Editor() {
     }, 650);
     return () => window.clearTimeout(timer);
   }, [draftReady, draftKey, draftSnapshot]);
+
+  useEffect(() => {
+    if (!draftReady || draftAvailable || !serverProject?.canvas) return;
+    const remote = serverProject.canvas as Partial<EditorDraftSnapshot>;
+    if (!Array.isArray(remote.elements) || !remote.canvasSize) return;
+    applyDraftSnapshot(remote as EditorDraftSnapshot, false);
+  }, [draftReady, draftAvailable, serverProject?.canvas, applyDraftSnapshot]);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    const timer = window.setTimeout(() => {
+      saveServerProject.mutate(
+        { thumbnailId: thumbnailId > 0 ? thumbnailId : undefined, canvas: draftSnapshot as unknown as Record<string, unknown> },
+        { onSuccess: data => { if (data?.updatedAt) setLastSavedAt(new Date(data.updatedAt).getTime()); }, onError: () => setDraftStatus("error") },
+      );
+    }, 10_000);
+    return () => window.clearTimeout(timer);
+  }, [draftReady, draftSnapshot, thumbnailId]);
 
   const draftStatusLabel = draftStatus === "restoring"
     ? "Restauration…"
