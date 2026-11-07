@@ -10,6 +10,7 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  status: mysqlEnum("status", ["active", "suspended", "banned"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -263,9 +264,12 @@ export type InsertApiKey = typeof apiKeys.$inferInsert;
 export const adminAuditLogs = mysqlTable("adminAuditLogs", {
   id: int("id").autoincrement().primaryKey(),
   actorUserId: int("actorUserId").notNull(),
-  action: mysqlEnum("action", ["legacy_keys_revoked", "legacy_images_migrated", "users_notified", "credits_reset", "session_revoked"]).notNull(),
+  action: varchar("action", { length: 96 }).notNull(),
   targetUserId: int("targetUserId"),
   details: text("details"),
+  ipAddress: varchar("ipAddress", { length: 64 }),
+  beforeValue: text("beforeValue"),
+  afterValue: text("afterValue"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   createdAtIdx: index("admin_audit_created_idx").on(table.createdAt),
@@ -279,7 +283,7 @@ export type InsertAdminAuditLog = typeof adminAuditLogs.$inferInsert;
 export const adminAccess = mysqlTable("adminAccess", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
-  role: mysqlEnum("role", ["support", "analyst", "operator"]).notNull(),
+  role: mysqlEnum("role", ["admin", "moderator", "support", "analyst", "operator", "read_only"]).notNull(),
   permissions: json("permissions").notNull(),
   enabled: mysqlEnum("enabled", ["yes", "no"]).default("yes").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -288,6 +292,20 @@ export const adminAccess = mysqlTable("adminAccess", {
 
 export type AdminAccess = typeof adminAccess.$inferSelect;
 export type InsertAdminAccess = typeof adminAccess.$inferInsert;
+
+/** Secret TOTP chiffré côté serveur pour la double authentification admin. */
+export const adminTotp = mysqlTable("adminTotp", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  secretCipher: text("secretCipher").notNull(),
+  enabled: mysqlEnum("enabled", ["yes", "no"]).default("no").notNull(),
+  verifiedAt: timestamp("verifiedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({ userIdx: index("admin_totp_user_idx").on(table.userId) }));
+
+export type AdminTotp = typeof adminTotp.$inferSelect;
+export type InsertAdminTotp = typeof adminTotp.$inferInsert;
 
 /** User-managed recurring CSV/PDF reports delivered by email. */
 export const scheduledExports = mysqlTable("scheduledExports", {

@@ -6,6 +6,7 @@ vi.mock("./db", () => ({
   createTestimonial: vi.fn(),
   setTestimonialVerified: vi.fn(),
   deleteTestimonial: vi.fn(),
+  getAdminTotpStatus: vi.fn().mockResolvedValue({ configured: false, enabled: false, verifiedAt: null }),
 }));
 
 import {

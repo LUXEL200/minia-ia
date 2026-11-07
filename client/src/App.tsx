@@ -49,6 +49,8 @@ import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminModels from "./pages/AdminModels";
 import AdminUsers from "./pages/AdminUsers";
+import AdminAudit from "./pages/AdminAudit";
+import AdminSecurity from "./pages/AdminSecurity";
 import BatchUpload from "./pages/BatchUpload";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppShell from "./components/AppShell";
@@ -137,6 +139,8 @@ function Router() {
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/admin/models"} component={AdminModels} />
       <Route path={"/admin/users"} component={AdminUsers} />
+      <Route path={"/admin/audit"} component={AdminAudit} />
+      <Route path={"/admin/security"} component={AdminSecurity} />
       <Route path={"/admin/legacy"} component={AdminRoute} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

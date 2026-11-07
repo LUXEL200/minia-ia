@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lt, lte, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, publicGallery, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, scheduledExports, appSettings, guestDemoUsage, editorProjects, templateCustomizations, imageVersions, abTests, abTestContributions, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger, InsertPublicGalleryItem } from "../drizzle/schema";
+import { InsertUser, users, thumbnails, userCredits, creditLedger, InsertThumbnail, thumbnailLikes, teamMembers, teamTasks, favorites, templates, publicGallery, avatars, endCards, trashedThumbnails, apiKeys, notifications, adminAuditLogs, adminAccess, adminTotp, scheduledExports, appSettings, guestDemoUsage, editorProjects, templateCustomizations, imageVersions, abTests, abTestContributions, InsertTemplateCustomization, InsertImageVersion, InsertAbTest, organizations, teamInvitations, creditPackPurchases, InsertCreditPackPurchase, testimonials, InsertTestimonial, InsertCreditLedger, InsertPublicGalleryItem } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { notifyOwner } from "./_core/notification";
 import { createHash, randomBytes } from "node:crypto";
@@ -734,9 +734,12 @@ export async function migrateLegacyApiKeys() {
 
 export async function createAdminAuditLog(data: {
   actorUserId: number;
-  action: "legacy_keys_revoked" | "legacy_images_migrated" | "users_notified" | "credits_reset" | "session_revoked";
+  action: string;
   targetUserId?: number;
   details?: string;
+  ipAddress?: string;
+  beforeValue?: string;
+  afterValue?: string;
 }) {
   const db = await getDb();
   if (!db) return null;
@@ -748,6 +751,15 @@ export async function getAdminAuditLogs(limit = 100) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(adminAuditLogs).orderBy(desc(adminAuditLogs.createdAt)).limit(Math.min(limit, 250));
+}
+
+export async function searchAdminAuditLogs(options: { query?: string; action?: string; page?: number; pageSize?: number } = {}) {
+  const db = await getDb(); const page = Math.max(options.page ?? 1, 1); const pageSize = Math.min(Math.max(options.pageSize ?? 50, 10), 200);
+  if (!db) return { items: [], total: 0, page, pageSize };
+  const query = options.query?.trim();
+  const where = and(options.action && options.action !== "all" ? eq(adminAuditLogs.action, options.action) : undefined, query ? or(like(adminAuditLogs.action, `%${query}%`), like(adminAuditLogs.details, `%${query}%`)) : undefined);
+  const [items, totalRows] = await Promise.all([db.select().from(adminAuditLogs).where(where).orderBy(desc(adminAuditLogs.createdAt)).limit(pageSize).offset((page - 1) * pageSize), db.select({ total: sql<number>`count(*)` }).from(adminAuditLogs).where(where)]);
+  return { items, total: Number(totalRows[0]?.total ?? 0), page, pageSize };
 }
 
 // === Notifications ===
@@ -958,7 +970,22 @@ export async function getAdminUsers() {
   return rows.map(({ users: user, userCredits: credits }) => ({ ...user, planType: credits?.planType ?? "free", credits: credits?.credits ?? 0 }));
 }
 
-export type AdminPermission = "reports.view" | "reports.schedule" | "users.support" | "users.revoke_sessions" | "monitoring.view" | "monitoring.manage";
+export async function getAdminUsersPage(options: { query?: string; planType?: "free" | "pro" | "max"; status?: "active" | "suspended" | "banned"; page?: number; pageSize?: number } = {}) {
+  const db = await getDb(); const page = Math.max(options.page ?? 1, 1); const pageSize = Math.min(Math.max(options.pageSize ?? 25, 10), 100);
+  if (!db) return { items: [], total: 0, page, pageSize };
+  const query = options.query?.trim();
+  const where = and(options.planType ? eq(userCredits.planType, options.planType) : undefined, options.status ? eq(users.status, options.status) : undefined, query ? or(like(users.name, `%${query}%`), like(users.email, `%${query}%`)) : undefined);
+  const [rows, totals] = await Promise.all([db.select({ id: users.id, name: users.name, email: users.email, role: users.role, status: users.status, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn, planType: userCredits.planType, credits: userCredits.credits }).from(users).leftJoin(userCredits, eq(users.id, userCredits.userId)).where(where).orderBy(desc(users.createdAt)).limit(pageSize).offset((page - 1) * pageSize), db.select({ total: sql<number>`count(*)` }).from(users).leftJoin(userCredits, eq(users.id, userCredits.userId)).where(where)]);
+  return { items: rows.map(row => ({ ...row, planType: row.planType ?? "free", credits: row.credits ?? 0 })), total: Number(totals[0]?.total ?? 0), page, pageSize };
+}
+
+export async function setUserStatus(userId: number, status: "active" | "suspended" | "banned") {
+  const db = await getDb(); if (!db) return false;
+  const result = await db.update(users).set({ status, sessionRevokedAt: status === "active" ? null : new Date() }).where(eq(users.id, userId));
+  return getAffectedRows(result) === 1;
+}
+
+export type AdminPermission = "reports.view" | "reports.schedule" | "users.support" | "users.revoke_sessions" | "monitoring.view" | "monitoring.manage" | "dashboard.view" | "models.view" | "models.manage" | "users.view" | "users.manage" | "users.export" | "audit.view" | "audit.export" | "security.manage";
 
 export async function getAdminAccess(userId: number) {
   const db = await getDb();
@@ -975,7 +1002,7 @@ export async function listAdminAccess() {
   return db.select().from(adminAccess).orderBy(desc(adminAccess.updatedAt));
 }
 
-export async function upsertAdminAccess(userId: number, role: "support" | "analyst" | "operator", permissions: AdminPermission[]) {
+export async function upsertAdminAccess(userId: number, role: "admin" | "moderator" | "support" | "analyst" | "operator" | "read_only", permissions: AdminPermission[]) {
   const db = await getDb();
   if (!db) return false;
   const existing = await db.select({ id: adminAccess.id }).from(adminAccess).where(eq(adminAccess.userId, userId)).limit(1);
@@ -989,6 +1016,28 @@ export async function revokeAdminAccess(userId: number) {
   if (!db) return false;
   const result = await db.update(adminAccess).set({ enabled: "no" }).where(eq(adminAccess.userId, userId));
   return getAffectedRows(result) === 1;
+}
+
+export async function getAdminTotpStatus(userId: number) {
+  const db = await getDb(); if (!db) return { configured: false, enabled: false, verifiedAt: null };
+  const row = (await db.select({ enabled: adminTotp.enabled, verifiedAt: adminTotp.verifiedAt }).from(adminTotp).where(eq(adminTotp.userId, userId)).limit(1))[0];
+  return { configured: Boolean(row), enabled: row?.enabled === "yes", verifiedAt: row?.verifiedAt ?? null };
+}
+export async function getAdminTotpSecretCipher(userId: number) {
+  const db = await getDb(); if (!db) return null;
+  return (await db.select({ secretCipher: adminTotp.secretCipher }).from(adminTotp).where(eq(adminTotp.userId, userId)).limit(1))[0]?.secretCipher ?? null;
+}
+export async function saveAdminTotpSecret(userId: number, secretCipher: string) {
+  const db = await getDb(); if (!db) return false;
+  await db.insert(adminTotp).values({ userId, secretCipher, enabled: "no" }).onDuplicateKeyUpdate({ set: { secretCipher, enabled: "no", verifiedAt: null, updatedAt: new Date() } }); return true;
+}
+export async function enableAdminTotp(userId: number) {
+  const db = await getDb(); if (!db) return false;
+  await db.update(adminTotp).set({ enabled: "yes", verifiedAt: new Date(), updatedAt: new Date() }).where(eq(adminTotp.userId, userId)); return true;
+}
+export async function disableAdminTotp(userId: number) {
+  const db = await getDb(); if (!db) return false;
+  await db.update(adminTotp).set({ enabled: "no", updatedAt: new Date() }).where(eq(adminTotp.userId, userId)); return true;
 }
 
 export async function listScheduledExports(createdBy: number) {

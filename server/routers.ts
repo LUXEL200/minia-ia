@@ -115,6 +115,12 @@ import {
   migrateLegacyApiKeys,
   createAdminAuditLog,
   getAdminAuditLogs,
+  searchAdminAuditLogs,
+  getAdminTotpStatus,
+  getAdminTotpSecretCipher,
+  saveAdminTotpSecret,
+  enableAdminTotp,
+  disableAdminTotp,
   markNotificationRead,
   markAllNotificationsRead,
   getAdminStats,
@@ -130,6 +136,8 @@ import {
   upsertEditorProject,
   getAllUsers,
   getAdminUsers,
+  getAdminUsersPage,
+  setUserStatus,
   updateUserRole,
   updateUserCredits,
   updateUserPlan,
@@ -172,6 +180,7 @@ import {
   deleteTestimonial as dbDeleteTestimonial,
 } from "./db";
 import { adminProcedure } from "./_core/trpc";
+import { createAdminMfaCookie, decryptTotpSecret, encryptTotpSecret, generateTotpSecret, verifyTotpCode } from "./adminTotp";
 
 const DEFAULT_CLIENT_SETTINGS = {
   "client.guestDemoEnabled": "yes",
@@ -180,6 +189,13 @@ const DEFAULT_CLIENT_SETTINGS = {
   "client.generationEnabled": "yes",
   "client.batchEnabled": "yes",
   "client.freeWatermark": "yes",
+  "ai.defaultModel": "gpt-image-1",
+  "ai.proModel": "gpt-image-1",
+  "ai.maxModel": "gpt-image-1",
+  "ai.fallbackModel": "gpt-image-1-mini",
+  "ai.costPerCall": "0",
+  "ai.dailyCap": "1000",
+  "ai.monthlyCap": "30000",
 };
 
 function getGuestKey(req: { ip?: string | undefined; socket?: { remoteAddress?: string | undefined }; headers: Record<string, unknown> }) {
@@ -922,21 +938,43 @@ export const adminRouter = router({
   }),
   clientSettings: adminProcedure.query(async () => getClientSettings()),
   updateClientSetting: adminProcedure
-    .input(z.object({ key: z.enum(["client.guestDemoEnabled", "client.guestDailyLimit", "client.guestGlobalDailyLimit", "client.generationEnabled", "client.batchEnabled", "client.freeWatermark"]), value: z.string().max(32) }))
+    .input(z.object({ key: z.enum(["client.guestDemoEnabled", "client.guestDailyLimit", "client.guestGlobalDailyLimit", "client.generationEnabled", "client.batchEnabled", "client.freeWatermark", "ai.defaultModel", "ai.proModel", "ai.maxModel", "ai.fallbackModel", "ai.costPerCall", "ai.dailyCap", "ai.monthlyCap"]), value: z.string().max(32) }))
     .mutation(async ({ ctx, input }) => {
       if (input.key === "client.guestDailyLimit" && !/^[1-5]$/.test(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "La limite invitée doit être comprise entre 1 et 5." });
       if (input.key === "client.guestGlobalDailyLimit" && !/^[1-9][0-9]{0,3}$/.test(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "Le plafond global doit être compris entre 1 et 9999." });
-      if (input.key !== "client.guestDailyLimit" && input.value !== "yes" && input.value !== "no") throw new TRPCError({ code: "BAD_REQUEST", message: "Valeur oui/non attendue." });
+      if (input.key.startsWith("ai.") && input.key.endsWith("Cap") && !/^\d+$/.test(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "Un plafond numérique est attendu." });
+      if (input.key === "ai.costPerCall" && !/^\d+(\.\d{1,4})?$/.test(input.value)) throw new TRPCError({ code: "BAD_REQUEST", message: "Un coût numérique est attendu." });
+      if (input.key.startsWith("client.") && input.key !== "client.guestDailyLimit" && input.key !== "client.guestGlobalDailyLimit" && input.value !== "yes" && input.value !== "no") throw new TRPCError({ code: "BAD_REQUEST", message: "Valeur oui/non attendue." });
       await setAppSetting(input.key, input.value, ctx.user.id);
       await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", details: JSON.stringify({ kind: "settings-updated", key: input.key, value: input.value }) });
       return { success: true } as const;
     }),
   auditLogs: adminProcedure.query(async () => getAdminAuditLogs()),
+  auditSearch: adminPermission("audit.view").input(z.object({ query: z.string().max(120).optional(), action: z.string().max(96).optional(), page: z.number().int().min(1).default(1), pageSize: z.number().int().min(10).max(200).default(50) })).query(async ({ input }) => searchAdminAuditLogs(input)),
+
+  totpStatus: adminProcedure.query(async ({ ctx }) => getAdminTotpStatus(ctx.user.id)),
+  totpEnroll: adminProcedure.mutation(async ({ ctx }) => {
+    const secret = generateTotpSecret(); await saveAdminTotpSecret(ctx.user.id, encryptTotpSecret(secret));
+    const account = ctx.user.email || ctx.user.name || "admin";
+    return { secret, otpauth: `otpauth://totp/Minia%20IA:${encodeURIComponent(account)}?secret=${secret}&issuer=Minia%20IA` } as const;
+  }),
+  totpVerify: adminProcedure.input(z.object({ code: z.string().regex(/^\d{6}$/) })).mutation(async ({ ctx, input }) => {
+    const cipher = await getAdminTotpSecretCipher(ctx.user.id);
+    if (!cipher || !verifyTotpCode(decryptTotpSecret(cipher), input.code)) throw new TRPCError({ code: "BAD_REQUEST", message: "Code TOTP invalide." });
+    await enableAdminTotp(ctx.user.id); ctx.res.cookie("minia_admin_mfa", createAdminMfaCookie(ctx.user.id), { ...getSessionCookieOptions(ctx.req), maxAge: 8 * 60 * 60 * 1000 });
+    await createAdminAuditLog({ actorUserId: ctx.user.id, action: "totp_enabled", details: "MFA TOTP activée" }); return { success: true } as const;
+  }),
+  totpDisable: adminProcedure.input(z.object({ code: z.string().regex(/^\d{6}$/) })).mutation(async ({ ctx, input }) => {
+    const cipher = await getAdminTotpSecretCipher(ctx.user.id);
+    if (!cipher || !verifyTotpCode(decryptTotpSecret(cipher), input.code)) throw new TRPCError({ code: "BAD_REQUEST", message: "Code TOTP invalide." });
+    await disableAdminTotp(ctx.user.id); ctx.res.clearCookie("minia_admin_mfa", getSessionCookieOptions(ctx.req));
+    await createAdminAuditLog({ actorUserId: ctx.user.id, action: "totp_disabled", details: "MFA TOTP désactivée" }); return { success: true } as const;
+  }),
 
   secondaryAccess: adminProcedure.query(async () => listAdminAccess()),
 
   grantSecondaryAccess: adminProcedure
-    .input(z.object({ userId: z.number().int().positive(), role: z.enum(["support", "analyst", "operator"]), permissions: z.array(z.enum(["reports.view", "reports.schedule", "users.support", "users.revoke_sessions", "monitoring.view", "monitoring.manage"])).max(10) }))
+    .input(z.object({ userId: z.number().int().positive(), role: z.enum(["admin", "moderator", "support", "analyst", "operator", "read_only"]), permissions: z.array(z.enum(["reports.view", "reports.schedule", "users.support", "users.revoke_sessions", "monitoring.view", "monitoring.manage", "dashboard.view", "models.view", "models.manage", "users.view", "users.manage", "users.export", "audit.view", "audit.export", "security.manage"])).max(20) }))
     .mutation(async ({ ctx, input }) => {
       await upsertAdminAccess(input.userId, input.role, input.permissions);
       await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", targetUserId: input.userId, details: JSON.stringify({ kind: "admin-access-granted", role: input.role, permissions: input.permissions }) });
@@ -1045,7 +1083,12 @@ export const adminRouter = router({
     return getAllUsers();
   }),
 
-  adminUsers: adminProcedure.query(async () => getAdminUsers()),
+  adminUsers: adminPermission("users.view").input(z.object({ query: z.string().max(120).optional(), planType: z.enum(["free", "pro", "max"]).optional(), status: z.enum(["active", "suspended", "banned"]).optional(), page: z.number().int().min(1).default(1), pageSize: z.number().int().min(10).max(100).default(25) }).optional()).query(async ({ input }) => getAdminUsersPage(input ?? {})),
+  setUserStatus: adminPermission("users.manage").input(z.object({ userId: z.number().int().positive(), status: z.enum(["active", "suspended", "banned"]) })).mutation(async ({ ctx, input }) => {
+    const success = await setUserStatus(input.userId, input.status);
+    if (!success) throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur introuvable" });
+    await createAdminAuditLog({ actorUserId: ctx.user.id, targetUserId: input.userId, action: "user_status_changed", afterValue: input.status }); return { success: true } as const;
+  }),
 
   updateRole: adminProcedure
     .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))

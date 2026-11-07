@@ -1,6 +1,6 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Users, Bot, ShieldCheck, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Users, Bot, ShieldCheck, ArrowLeft, FileClock, LockKeyhole } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import BearState from "@/components/BearState";
@@ -9,17 +9,24 @@ const links = [
   { href: "/admin", label: "Dashboard général", icon: LayoutDashboard },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/models", label: "Modèles IA & API", icon: Bot },
+  { href: "/admin/audit", label: "Journal d’audit", icon: FileClock },
+  { href: "/admin/security", label: "Sécurité & TOTP", icon: LockKeyhole },
 ];
 
 export default function AdminShell({ children, title }: { children: ReactNode; title: string }) {
   const { user, loading, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+  const [searchOpen, setSearchOpen] = useState(false);
   const { data: access, isLoading: accessLoading } = trpc.admin.accessMe.useQuery(undefined, { enabled: !loading && isAuthenticated });
   const allowed = user?.isAdminOwner === true || access?.enabled === true;
 
   useEffect(() => {
     if (!loading && !accessLoading && isAuthenticated && !allowed) navigate("/dashboard");
   }, [loading, accessLoading, isAuthenticated, allowed, navigate]);
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true); } };
+    window.addEventListener("keydown", onShortcut); return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
 
   if (loading || accessLoading) return <div className="min-h-screen bg-[#07111f] flex items-center justify-center p-6"><BearState title="Ouverture du centre admin" description="Vérification des permissions…" /></div>;
   if (!isAuthenticated) return <div className="min-h-screen bg-[#07111f] flex items-center justify-center p-6"><BearState title="Connexion requise" description="Connecte-toi pour accéder au Super Admin." /></div>;
@@ -43,8 +50,9 @@ export default function AdminShell({ children, title }: { children: ReactNode; t
         <div className="mx-4 mt-3 hidden rounded-xl border border-orange-400/20 bg-orange-400/10 p-3 text-xs text-orange-100 md:block"><ShieldCheck className="mb-2 h-4 w-4" /><p>Accès protégé côté serveur. Stripe reste non connecté.</p></div>
       </aside>
       <main className="min-w-0 flex-1 md:ml-64">
-        <header className="sticky top-0 z-10 border-b border-white/10 bg-[#07111f]/90 px-4 py-4 backdrop-blur md:px-8"><p className="text-xs text-slate-500">Super Admin / {title}</p><h1 className="mt-1 text-xl font-semibold text-white">{title}</h1></header>
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#07111f]/90 px-4 py-4 backdrop-blur md:px-8"><div><p className="text-xs text-slate-500">Super Admin / {title}</p><h1 className="mt-1 text-xl font-semibold text-white">{title}</h1></div><button onClick={() => setSearchOpen(true)} className="rounded-xl border border-white/10 px-3 py-2 text-xs text-slate-300 hover:bg-white/10">Rechercher <kbd className="ml-2 rounded bg-white/10 px-1.5 py-0.5">Ctrl K</kbd></button></header>
         <div className="p-4 md:p-8">{children}</div>
+        {searchOpen && <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-[12vh]" onClick={() => setSearchOpen(false)}><div className="w-full max-w-xl rounded-2xl border border-white/10 bg-[#0d1b2e] p-4 shadow-2xl" onClick={event => event.stopPropagation()}><input autoFocus placeholder="Rechercher un module admin…" className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-orange-300/60" onKeyDown={event => { const item = links.find(link => link.label.toLowerCase().includes((event.currentTarget.value || "").toLowerCase())); if (event.key === "Enter" && item) { setSearchOpen(false); navigate(item.href); } if (event.key === "Escape") setSearchOpen(false); }} /><div className="mt-3 grid gap-1 sm:grid-cols-2">{links.map(link => <button key={link.href} onClick={() => { setSearchOpen(false); navigate(link.href); }} className="rounded-lg px-3 py-2 text-left text-sm text-slate-300 hover:bg-white/10">{link.label}</button>)}</div></div></div>}
       </main>
     </div>
   );
