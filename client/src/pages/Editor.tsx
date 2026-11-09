@@ -42,6 +42,12 @@ interface EditorTextElement {
   fontFamily?: string;
   letterSpacing?: number;
   lineHeight?: number;
+  paragraphSpacing?: number;
+  paragraphStyle?: "plain" | "bullet" | "numbered";
+  indent?: number;
+  textEffect?: "none" | "outline" | "shadow" | "glow" | "texture" | "blend";
+  effectColor?: string;
+  effectIntensity?: number;
   rotation?: number;
   visible?: boolean;
   locked?: boolean;
@@ -78,6 +84,8 @@ interface EditorImageElement {
   brightness?: number;
   contrast?: number;
   saturation?: number;
+  source?: "generated" | "uploaded";
+  layerName?: string;
 }
 
 type EditorElement = EditorTextElement | EditorShapeElement | EditorImageElement;
@@ -108,6 +116,8 @@ export default function Editor() {
       return raw;
     }
   });
+  const initialImageUrlRef = useRef<string | null>(null);
+  const generatedLayerImportedRef = useRef(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [showLayersPanel, setShowLayersPanel] = useState(true);
@@ -283,6 +293,12 @@ export default function Editor() {
       width: 300,
       fontFamily: "Arial",
       lineHeight: 1.2,
+      paragraphSpacing: 0,
+      paragraphStyle: "plain",
+      indent: 0,
+      textEffect: "none",
+      effectColor: "#000000",
+      effectIntensity: 0.55,
       letterSpacing: 0,
     };
     const newElements = [...elements, el];
@@ -865,6 +881,44 @@ export default function Editor() {
   // ===== Drag & drop images onto the canvas =====
   const [dragOver, setDragOver] = useState(false);
 
+  const insertImageUrlAsLayer = useCallback((url: string, source: "generated" | "uploaded" = "uploaded", layerName = "Image") => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(canvasSize.w / img.width, canvasSize.h / img.height, 1);
+      const width = Math.max(40, Math.round(img.width * scale));
+      const height = Math.max(40, Math.round(img.height * scale));
+      const el: EditorImageElement = {
+        id: `${source}-image-${Date.now()}`,
+        type: "image",
+        url,
+        x: Math.round((canvasSize.w - width) / 2),
+        y: Math.round((canvasSize.h - height) / 2),
+        width,
+        height,
+        opacity: 1,
+        borderRadius: 0,
+        source,
+        layerName,
+      };
+      const next = [...elements, el];
+      setElements(next);
+      pushHistory(next);
+      setSelectedId(el.id);
+      toast.success(source === "generated" ? "Génération importée comme calque éditable" : "Image importée comme calque");
+    };
+    img.onerror = () => toast.error("Image illisible");
+    img.src = url;
+  }, [canvasSize, elements, pushHistory]);
+
+  useEffect(() => {
+    const url = bgImageUrl;
+    if (!url || generatedLayerImportedRef.current) return;
+    generatedLayerImportedRef.current = true;
+    initialImageUrlRef.current = url;
+    insertImageUrlAsLayer(url, "generated", "Génération principale");
+    setBgImageUrl(null);
+  }, [bgImageUrl, insertImageUrlAsLayer]);
+
   const handleDropImage = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Fichier non supporté — glisse une image (PNG, JPG, WEBP)");
@@ -881,37 +935,13 @@ export default function Editor() {
       img.onload = () => {
         const cw = canvasSize.w;
         const ch = canvasSize.h;
-        // If there is already a background, insert as a framed layer; otherwise set as background
-        if (bgImageUrl) {
-          const scale = Math.min(cw / img.width, ch / img.height, 1);
-          const w = Math.round(img.width * scale);
-          const h = Math.round(img.height * scale);
-          const el: EditorImageElement = {
-            id: `img-${Date.now()}`,
-            type: "image",
-            url,
-            x: Math.round((cw - w) / 2),
-            y: Math.round((ch - h) / 2),
-            width: w,
-            height: h,
-            opacity: 1,
-            borderRadius: 0,
-          };
-          const newElements = [...elements, el];
-          setElements(newElements);
-          pushHistory(newElements);
-          setSelectedId(el.id);
-          toast.success("Image insérée comme calque — déplace-la librement");
-        } else {
-          setBgImageUrl(url);
-          toast.success("Image de fond ajoutée !");
-        }
+        insertImageUrlAsLayer(url, "uploaded", "Image importée");
       };
       img.onerror = () => toast.error("Image illisible");
       img.src = url;
     };
     reader.readAsDataURL(file);
-  }, [canvasSize, bgImageUrl, elements, pushHistory]);
+  }, [insertImageUrlAsLayer]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     if (Array.from(e.dataTransfer.types).includes("Files")) {
@@ -1007,6 +1037,8 @@ export default function Editor() {
             height: h,
             opacity: 1,
             borderRadius: 0,
+            source: "uploaded",
+            layerName: "Image importée",
           };
           const newElements = [...elements, el];
           setElements(newElements);
@@ -1333,7 +1365,7 @@ export default function Editor() {
   const renderLayersPanel = () => (
     <aside className="w-60 shrink-0 border-l border-border bg-background flex flex-col min-h-0">
       <div className="flex items-center justify-between border-b border-border px-3 py-3"><div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Calques</p><p className="text-xs text-foreground">{elements.length} élément{elements.length > 1 ? "s" : ""}</p></div><button onClick={() => setShowLayersPanel(false)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Masquer les calques"><PanelRight className="h-4 w-4" /></button></div>
-      <div className="flex-1 overflow-y-auto p-2">{[...elements].reverse().map((el, reverseIndex) => { const label = el.type === "text" ? (el.text || "Texte") : el.type === "image" ? "Image" : (el.shape === "rect" ? "Rectangle" : el.shape === "circle" ? "Cercle" : "Triangle"); return <div key={el.id} className={`group flex items-center gap-1.5 rounded-lg border px-2 py-2 ${selectedId === el.id ? "border-orange-400/60 bg-orange-400/10" : "border-transparent hover:border-border hover:bg-muted/50"}`}><button onClick={() => toggleElementFlag(el.id, "visible")} className="shrink-0 text-muted-foreground hover:text-foreground" title={el.visible === false ? "Afficher" : "Masquer"}>{el.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button><button onClick={() => setSelectedId(el.id)} className="min-w-0 flex-1 truncate text-left text-xs text-foreground">{label}</button><button onClick={() => toggleElementFlag(el.id, "locked")} className="shrink-0 text-muted-foreground hover:text-orange-300" title={el.locked ? "Déverrouiller" : "Verrouiller"}>{el.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}</button><button onClick={() => moveLayer(el.id, reverseIndex === 0 ? "down" : "up")} className="hidden shrink-0 text-[10px] text-muted-foreground group-hover:inline" title="Réordonner">↕</button></div>; })}{elements.length === 0 && <p className="px-2 py-8 text-center text-xs text-muted-foreground">Ajoute du texte, une forme ou une image pour commencer.</p>}</div>
+      <div className="flex-1 overflow-y-auto p-2">{[...elements].reverse().map((el, reverseIndex) => { const label = el.type === "text" ? (el.text || "Texte") : el.type === "image" ? ((el as EditorImageElement).layerName || ((el as EditorImageElement).source === "generated" ? "Génération" : "Image")) : (el.shape === "rect" ? "Rectangle" : el.shape === "circle" ? "Cercle" : "Triangle"); return <div key={el.id} className={`group flex items-center gap-1.5 rounded-lg border px-2 py-2 ${selectedId === el.id ? "border-orange-400/60 bg-orange-400/10" : "border-transparent hover:border-border hover:bg-muted/50"}`}><button onClick={() => toggleElementFlag(el.id, "visible")} className="shrink-0 text-muted-foreground hover:text-foreground" title={el.visible === false ? "Afficher" : "Masquer"}>{el.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button><button onClick={() => setSelectedId(el.id)} className="min-w-0 flex-1 truncate text-left text-xs text-foreground">{label}</button><button onClick={() => toggleElementFlag(el.id, "locked")} className="shrink-0 text-muted-foreground hover:text-orange-300" title={el.locked ? "Déverrouiller" : "Verrouiller"}>{el.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}</button><button onClick={() => moveLayer(el.id, reverseIndex === 0 ? "down" : "up")} className="hidden shrink-0 text-[10px] text-muted-foreground group-hover:inline" title="Réordonner">↕</button></div>; })}{elements.length === 0 && <p className="px-2 py-8 text-center text-xs text-muted-foreground">Ajoute du texte, une forme ou une image pour commencer.</p>}</div>
       {selectedElement && <div className="grid grid-cols-3 gap-1 border-t border-border p-2"><button onClick={duplicateSelected} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Dupliquer"><Copy className="mx-auto h-3.5 w-3.5" /></button><button onClick={deleteSelected} className="rounded-md bg-muted px-2 py-2 text-red-300 hover:bg-red-500/10" title="Supprimer"><Trash2 className="mx-auto h-3.5 w-3.5" /></button><button onClick={() => setShowLayersPanel(false)} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Fermer"><X className="mx-auto h-3.5 w-3.5" /></button></div>}
     </aside>
   );
@@ -1341,7 +1373,7 @@ export default function Editor() {
   const renderContextToolbar = () => {
     if (!selectedElement) return <div className="flex h-11 items-center gap-2 border-b border-border bg-card px-3 text-[11px] text-muted-foreground"><Move className="h-3.5 w-3.5 text-orange-300" /> Sélectionne un élément pour afficher ses propriétés</div>;
     if (selectedElement.type === "text") { const text = selectedElement as EditorTextElement; return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">Texte</span><select value={text.fontFamily ?? "Arial"} onChange={e => commitElementUpdate(text.id, { fontFamily: e.target.value })} className="rounded-md border border-border bg-background px-2 py-1 text-xs"><option>Arial</option><option>Inter</option><option>Montserrat</option><option>Poppins</option><option>Roboto</option><option>Impact</option><option>Anton</option><option>Bebas Neue</option><option>Oswald</option><option>Georgia</option><option>Trebuchet MS</option></select><input type="number" min="12" max="180" value={text.fontSize} onChange={e => commitElementUpdate(text.id, { fontSize: Number(e.target.value) })} className="w-16 rounded-md border border-border bg-background px-2 py-1 text-xs" /><button onClick={() => commitElementUpdate(text.id, { fontWeight: text.fontWeight === "bold" ? "normal" : "bold" })} className={`rounded-md p-1.5 ${text.fontWeight === "bold" ? "bg-orange-400/20 text-orange-300" : "text-muted-foreground"}`}><Bold className="h-3.5 w-3.5" /></button><button onClick={() => commitElementUpdate(text.id, { fontStyle: text.fontStyle === "italic" ? "normal" : "italic" })} className={`rounded-md p-1.5 ${text.fontStyle === "italic" ? "bg-orange-400/20 text-orange-300" : "text-muted-foreground"}`}><Italic className="h-3.5 w-3.5" /></button><input type="color" value={text.color} onChange={e => commitElementUpdate(text.id, { color: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button><button onClick={() => setEditingTextId(text.id)} className="rounded-md bg-orange-400/15 px-2 py-1 text-xs text-orange-200">Éditer le texte</button></div>; }
-    if (selectedElement.type === "image") { const image = selectedElement as EditorImageElement; return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">Image</span><button onClick={() => fitImageLayer("contain")} className="rounded-md bg-muted px-2 py-1 text-xs text-foreground">Contenir</button><button onClick={() => fitImageLayer("cover")} className="rounded-md bg-muted px-2 py-1 text-xs text-foreground">Couvrir</button><label className="flex items-center gap-1 text-xs text-muted-foreground">Saturation <input type="range" min="0" max="200" value={(image.saturation ?? 1) * 100} onChange={e => commitElementUpdate(image.id, { saturation: Number(e.target.value) / 100 })} className="w-20 accent-orange-400" /></label><label className="flex items-center gap-1 text-xs text-muted-foreground">Contraste <input type="range" min="0" max="200" value={(image.contrast ?? 1) * 100} onChange={e => commitElementUpdate(image.id, { contrast: Number(e.target.value) / 100 })} className="w-20 accent-orange-400" /></label><button onClick={() => commitElementUpdate(image.id, { rotation: (image.rotation ?? 0) + 90 })} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Rotation 90 degrés"><RotateCw className="h-3.5 w-3.5" /></button><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button></div>; }
+    if (selectedElement.type === "image") { const image = selectedElement as EditorImageElement; return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">{image.source === "generated" ? "Génération / calque" : "Image"}</span><button onClick={() => fitImageLayer("contain")} className="rounded-md bg-muted px-2 py-1 text-xs text-foreground">Contenir</button><button onClick={() => fitImageLayer("cover")} className="rounded-md bg-muted px-2 py-1 text-xs text-foreground">Couvrir</button><label className="flex items-center gap-1 text-xs text-muted-foreground">Saturation <input type="range" min="0" max="200" value={(image.saturation ?? 1) * 100} onChange={e => commitElementUpdate(image.id, { saturation: Number(e.target.value) / 100 })} className="w-20 accent-orange-400" /></label><label className="flex items-center gap-1 text-xs text-muted-foreground">Contraste <input type="range" min="0" max="200" value={(image.contrast ?? 1) * 100} onChange={e => commitElementUpdate(image.id, { contrast: Number(e.target.value) / 100 })} className="w-20 accent-orange-400" /></label><button onClick={() => commitElementUpdate(image.id, { rotation: (image.rotation ?? 0) + 90 })} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Rotation 90 degrés"><RotateCw className="h-3.5 w-3.5" /></button><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button></div>; }
     return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">Forme</span><input type="color" value={selectedElement.color} onChange={e => commitElementUpdate(selectedElement.id, { color: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><input type="range" min="0" max="100" value={selectedElement.opacity * 100} onChange={e => commitElementUpdate(selectedElement.id, { opacity: Number(e.target.value) / 100 })} className="w-24 accent-orange-400" /><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button><button onClick={() => alignSelected("y")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer verticalement"><AlignVerticalJustifyCenter className="h-3.5 w-3.5" /></button></div>;
   };
 
@@ -1362,6 +1394,18 @@ export default function Editor() {
                 className="w-full px-2 py-1.5 rounded-lg bg-[#1a1a1a] border border-border text-white text-xs outline-none"
                 rows={2}
               />
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Effet de police</label>
+              <select value={(selectedElement as EditorTextElement).textEffect ?? "none"} onChange={e => updateElement(selectedElement.id, { textEffect: e.target.value })} className="w-full rounded-lg bg-background border border-border text-xs px-2 py-1.5">
+                <option value="none">Aucun</option><option value="outline">Contour</option><option value="shadow">Ombre</option><option value="glow">Glow</option><option value="texture">Texture</option><option value="blend">Mélange dégradé</option>
+              </select>
+              <div className="mt-2 flex items-center gap-2"><input type="color" value={(selectedElement as EditorTextElement).effectColor ?? "#000000"} onChange={e => updateElement(selectedElement.id, { effectColor: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><label className="flex-1 text-[10px] text-muted-foreground">Intensité<input type="range" min="0" max="100" value={((selectedElement as EditorTextElement).effectIntensity ?? .55) * 100} onChange={e => updateElement(selectedElement.id, { effectIntensity: Number(e.target.value) / 100 })} className="w-full accent-orange-400" /></label></div>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground mb-1 block">Paragraphe</label>
+              <div className="grid grid-cols-2 gap-1.5"><select value={(selectedElement as EditorTextElement).paragraphStyle ?? "plain"} onChange={e => updateElement(selectedElement.id, { paragraphStyle: e.target.value })} className="rounded-lg bg-background border border-border text-xs px-2 py-1.5"><option value="plain">Normal</option><option value="bullet">Liste à puces</option><option value="numbered">Liste numérotée</option></select><input type="number" min="0" max="48" value={(selectedElement as EditorTextElement).paragraphSpacing ?? 0} onChange={e => updateElement(selectedElement.id, { paragraphSpacing: Number(e.target.value) })} className="rounded-lg bg-background border border-border text-xs px-2 py-1.5" placeholder="Espacement" /></div>
+              <div className="mt-2 flex gap-1"><button onClick={() => updateElement(selectedElement.id, { align: "left" })} className="flex-1 rounded bg-muted px-2 py-1 text-xs">Gauche</button><button onClick={() => updateElement(selectedElement.id, { align: "center" })} className="flex-1 rounded bg-muted px-2 py-1 text-xs">Centre</button><button onClick={() => updateElement(selectedElement.id, { align: "right" })} className="flex-1 rounded bg-muted px-2 py-1 text-xs">Droite</button></div>
             </div>
             <div>
               <label className="text-[10px] text-muted-foreground mb-1 block">Taille police</label>
@@ -1582,13 +1626,21 @@ export default function Editor() {
             outline: isSelected ? "2px solid #F97316" : "none",
             outlineOffset: 2,
             userSelect: "none",
-            lineHeight: 1.2,
+            lineHeight: el.lineHeight ?? 1.2,
+            whiteSpace: "pre-wrap",
+            paddingLeft: el.indent ?? 0,
+            textShadow: el.textEffect === "shadow" ? `2px 2px ${Math.max(1, (el.effectIntensity ?? .55) * 8)}px ${el.effectColor ?? "#000"}` : el.textEffect === "glow" ? `0 0 ${Math.max(4, (el.effectIntensity ?? .55) * 18)}px ${el.effectColor ?? el.color}` : undefined,
+            WebkitTextStroke: el.textEffect === "outline" ? `${Math.max(1, (el.effectIntensity ?? .55) * 3)}px ${el.effectColor ?? "#000"}` : undefined,
+            backgroundImage: el.textEffect === "texture" ? "repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,.28) 5px 7px)" : el.textEffect === "blend" ? `linear-gradient(90deg, ${el.color}, ${el.effectColor ?? "#F97316"})` : undefined,
+            backgroundClip: el.textEffect === "texture" || el.textEffect === "blend" ? "text" : undefined,
+            WebkitBackgroundClip: el.textEffect === "texture" || el.textEffect === "blend" ? "text" : undefined,
+            WebkitTextFillColor: el.textEffect === "texture" || el.textEffect === "blend" ? "transparent" : undefined,
           }}
           className="editable-text"
           contentEditable={!isDragging && editingTextId === el.id}
           suppressContentEditableWarning
         >
-          {el.text}
+          {el.paragraphStyle === "bullet" ? el.text.split("\n").map((line, index) => <div key={`${el.id}-bullet-${index}`} style={{ marginBottom: el.paragraphSpacing ?? 0 }}>• {line}</div>) : el.paragraphStyle === "numbered" ? el.text.split("\n").map((line, index) => <div key={`${el.id}-number-${index}`} style={{ marginBottom: el.paragraphSpacing ?? 0 }}>{index + 1}. {line}</div>) : el.text}
         </div>
       );
     }

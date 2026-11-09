@@ -31,4 +31,16 @@ describe("Canvas P1 interaction contract", () => {
     expect(editor).toContain("YouTube");
     expect(editor).toContain("Bebas Neue");
   });
+
+  it("imports generated images as editable layers and exposes typography effects", () => {
+    expect(editor).toContain("insertImageUrlAsLayer");
+    expect(editor).toContain('source: "generated"');
+    expect(editor).toContain("Génération / calque");
+    expect(editor).toContain("textEffect");
+    expect(editor).toContain('value="texture"');
+    expect(editor).toContain('value="blend"');
+    expect(editor).toContain("paragraphStyle");
+    expect(editor).toContain('value="bullet"');
+    expect(editor).toContain('value="numbered"');
+  });
 });
