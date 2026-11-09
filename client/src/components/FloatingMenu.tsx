@@ -1,5 +1,5 @@
 /**
- * FloatingMenu — bouton hamburger fixe en haut à droite de l'écran.
+ * FloatingMenu — bouton hamburger fixe en haut à gauche de l'écran.
  * Présent uniquement dans AppShell sur les pages privées pour éviter les allers-retours :
  * il ouvre la sidebar complète avec
  * tous les sous-menus (AppSidebar partagé).
@@ -38,7 +38,7 @@ export default function FloatingMenu({ pageLabel = "Minia IA" }: { pageLabel?: s
         onMouseEnter={() => setCollapsed(false)}
         aria-label="Ouvrir le menu"
         title="Menu"
-        className={`fixed top-3 right-3 z-[80] flex items-center justify-center rounded-full backdrop-blur shadow-lg transition-all duration-300 ${
+        className={`fixed top-3 left-3 z-[80] flex items-center justify-center rounded-full backdrop-blur shadow-lg transition-all duration-300 ${
           open ? "opacity-0 pointer-events-none" : ""
         } ${
           isLight
