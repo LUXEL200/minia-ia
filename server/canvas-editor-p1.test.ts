@@ -17,6 +17,9 @@ describe("Canvas P1 interaction contract", () => {
     expect(editor).toContain("toggleElementFlag(el.id, \"visible\")");
     expect(editor).toContain("toggleElementFlag(el.id, \"locked\")");
     expect(editor).toContain("duplicateSelected");
+    expect(editor).toContain("handleRotateMouseDown");
+    expect(editor).toContain("alignmentGuides");
+    expect(editor).toContain("snapElementPosition");
   });
 
   it("keeps image adjustments and both export formats", () => {
@@ -25,5 +28,7 @@ describe("Canvas P1 interaction contract", () => {
     expect(editor).toContain("const exportJpeg");
     expect(editor).toContain("toJpeg");
     expect(editor).toContain("exportCanvas");
+    expect(editor).toContain("YouTube");
+    expect(editor).toContain("Bebas Neue");
   });
 });

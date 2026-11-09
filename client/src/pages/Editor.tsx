@@ -158,6 +158,8 @@ export default function Editor() {
   const previewCanvasRef = useRef<HTMLDivElement>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragElStart, setDragElStart] = useState({ x: 0, y: 0 });
+  const [rotationStart, setRotationStart] = useState<{ centerX: number; centerY: number; angle: number; rotation: number } | null>(null);
+  const [alignmentGuides, setAlignmentGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] });
 
   // === Versions panel ===
   const thumbnailId = Number(new URLSearchParams(search).get("thumbnailId") || "0");
@@ -279,6 +281,9 @@ export default function Editor() {
       color: "#FFFFFF",
       bgTransparent: true,
       width: 300,
+      fontFamily: "Arial",
+      lineHeight: 1.2,
+      letterSpacing: 0,
     };
     const newElements = [...elements, el];
     setElements(newElements);
@@ -382,10 +387,23 @@ export default function Editor() {
     e.preventDefault();
     if (!selectedId) return;
     const el = elements.find(x => x.id === selectedId);
-    if (!el) return;
+    if (!el || el.locked) return;
     setResizeHandle(dir);
     const h = (el.type === "text" ? Math.max(40, el.fontSize ?? 32) : (el.height ?? 0));
     setResizeStart({ clientX: e.clientX, clientY: e.clientY, x: el.x, y: el.y, w: el.width, h });
+  };
+
+  const handleRotateMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!selectedId || !canvasRef.current) return;
+    const el = elements.find(item => item.id === selectedId);
+    if (!el || el.locked) return;
+    const height = el.type === "text" ? Math.max(40, el.fontSize) : el.height;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const centerX = rect.left + (el.x + el.width / 2) * effectiveZoom;
+    const centerY = rect.top + (el.y + height / 2) * effectiveZoom;
+    setRotationStart({ centerX, centerY, angle: Math.atan2(e.clientY - centerY, e.clientX - centerX), rotation: el.rotation ?? 0 });
   };
 
   const RESIZE_DIRS: ResizeDir[] = ["nw", "n", "ne", "w", "e", "sw", "s", "se"];
@@ -401,6 +419,13 @@ export default function Editor() {
         className="absolute pointer-events-none z-10"
         style={{ left: el.x, top: el.y, width: isText ? el.width : el.width, height: isText ? Math.max(40, el.fontSize ?? 32) : el.height ?? 0 }}
       >
+        <div
+          className="pointer-events-auto absolute left-1/2 -top-8 h-5 w-5 -translate-x-1/2 cursor-crosshair rounded-full border-2 border-white bg-orange-500 shadow-lg"
+          onMouseDown={handleRotateMouseDown}
+          title="Faire pivoter"
+          aria-label="Faire pivoter l’élément sélectionné"
+        ><RotateCw className="h-full w-full p-0.5 text-white" /></div>
+        <div className="absolute left-1/2 -top-3 h-3 w-px -translate-x-1/2 bg-orange-400" />
         {RESIZE_DIRS.map(dir => {
           if (isText && dir !== "e" && dir !== "w") return null;
           const pos: Record<ResizeDir, React.CSSProperties> = {
@@ -470,9 +495,34 @@ export default function Editor() {
     if (!isNarrow || !containerWidth) return zoom;
     return getCanvasFitZoom(containerWidth, canvasSize.w, zoom);
   }, [isNarrow, containerWidth, zoom, canvasSize.w]);
+
+  const snapElementPosition = (el: EditorElement, rawX: number, rawY: number) => {
+    const height = el.type === "text" ? Math.max(40, el.fontSize) : el.height;
+    const candidatesX = [0, canvasSize.w / 2 - el.width / 2, canvasSize.w - el.width];
+    const candidatesY = [0, canvasSize.h / 2 - height / 2, canvasSize.h - height];
+    elements.filter(other => other.id !== el.id && other.visible !== false).forEach(other => {
+      const otherHeight = other.type === "text" ? Math.max(40, other.fontSize) : other.height;
+      candidatesX.push(other.x, other.x + other.width / 2 - el.width / 2, other.x + other.width - el.width);
+      candidatesY.push(other.y, other.y + otherHeight / 2 - height / 2, other.y + otherHeight - height);
+    });
+    const closest = (value: number, candidates: number[]) => {
+      const match = candidates.reduce((best, candidate) => Math.abs(candidate - value) < Math.abs(best - value) ? candidate : best, candidates[0]);
+      return Math.abs(match - value) <= 8 ? match : value;
+    };
+    const x = closest(rawX, candidatesX);
+    const y = closest(rawY, candidatesY);
+    return { x: Math.max(0, Math.min(canvasSize.w - el.width, x)), y: Math.max(0, Math.min(canvasSize.h - height, y)), guides: { x: x !== rawX ? [x + el.width / 2] : [], y: y !== rawY ? [y + height / 2] : [] } };
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!selectedId) return;
+      if (rotationStart) {
+        const angle = Math.atan2(e.clientY - rotationStart.centerY, e.clientX - rotationStart.centerX);
+        const degrees = Math.round((rotationStart.rotation + (angle - rotationStart.angle) * 180 / Math.PI) / 5) * 5;
+        updateElement(selectedId, { rotation: degrees });
+        return;
+      }
       // --- Resize in progress
       if (resizeHandle && resizeStart) {
         const dx = (e.clientX - resizeStart.clientX) / effectiveZoom;
@@ -522,19 +572,22 @@ export default function Editor() {
       if (!isDragging) return;
       const dx = (e.clientX - dragStart.x) / effectiveZoom;
       const dy = (e.clientY - dragStart.y) / effectiveZoom;
-      updateElement(selectedId, {
-        x: Math.max(0, dragElStart.x + dx),
-        y: Math.max(0, dragElStart.y + dy),
-      });
+      const el = elements.find(item => item.id === selectedId);
+      if (!el) return;
+      const snapped = snapElementPosition(el, dragElStart.x + dx, dragElStart.y + dy);
+      setAlignmentGuides(snapped.guides);
+      updateElement(selectedId, { x: snapped.x, y: snapped.y });
     };
 
     const handleMouseUp = () => {
-      if ((isDragging || resizeHandle) && selectedId) {
+      if ((isDragging || resizeHandle || rotationStart) && selectedId) {
         pushHistory(elements);
       }
       setIsDragging(false);
       setResizeHandle(null);
       setResizeStart(null);
+      setRotationStart(null);
+      setAlignmentGuides({ x: [], y: [] });
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -543,7 +596,7 @@ export default function Editor() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, selectedId, dragStart, dragElStart, effectiveZoom, elements, pushHistory, resizeHandle, resizeStart]);
+  }, [isDragging, selectedId, dragStart, dragElStart, effectiveZoom, elements, pushHistory, resizeHandle, resizeStart, rotationStart, canvasSize]);
 
   const { run: runDownload, isRunning: downloadRunning } = useDownloadAnimation();
   const [downloadState, setDownloadState] = useState<DownloadAnimationState | null>(null);
@@ -1011,11 +1064,14 @@ export default function Editor() {
 
   // ===== Left panel (formats, colors, background) =====
   const formats = [
-    { key: "16:9", label: "16:9", w: 640, h: 360 },
-    { key: "9:16", label: "9:16", w: 360, h: 640 },
-    { key: "1:1", label: "1:1", w: 480, h: 480 },
-    { key: "4:5", label: "4:5", w: 480, h: 600 },
-    { key: "21:9", label: "21:9", w: 700, h: 300 },
+    { key: "youtube", label: "YouTube", w: 640, h: 360 },
+    { key: "shorts", label: "Shorts", w: 360, h: 640 },
+    { key: "tiktok", label: "TikTok", w: 360, h: 640 },
+    { key: "square", label: "Carré", w: 480, h: 480 },
+    { key: "portrait", label: "Portrait", w: 480, h: 600 },
+    { key: "facebook", label: "Facebook", w: 630, h: 330 },
+    { key: "podcast", label: "Podcast", w: 700, h: 394 },
+    { key: "cinema", label: "Cinéma", w: 700, h: 300 },
   ];
 
   const renderLeftPanel = () => (
@@ -1284,7 +1340,7 @@ export default function Editor() {
 
   const renderContextToolbar = () => {
     if (!selectedElement) return <div className="flex h-11 items-center gap-2 border-b border-border bg-card px-3 text-[11px] text-muted-foreground"><Move className="h-3.5 w-3.5 text-orange-300" /> Sélectionne un élément pour afficher ses propriétés</div>;
-    if (selectedElement.type === "text") { const text = selectedElement as EditorTextElement; return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">Texte</span><select value={text.fontFamily ?? "Arial"} onChange={e => commitElementUpdate(text.id, { fontFamily: e.target.value })} className="rounded-md border border-border bg-background px-2 py-1 text-xs"><option>Arial</option><option>Impact</option><option>Anton</option><option>Montserrat</option><option>Bebas Neue</option><option>Oswald</option></select><input type="number" min="12" max="180" value={text.fontSize} onChange={e => commitElementUpdate(text.id, { fontSize: Number(e.target.value) })} className="w-16 rounded-md border border-border bg-background px-2 py-1 text-xs" /><button onClick={() => commitElementUpdate(text.id, { fontWeight: text.fontWeight === "bold" ? "normal" : "bold" })} className={`rounded-md p-1.5 ${text.fontWeight === "bold" ? "bg-orange-400/20 text-orange-300" : "text-muted-foreground"}`}><Bold className="h-3.5 w-3.5" /></button><button onClick={() => commitElementUpdate(text.id, { fontStyle: text.fontStyle === "italic" ? "normal" : "italic" })} className={`rounded-md p-1.5 ${text.fontStyle === "italic" ? "bg-orange-400/20 text-orange-300" : "text-muted-foreground"}`}><Italic className="h-3.5 w-3.5" /></button><input type="color" value={text.color} onChange={e => commitElementUpdate(text.id, { color: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button><button onClick={() => setEditingTextId(text.id)} className="rounded-md bg-orange-400/15 px-2 py-1 text-xs text-orange-200">Éditer le texte</button></div>; }
+    if (selectedElement.type === "text") { const text = selectedElement as EditorTextElement; return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">Texte</span><select value={text.fontFamily ?? "Arial"} onChange={e => commitElementUpdate(text.id, { fontFamily: e.target.value })} className="rounded-md border border-border bg-background px-2 py-1 text-xs"><option>Arial</option><option>Inter</option><option>Montserrat</option><option>Poppins</option><option>Roboto</option><option>Impact</option><option>Anton</option><option>Bebas Neue</option><option>Oswald</option><option>Georgia</option><option>Trebuchet MS</option></select><input type="number" min="12" max="180" value={text.fontSize} onChange={e => commitElementUpdate(text.id, { fontSize: Number(e.target.value) })} className="w-16 rounded-md border border-border bg-background px-2 py-1 text-xs" /><button onClick={() => commitElementUpdate(text.id, { fontWeight: text.fontWeight === "bold" ? "normal" : "bold" })} className={`rounded-md p-1.5 ${text.fontWeight === "bold" ? "bg-orange-400/20 text-orange-300" : "text-muted-foreground"}`}><Bold className="h-3.5 w-3.5" /></button><button onClick={() => commitElementUpdate(text.id, { fontStyle: text.fontStyle === "italic" ? "normal" : "italic" })} className={`rounded-md p-1.5 ${text.fontStyle === "italic" ? "bg-orange-400/20 text-orange-300" : "text-muted-foreground"}`}><Italic className="h-3.5 w-3.5" /></button><input type="color" value={text.color} onChange={e => commitElementUpdate(text.id, { color: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button><button onClick={() => setEditingTextId(text.id)} className="rounded-md bg-orange-400/15 px-2 py-1 text-xs text-orange-200">Éditer le texte</button></div>; }
     if (selectedElement.type === "image") { const image = selectedElement as EditorImageElement; return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">Image</span><button onClick={() => fitImageLayer("contain")} className="rounded-md bg-muted px-2 py-1 text-xs text-foreground">Contenir</button><button onClick={() => fitImageLayer("cover")} className="rounded-md bg-muted px-2 py-1 text-xs text-foreground">Couvrir</button><label className="flex items-center gap-1 text-xs text-muted-foreground">Saturation <input type="range" min="0" max="200" value={(image.saturation ?? 1) * 100} onChange={e => commitElementUpdate(image.id, { saturation: Number(e.target.value) / 100 })} className="w-20 accent-orange-400" /></label><label className="flex items-center gap-1 text-xs text-muted-foreground">Contraste <input type="range" min="0" max="200" value={(image.contrast ?? 1) * 100} onChange={e => commitElementUpdate(image.id, { contrast: Number(e.target.value) / 100 })} className="w-20 accent-orange-400" /></label><button onClick={() => commitElementUpdate(image.id, { rotation: (image.rotation ?? 0) + 90 })} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Rotation 90 degrés"><RotateCw className="h-3.5 w-3.5" /></button><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button></div>; }
     return <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-1.5"><span className="mr-1 text-[10px] uppercase tracking-wider text-orange-300">Forme</span><input type="color" value={selectedElement.color} onChange={e => commitElementUpdate(selectedElement.id, { color: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><input type="range" min="0" max="100" value={selectedElement.opacity * 100} onChange={e => commitElementUpdate(selectedElement.id, { opacity: Number(e.target.value) / 100 })} className="w-24 accent-orange-400" /><button onClick={() => alignSelected("x")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer horizontalement"><AlignHorizontalJustifyCenter className="h-3.5 w-3.5" /></button><button onClick={() => alignSelected("y")} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Centrer verticalement"><AlignVerticalJustifyCenter className="h-3.5 w-3.5" /></button></div>;
   };
@@ -1862,6 +1918,9 @@ export default function Editor() {
                 }}
               />
             )}
+
+            {alignmentGuides.x.map((x, index) => <div key={`guide-x-${index}`} className="pointer-events-none absolute bottom-0 top-0 z-30 w-px bg-cyan-300/80 shadow-[0_0_6px_rgba(103,232,249,.8)]" style={{ left: x }} />)}
+            {alignmentGuides.y.map((y, index) => <div key={`guide-y-${index}`} className="pointer-events-none absolute left-0 right-0 z-30 h-px bg-cyan-300/80 shadow-[0_0_6px_rgba(103,232,249,.8)]" style={{ top: y }} />)}
 
             {bgImageUrl && (
               <div className="absolute inset-0 pointer-events-none">
