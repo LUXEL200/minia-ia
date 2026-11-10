@@ -43,4 +43,25 @@ describe("Canvas P1 interaction contract", () => {
     expect(editor).toContain('value="bullet"');
     expect(editor).toContain('value="numbered"');
   });
+
+  it("exposes custom texture import, layer groups and before/after comparison", () => {
+    expect(editor).toContain("textureInputRef");
+    expect(editor).toContain("Texture personnalisée");
+    expect(editor).toContain("groupSelectedWithNearest");
+    expect(editor).toContain("ungroupSelected");
+    expect(editor).toContain("Aperçu avant / après");
+  });
+
+  it("keeps avatar upload and the simplified navigation contract", () => {
+    const avatars = readFileSync(resolve(process.cwd(), "client/src/pages/Avatars.tsx"), "utf8");
+    const sidebar = readFileSync(resolve(process.cwd(), "client/src/components/AppSidebar.tsx"), "utf8");
+    const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
+    expect(avatars).toContain("minia-uploaded-avatar");
+    expect(avatars).toContain("Choisir une image");
+    expect(sidebar).toContain('href="/team"');
+    expect(sidebar).toContain("Templete par défaut");
+    expect(sidebar).not.toContain("Tests A/B");
+    expect(sidebar).not.toContain("Générateur de cartes YouTube");
+    expect(app).toContain('path={"/team"}');
+  });
 });

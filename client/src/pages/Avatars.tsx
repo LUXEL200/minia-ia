@@ -32,6 +32,8 @@ export default function AvatarsPage() {
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState("professional");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [uploadedAvatar, setUploadedAvatar] = useState<string | null>(() => localStorage.getItem("minia-uploaded-avatar"));
+  const [avatarInputKey, setAvatarInputKey] = useState(0);
 
   const { data: avatars, isLoading, refetch } = trpc.avatars.list.useQuery();
   const generateAvatar = trpc.avatars.generate.useMutation();
@@ -131,6 +133,8 @@ export default function AvatarsPage() {
                 ))}
               </div>
             </div>
+
+            <div className="rounded-xl border border-dashed border-orange-400/40 bg-orange-400/5 p-4"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium">Importer ton avatar</p><p className="text-xs text-zinc-400">PNG, JPG ou WEBP — conservé dans ce navigateur.</p></div><label className="cursor-pointer rounded-lg border border-orange-400/50 px-3 py-2 text-xs font-medium text-orange-300 hover:bg-orange-400/10">Choisir une image<input key={avatarInputKey} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const value = String(reader.result); setUploadedAvatar(value); localStorage.setItem("minia-uploaded-avatar", value); toast.success("Avatar importé"); }; reader.readAsDataURL(file); }} /></label></div>{uploadedAvatar && <div className="mt-3 flex items-center gap-3"><img src={uploadedAvatar} alt="Avatar importé" className="h-16 w-16 rounded-full object-cover ring-2 ring-orange-400/50" /><button type="button" onClick={() => { setUploadedAvatar(null); localStorage.removeItem("minia-uploaded-avatar"); setAvatarInputKey(key => key + 1); toast.success("Avatar importé supprimé"); }} className="text-xs text-red-300 hover:text-red-200">Supprimer</button></div>}</div>
 
             <button
               onClick={handleGenerate}

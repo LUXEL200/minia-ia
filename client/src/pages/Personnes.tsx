@@ -63,7 +63,7 @@ export default function Personnes() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-8 text-center">
         <div className="max-w-sm">
-          <h1 className="text-2xl font-semibold text-white mb-2">Personnes</h1>
+          <h1 className="text-2xl font-semibold text-white mb-2">Team</h1>
           <p className="text-muted-foreground text-sm mb-6">Connecte-toi pour gérer ton équipe et tes collaborations.</p>
           <Button onClick={() => startLogin()} className="w-full py-5 text-base font-medium bg-white text-black hover:bg-white/90 rounded-xl">
             Se connecter
@@ -121,9 +121,9 @@ export default function Personnes() {
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <PageHeader
-          title="Personnes"
+          title="Team"
           subtitle="Gère les membres de ton équipe, les invitations et les tâches de validation"
-          breadcrumb={[{ label: "Personnes" }]}
+          breadcrumb={[{ label: "Team" }]}
           right={
             <button
               onClick={() => { setTab("invitations"); setInviteEmail(""); }}

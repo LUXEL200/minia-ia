@@ -8,9 +8,9 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
-  LayoutDashboard, Image, UserRound, Grid3X3, Plus, XCircle,
-  ChevronRight, Zap, Sun, Moon, Key, TrendingUp, Settings, Bell, LogOut, Users, ImagePlus,
-  Type, CreditCard, Eye, RectangleHorizontal, Star, Trash, Search,
+  LayoutDashboard, UserRound, Grid3X3, Plus, XCircle,
+  ChevronRight, Zap, Sun, Moon, Key, Settings, Bell, LogOut, Users, ImagePlus,
+  Type, CreditCard, Eye, Star, Trash, Search,
   Building2, Mail,
 } from "lucide-react";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
@@ -162,13 +162,9 @@ export function AppSidebar({
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <LayoutDashboard className="w-4 h-4" /> Tableau de bord
             </Link>
-            <Link href="/miniatures" onClick={onClose}
+            <Link href="/team" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-              <Image className="w-4 h-4" /> Miniatures
-            </Link>
-            <Link href="/personnes" onClick={onClose}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-              <Users className="w-4 h-4" /> Personnes
+              <Users className="w-4 h-4" /> Team
             </Link>
             {credits?.planType === "max" && (
               <Link href="/batch-upload" onClick={onClose}
@@ -178,7 +174,7 @@ export function AppSidebar({
             )}
             <Link href="/templates" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-              <Grid3X3 className="w-4 h-4" /> Modèles
+              <Grid3X3 className="w-4 h-4" /> Templete par défaut
             </Link>
           </nav>
         </div>
@@ -191,10 +187,6 @@ export function AppSidebar({
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <Type className="w-4 h-4" /> Espace Canva
             </Link>
-            <Link href="/ab-test" onClick={onClose}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-              <TrendingUp className="w-4 h-4" /> Tests A/B
-            </Link>
             <Link href="/avatars" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <UserRound className="w-4 h-4" /> Avatars
@@ -202,10 +194,6 @@ export function AppSidebar({
             <Link href="/preview" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
               <Eye className="w-4 h-4" /> Aperçu miniature
-            </Link>
-            <Link href="/endcards" onClick={onClose}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-              <RectangleHorizontal className="w-4 h-4" /> Générateur de cartes YouTube
             </Link>
             <Link href="/favorites" onClick={onClose}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">

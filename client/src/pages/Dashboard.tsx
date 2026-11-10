@@ -413,7 +413,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-white">Vos personnes</h2>
           <button
-            onClick={() => navigate("/personnes")}
+            onClick={() => navigate("/team")}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Afficher tout <ArrowRight className="w-3 h-3" />
@@ -732,7 +732,7 @@ export default function Dashboard() {
     </div>
   );
 
-  // v8 : les vues "Toutes les générations" et "Équipe" sont maintenant des pages dédiées (/miniatures, /personnes)
+  // Les vues « Toutes les générations » et « Équipe » sont maintenant des pages dédiées.
   const displayThumbnails = [...completedThumbnails];
   const renderAllGenerationsView = () => null;
   const renderTeamView = () => null;

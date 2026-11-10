@@ -7,7 +7,7 @@ import { Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Download, Type, Move, Trash2, Plus,
+  ArrowLeft, Download, Type, Move, Trash2, Plus, FolderPlus, Ungroup,
   RotateCcw, ZoomIn, ZoomOut, Layers, Palette, History,
   ChevronLeft, Undo2, Redo2, Save, Menu,
   Bold, Italic, Underline, AlignLeft, AlignCenter,
@@ -48,9 +48,11 @@ interface EditorTextElement {
   textEffect?: "none" | "outline" | "shadow" | "glow" | "texture" | "blend";
   effectColor?: string;
   effectIntensity?: number;
+  textureUrl?: string;
   rotation?: number;
   visible?: boolean;
   locked?: boolean;
+  groupId?: string;
 }
 
 interface EditorShapeElement {
@@ -66,6 +68,7 @@ interface EditorShapeElement {
   rotation?: number;
   visible?: boolean;
   locked?: boolean;
+  groupId?: string;
 }
 
 interface EditorImageElement {
@@ -86,6 +89,7 @@ interface EditorImageElement {
   saturation?: number;
   source?: "generated" | "uploaded";
   layerName?: string;
+  groupId?: string;
 }
 
 type EditorElement = EditorTextElement | EditorShapeElement | EditorImageElement;
@@ -119,6 +123,9 @@ export default function Editor() {
   const initialImageUrlRef = useRef<string | null>(null);
   const generatedLayerImportedRef = useRef(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [compareTextId, setCompareTextId] = useState<string | null>(null);
+  const [customTextureUrl, setCustomTextureUrl] = useState<string | null>(null);
+  const textureInputRef = useRef<HTMLInputElement>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [showLayersPanel, setShowLayersPanel] = useState(true);
   const [zoom, setZoom] = useState(1);
@@ -366,6 +373,22 @@ export default function Editor() {
     const next = [...elements, copy]; setElements(next); pushHistory(next); setSelectedId(copy.id); toast.success("Calque dupliqué");
   };
 
+  const groupSelectedWithNearest = () => {
+    if (!selectedId) return;
+    const index = elements.findIndex(el => el.id === selectedId);
+    if (index < 0 || elements.length < 2) return;
+    const sibling = elements[index === 0 ? 1 : index - 1];
+    const groupId = elements.find(el => el.groupId)?.groupId ?? `group-${Date.now()}`;
+    const next = elements.map(el => el.id === selectedId || el.id === sibling.id ? { ...el, groupId } : el);
+    setElements(next); pushHistory(next); toast.success("Groupe de calques créé");
+  };
+  const ungroupSelected = () => {
+    const selected = elements.find(el => el.id === selectedId);
+    if (!selected?.groupId) return;
+    const next = elements.map(el => el.groupId === selected.groupId ? { ...el, groupId: undefined } : el);
+    setElements(next); pushHistory(next); toast.success("Groupe dissocié");
+  };
+
   const alignSelected = (axis: "x" | "y") => {
     const element = elements.find(el => el.id === selectedId);
     if (!element) return;
@@ -592,7 +615,14 @@ export default function Editor() {
       if (!el) return;
       const snapped = snapElementPosition(el, dragElStart.x + dx, dragElStart.y + dy);
       setAlignmentGuides(snapped.guides);
-      updateElement(selectedId, { x: snapped.x, y: snapped.y });
+      const groupId = el.groupId;
+      if (groupId) {
+        const offsetX = snapped.x - el.x;
+        const offsetY = snapped.y - el.y;
+        setElements(elements.map(item => item.groupId === groupId ? { ...item, x: item.x + offsetX, y: item.y + offsetY } : item));
+      } else {
+        updateElement(selectedId, { x: snapped.x, y: snapped.y });
+      }
     };
 
     const handleMouseUp = () => {
@@ -1365,8 +1395,8 @@ export default function Editor() {
   const renderLayersPanel = () => (
     <aside className="w-60 shrink-0 border-l border-border bg-background flex flex-col min-h-0">
       <div className="flex items-center justify-between border-b border-border px-3 py-3"><div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Calques</p><p className="text-xs text-foreground">{elements.length} élément{elements.length > 1 ? "s" : ""}</p></div><button onClick={() => setShowLayersPanel(false)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Masquer les calques"><PanelRight className="h-4 w-4" /></button></div>
-      <div className="flex-1 overflow-y-auto p-2">{[...elements].reverse().map((el, reverseIndex) => { const label = el.type === "text" ? (el.text || "Texte") : el.type === "image" ? ((el as EditorImageElement).layerName || ((el as EditorImageElement).source === "generated" ? "Génération" : "Image")) : (el.shape === "rect" ? "Rectangle" : el.shape === "circle" ? "Cercle" : "Triangle"); return <div key={el.id} className={`group flex items-center gap-1.5 rounded-lg border px-2 py-2 ${selectedId === el.id ? "border-orange-400/60 bg-orange-400/10" : "border-transparent hover:border-border hover:bg-muted/50"}`}><button onClick={() => toggleElementFlag(el.id, "visible")} className="shrink-0 text-muted-foreground hover:text-foreground" title={el.visible === false ? "Afficher" : "Masquer"}>{el.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button><button onClick={() => setSelectedId(el.id)} className="min-w-0 flex-1 truncate text-left text-xs text-foreground">{label}</button><button onClick={() => toggleElementFlag(el.id, "locked")} className="shrink-0 text-muted-foreground hover:text-orange-300" title={el.locked ? "Déverrouiller" : "Verrouiller"}>{el.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}</button><button onClick={() => moveLayer(el.id, reverseIndex === 0 ? "down" : "up")} className="hidden shrink-0 text-[10px] text-muted-foreground group-hover:inline" title="Réordonner">↕</button></div>; })}{elements.length === 0 && <p className="px-2 py-8 text-center text-xs text-muted-foreground">Ajoute du texte, une forme ou une image pour commencer.</p>}</div>
-      {selectedElement && <div className="grid grid-cols-3 gap-1 border-t border-border p-2"><button onClick={duplicateSelected} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Dupliquer"><Copy className="mx-auto h-3.5 w-3.5" /></button><button onClick={deleteSelected} className="rounded-md bg-muted px-2 py-2 text-red-300 hover:bg-red-500/10" title="Supprimer"><Trash2 className="mx-auto h-3.5 w-3.5" /></button><button onClick={() => setShowLayersPanel(false)} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Fermer"><X className="mx-auto h-3.5 w-3.5" /></button></div>}
+      <div className="flex-1 overflow-y-auto p-2">{[...elements].reverse().map((el, reverseIndex) => { const label = el.type === "text" ? (el.text || "Texte") : el.type === "image" ? ((el as EditorImageElement).layerName || ((el as EditorImageElement).source === "generated" ? "Génération" : "Image")) : (el.shape === "rect" ? "Rectangle" : el.shape === "circle" ? "Cercle" : "Triangle"); return <div key={el.id} className={`group flex items-center gap-1.5 rounded-lg border px-2 py-2 ${selectedId === el.id ? "border-orange-400/60 bg-orange-400/10" : "border-transparent hover:border-border hover:bg-muted/50"}`}><button onClick={() => toggleElementFlag(el.id, "visible")} className="shrink-0 text-muted-foreground hover:text-foreground" title={el.visible === false ? "Afficher" : "Masquer"}>{el.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button><button onClick={() => setSelectedId(el.id)} className="min-w-0 flex-1 truncate text-left text-xs text-foreground">{el.groupId ? "▦ " : ""}{label}</button><button onClick={() => toggleElementFlag(el.id, "locked")} className="shrink-0 text-muted-foreground hover:text-orange-300" title={el.locked ? "Déverrouiller" : "Verrouiller"}>{el.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}</button><button onClick={() => moveLayer(el.id, reverseIndex === 0 ? "down" : "up")} className="hidden shrink-0 text-[10px] text-muted-foreground group-hover:inline" title="Réordonner">↕</button></div>; })}{elements.length === 0 && <p className="px-2 py-8 text-center text-xs text-muted-foreground">Ajoute du texte, une forme ou une image pour commencer.</p>}</div>
+      {selectedElement && <div className="grid grid-cols-3 gap-1 border-t border-border p-2"><button onClick={duplicateSelected} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Dupliquer"><Copy className="mx-auto h-3.5 w-3.5" /></button><button onClick={groupSelectedWithNearest} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Grouper"><FolderPlus className="mx-auto h-3.5 w-3.5" /></button><button onClick={ungroupSelected} disabled={!selectedElement?.groupId} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80 disabled:opacity-40" title="Dissocier"><Ungroup className="mx-auto h-3.5 w-3.5" /></button><button onClick={deleteSelected} className="rounded-md bg-muted px-2 py-2 text-red-300 hover:bg-red-500/10" title="Supprimer"><Trash2 className="mx-auto h-3.5 w-3.5" /></button><button onClick={() => setShowLayersPanel(false)} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Fermer"><X className="mx-auto h-3.5 w-3.5" /></button></div>}
     </aside>
   );
 
@@ -1398,8 +1428,10 @@ export default function Editor() {
             <div>
               <label className="text-[10px] text-muted-foreground mb-1 block">Effet de police</label>
               <select value={(selectedElement as EditorTextElement).textEffect ?? "none"} onChange={e => updateElement(selectedElement.id, { textEffect: e.target.value })} className="w-full rounded-lg bg-background border border-border text-xs px-2 py-1.5">
-                <option value="none">Aucun</option><option value="outline">Contour</option><option value="shadow">Ombre</option><option value="glow">Glow</option><option value="texture">Texture</option><option value="blend">Mélange dégradé</option>
+                <option value="none">Aucun</option><option value="outline">Contour</option><option value="shadow">Ombre</option><option value="glow">Glow</option><option value="texture">Texture personnalisée</option><option value="blend">Mélange dégradé</option>
               </select>
+              <input ref={textureInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const url = String(reader.result); setCustomTextureUrl(url); updateElement(selectedElement.id, { textEffect: "texture", textureUrl: url }); toast.success("Texture importée"); }; reader.readAsDataURL(file); event.target.value = ""; }} />
+              <div className="mt-2 grid grid-cols-2 gap-1.5"><button type="button" onClick={() => textureInputRef.current?.click()} className="rounded-lg border border-dashed border-orange-400/50 px-2 py-1.5 text-xs text-orange-300 hover:bg-orange-400/10">Importer une texture</button><button type="button" onClick={() => setCompareTextId(selectedElement.id)} className="rounded-lg border border-border px-2 py-1.5 text-xs text-foreground hover:bg-muted">Avant / après</button></div>
               <div className="mt-2 flex items-center gap-2"><input type="color" value={(selectedElement as EditorTextElement).effectColor ?? "#000000"} onChange={e => updateElement(selectedElement.id, { effectColor: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><label className="flex-1 text-[10px] text-muted-foreground">Intensité<input type="range" min="0" max="100" value={((selectedElement as EditorTextElement).effectIntensity ?? .55) * 100} onChange={e => updateElement(selectedElement.id, { effectIntensity: Number(e.target.value) / 100 })} className="w-full accent-orange-400" /></label></div>
             </div>
             <div>
@@ -1631,7 +1663,7 @@ export default function Editor() {
             paddingLeft: el.indent ?? 0,
             textShadow: el.textEffect === "shadow" ? `2px 2px ${Math.max(1, (el.effectIntensity ?? .55) * 8)}px ${el.effectColor ?? "#000"}` : el.textEffect === "glow" ? `0 0 ${Math.max(4, (el.effectIntensity ?? .55) * 18)}px ${el.effectColor ?? el.color}` : undefined,
             WebkitTextStroke: el.textEffect === "outline" ? `${Math.max(1, (el.effectIntensity ?? .55) * 3)}px ${el.effectColor ?? "#000"}` : undefined,
-            backgroundImage: el.textEffect === "texture" ? "repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,.28) 5px 7px)" : el.textEffect === "blend" ? `linear-gradient(90deg, ${el.color}, ${el.effectColor ?? "#F97316"})` : undefined,
+            backgroundImage: el.textEffect === "texture" ? `url(${el.textureUrl ?? customTextureUrl ?? ""}), repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,.28) 5px 7px)` : el.textEffect === "blend" ? `linear-gradient(90deg, ${el.color}, ${el.effectColor ?? "#F97316"})` : undefined,
             backgroundClip: el.textEffect === "texture" || el.textEffect === "blend" ? "text" : undefined,
             WebkitBackgroundClip: el.textEffect === "texture" || el.textEffect === "blend" ? "text" : undefined,
             WebkitTextFillColor: el.textEffect === "texture" || el.textEffect === "blend" ? "transparent" : undefined,
@@ -1703,8 +1735,11 @@ export default function Editor() {
   };
 
   // Responsive : en mobile/tablette (<1024px), le panneau gauche devient un Sheet
+  const compareText = compareTextId ? elements.find(el => el.id === compareTextId && el.type === "text") as EditorTextElement | undefined : undefined;
+
   return (
     <div className={`min-h-[100dvh] w-full max-w-full bg-background text-foreground flex overflow-x-hidden overflow-y-auto lg:overflow-hidden ${isNarrow && landscapeMode ? "canvas-landscape-mode" : ""}`}>
+      {compareText && <Dialog open={!!compareTextId} onOpenChange={open => !open && setCompareTextId(null)}><DialogContent className="max-w-3xl"><DialogHeader><DialogTitle>Aperçu avant / après</DialogTitle></DialogHeader><div className="grid gap-4 sm:grid-cols-2"><div className="rounded-xl border border-border bg-muted/30 p-6"><p className="mb-3 text-[10px] uppercase tracking-wider text-muted-foreground">Avant</p><div style={{ color: compareText.color, fontFamily: compareText.fontFamily, fontSize: Math.min(compareText.fontSize, 64), fontWeight: compareText.fontWeight, whiteSpace: "pre-wrap" }}>{compareText.text}</div></div><div className="rounded-xl border border-orange-400/40 bg-orange-400/5 p-6"><p className="mb-3 text-[10px] uppercase tracking-wider text-orange-300">Après</p><div style={{ color: compareText.color, fontFamily: compareText.fontFamily, fontSize: Math.min(compareText.fontSize, 64), fontWeight: compareText.fontWeight, whiteSpace: "pre-wrap", textShadow: compareText.textEffect === "shadow" ? `2px 2px 8px ${compareText.effectColor ?? "#000"}` : compareText.textEffect === "glow" ? `0 0 16px ${compareText.effectColor ?? compareText.color}` : undefined, WebkitTextStroke: compareText.textEffect === "outline" ? `2px ${compareText.effectColor ?? "#000"}` : undefined, backgroundImage: compareText.textEffect === "texture" && (compareText.textureUrl ?? customTextureUrl) ? `url(${compareText.textureUrl ?? customTextureUrl})` : compareText.textEffect === "blend" ? `linear-gradient(90deg, ${compareText.color}, ${compareText.effectColor ?? "#F97316"})` : undefined, backgroundClip: "text", WebkitBackgroundClip: "text", WebkitTextFillColor: compareText.textEffect === "texture" || compareText.textEffect === "blend" ? "transparent" : undefined }}>{compareText.text}</div></div></div></DialogContent></Dialog>}
       {/* Animation de téléchargement « ours IA liquide » (overlay z-[150]) */}
       {downloadRunning && (
         <DownloadAnimation state={downloadState} onComplete={onDownloadReady} />

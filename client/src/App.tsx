@@ -30,7 +30,6 @@ import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import Cgv from "./pages/Cgv";
 import Avatars from "./pages/Avatars";
-import EndCards from "./pages/EndCards";
 import Favorites from "./pages/Favorites";
 import Trash from "./pages/Trash";
 import Notifications from "./pages/Notifications";
@@ -43,8 +42,6 @@ import Billing from "./pages/Billing";
 import ThumbnailPreview from "./pages/ThumbnailPreview";
 import Editor from "./pages/Editor";
 import TemplateEditor from "./pages/TemplateEditor";
-import AbTest from "./pages/AbTest";
-import ShareAbTest from "./pages/ShareAbTest";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminModels from "./pages/AdminModels";
@@ -70,10 +67,9 @@ function privatePage(Page: ComponentType) {
 
 const DashboardRoute = privatePage(Dashboard);
 const MiniaturesRoute = privatePage(Miniatures);
-const PersonnesRoute = privatePage(Personnes);
+const TeamRoute = privatePage(Personnes);
 const GalleryRoute = privatePage(Gallery);
 const AvatarsRoute = privatePage(Avatars);
-const EndCardsRoute = privatePage(EndCards);
 const FavoritesRoute = privatePage(Favorites);
 const TrashRoute = privatePage(Trash);
 const NotificationsRoute = privatePage(Notifications);
@@ -86,7 +82,6 @@ const BillingRoute = privatePage(Billing);
 const ThumbnailPreviewRoute = privatePage(ThumbnailPreview);
 const EditorRoute = privatePage(Editor);
 const TemplateEditorRoute = privatePage(TemplateEditor);
-const AbTestRoute = privatePage(AbTest);
 const BatchUploadRoute = privatePage(BatchUpload);
 const AdminRoute = privatePage(Admin);
 
@@ -117,10 +112,9 @@ function Router() {
       {/* Auth */}
       <Route path={"/dashboard"} component={DashboardRoute} />
       <Route path={"/miniatures"} component={MiniaturesRoute} />
-      <Route path={"/personnes"} component={PersonnesRoute} />
+      <Route path={"/team"} component={TeamRoute} />
       <Route path={"/gallery"} component={GalleryRoute} />
       <Route path={"/avatars"} component={AvatarsRoute} />
-      <Route path={"/endcards"} component={EndCardsRoute} />
       <Route path={"/favorites"} component={FavoritesRoute} />
       <Route path={"/trash"} component={TrashRoute} />
       <Route path={"/notifications"} component={NotificationsRoute} />
@@ -133,8 +127,6 @@ function Router() {
       <Route path={"/preview"} component={ThumbnailPreviewRoute} />
       <Route path={"/editor"} component={EditorRoute} />
       <Route path={"/template-editor"} component={TemplateEditorRoute} />
-      <Route path={"/ab-test"} component={AbTestRoute} />
-      <Route path={"/share-ab/:token"} component={ShareAbTest} />
       <Route path={"/batch-upload"} component={BatchUploadRoute} />
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/admin/models"} component={AdminModels} />

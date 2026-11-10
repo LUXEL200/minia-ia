@@ -93,10 +93,8 @@ export function registerOAuthRoutes(app: Express, limiter?: RequestHandler) {
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
       // Only allow an internal path from state; never reflect an arbitrary URL.
-      const redirectTarget = typeof returnPath === "string" && returnPath.startsWith("/") && !returnPath.startsWith("//")
-        ? returnPath
-        : "/dashboard";
-      res.redirect(302, redirectTarget);
+      void returnPath;
+      res.redirect(302, "/dashboard");
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
       // Always return to a usable UI. The dashboard shows a contextual message
