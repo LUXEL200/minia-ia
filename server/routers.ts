@@ -626,6 +626,21 @@ export const avatarsRouter = router({
       return { success: true, avatarId: id } as const;
     }),
 
+  upload: protectedProcedure
+    .input(z.object({
+      b64: z.string().min(10).max(12_000_000),
+      mime: z.enum(["image/png", "image/jpeg", "image/webp"]).default("image/png"),
+      prompt: z.string().max(500).default("Avatar importé"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { storagePut } = await import("./storage");
+      const extension = input.mime === "image/jpeg" ? "jpg" : input.mime.split("/")[1];
+      const { url } = await storagePut(`user-images/${ctx.user.id}/avatars/${Date.now()}-upload.${extension}`, input.b64, input.mime);
+      const { id } = await createAvatar({ userId: ctx.user.id, prompt: input.prompt, style: "uploaded" });
+      await updateAvatarStatus(id, "completed", url);
+      return { success: true, avatarId: id, imageUrl: url } as const;
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {

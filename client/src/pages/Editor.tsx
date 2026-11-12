@@ -49,6 +49,7 @@ interface EditorTextElement {
   effectColor?: string;
   effectIntensity?: number;
   textureUrl?: string;
+  texturePreset?: string;
   rotation?: number;
   visible?: boolean;
   locked?: boolean;
@@ -94,6 +95,14 @@ interface EditorImageElement {
 
 type EditorElement = EditorTextElement | EditorShapeElement | EditorImageElement;
 
+const TEXTURE_LIBRARY = [
+  { id: "noise", label: "Grain", background: "radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px)", size: "5px 5px" },
+  { id: "stripes", label: "Rayures", background: "repeating-linear-gradient(135deg, rgba(255,255,255,.28) 0 3px, transparent 3px 10px)", size: "auto" },
+  { id: "dots", label: "Points", background: "radial-gradient(rgba(249,115,22,.8) 1.5px, transparent 1.5px)", size: "8px 8px" },
+  { id: "grid", label: "Grille", background: "linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px)", size: "10px 10px" },
+  { id: "paper", label: "Papier", background: "repeating-linear-gradient(0deg, rgba(255,255,255,.16) 0 1px, transparent 1px 4px)", size: "auto" },
+] as const;
+
 export default function Editor() {
   const [location, navigate] = useLocation();
   const search = useSearch();
@@ -123,6 +132,7 @@ export default function Editor() {
   const initialImageUrlRef = useRef<string | null>(null);
   const generatedLayerImportedRef = useRef(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [compareTextId, setCompareTextId] = useState<string | null>(null);
   const [customTextureUrl, setCustomTextureUrl] = useState<string | null>(null);
   const textureInputRef = useRef<HTMLInputElement>(null);
@@ -374,18 +384,17 @@ export default function Editor() {
   };
 
   const groupSelectedWithNearest = () => {
-    if (!selectedId) return;
-    const index = elements.findIndex(el => el.id === selectedId);
-    if (index < 0 || elements.length < 2) return;
-    const sibling = elements[index === 0 ? 1 : index - 1];
+    const ids = selectedIds.length >= 2 ? selectedIds : selectedId ? [selectedId] : [];
+    if (ids.length < 2) { toast.info("Sélectionne au moins deux calques avec Ctrl/Cmd + clic"); return; }
     const groupId = elements.find(el => el.groupId)?.groupId ?? `group-${Date.now()}`;
-    const next = elements.map(el => el.id === selectedId || el.id === sibling.id ? { ...el, groupId } : el);
+    const next = elements.map(el => ids.includes(el.id) ? { ...el, groupId } : el);
     setElements(next); pushHistory(next); toast.success("Groupe de calques créé");
   };
   const ungroupSelected = () => {
-    const selected = elements.find(el => el.id === selectedId);
-    if (!selected?.groupId) return;
-    const next = elements.map(el => el.groupId === selected.groupId ? { ...el, groupId: undefined } : el);
+    const ids = selectedIds.length ? selectedIds : selectedId ? [selectedId] : [];
+    const groups = new Set(elements.filter(el => ids.includes(el.id) && el.groupId).map(el => el.groupId));
+    if (!groups.size) return;
+    const next = elements.map(el => el.groupId && groups.has(el.groupId) ? { ...el, groupId: undefined } : el);
     setElements(next); pushHistory(next); toast.success("Groupe dissocié");
   };
 
@@ -399,16 +408,27 @@ export default function Editor() {
   };
 
   const deleteSelected = () => {
-    if (!selectedId) return;
-    const newElements = elements.filter(el => el.id !== selectedId);
+    const ids = selectedIds.length ? selectedIds : selectedId ? [selectedId] : [];
+    if (!ids.length) return;
+    const newElements = elements.filter(el => !ids.includes(el.id));
     setElements(newElements);
     pushHistory(newElements);
     setSelectedId(null);
+    setSelectedIds([]);
+  };
+
+  const selectLayer = (id: string, multi = false) => {
+    setSelectedId(id);
+    setSelectedIds(current => {
+      if (!multi) return [id];
+      return current.includes(id) ? current.filter(item => item !== id) : [...current, id];
+    });
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (e.target === canvasRef.current || (e.target as HTMLElement).dataset.canvas) {
       setSelectedId(null);
+      setSelectedIds([]);
     }
   };
 
@@ -511,7 +531,7 @@ export default function Editor() {
     // Ignore drags that start on a resize handle (pointer-events-auto divs)
         if ((e.target as HTMLElement).dataset.resize) return;
     e.stopPropagation();
-    setSelectedId(elId);
+    selectLayer(elId, e.metaKey || e.ctrlKey);
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
     const el = elements.find(e => e.id === elId);
@@ -1395,8 +1415,8 @@ export default function Editor() {
   const renderLayersPanel = () => (
     <aside className="w-60 shrink-0 border-l border-border bg-background flex flex-col min-h-0">
       <div className="flex items-center justify-between border-b border-border px-3 py-3"><div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Calques</p><p className="text-xs text-foreground">{elements.length} élément{elements.length > 1 ? "s" : ""}</p></div><button onClick={() => setShowLayersPanel(false)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Masquer les calques"><PanelRight className="h-4 w-4" /></button></div>
-      <div className="flex-1 overflow-y-auto p-2">{[...elements].reverse().map((el, reverseIndex) => { const label = el.type === "text" ? (el.text || "Texte") : el.type === "image" ? ((el as EditorImageElement).layerName || ((el as EditorImageElement).source === "generated" ? "Génération" : "Image")) : (el.shape === "rect" ? "Rectangle" : el.shape === "circle" ? "Cercle" : "Triangle"); return <div key={el.id} className={`group flex items-center gap-1.5 rounded-lg border px-2 py-2 ${selectedId === el.id ? "border-orange-400/60 bg-orange-400/10" : "border-transparent hover:border-border hover:bg-muted/50"}`}><button onClick={() => toggleElementFlag(el.id, "visible")} className="shrink-0 text-muted-foreground hover:text-foreground" title={el.visible === false ? "Afficher" : "Masquer"}>{el.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button><button onClick={() => setSelectedId(el.id)} className="min-w-0 flex-1 truncate text-left text-xs text-foreground">{el.groupId ? "▦ " : ""}{label}</button><button onClick={() => toggleElementFlag(el.id, "locked")} className="shrink-0 text-muted-foreground hover:text-orange-300" title={el.locked ? "Déverrouiller" : "Verrouiller"}>{el.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}</button><button onClick={() => moveLayer(el.id, reverseIndex === 0 ? "down" : "up")} className="hidden shrink-0 text-[10px] text-muted-foreground group-hover:inline" title="Réordonner">↕</button></div>; })}{elements.length === 0 && <p className="px-2 py-8 text-center text-xs text-muted-foreground">Ajoute du texte, une forme ou une image pour commencer.</p>}</div>
-      {selectedElement && <div className="grid grid-cols-3 gap-1 border-t border-border p-2"><button onClick={duplicateSelected} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Dupliquer"><Copy className="mx-auto h-3.5 w-3.5" /></button><button onClick={groupSelectedWithNearest} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Grouper"><FolderPlus className="mx-auto h-3.5 w-3.5" /></button><button onClick={ungroupSelected} disabled={!selectedElement?.groupId} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80 disabled:opacity-40" title="Dissocier"><Ungroup className="mx-auto h-3.5 w-3.5" /></button><button onClick={deleteSelected} className="rounded-md bg-muted px-2 py-2 text-red-300 hover:bg-red-500/10" title="Supprimer"><Trash2 className="mx-auto h-3.5 w-3.5" /></button><button onClick={() => setShowLayersPanel(false)} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Fermer"><X className="mx-auto h-3.5 w-3.5" /></button></div>}
+      <div className="flex-1 overflow-y-auto p-2"><p className="px-1 pb-2 text-[10px] text-muted-foreground">Ctrl/Cmd + clic pour sélectionner plusieurs calques</p>{[...elements].reverse().map((el, reverseIndex) => { const label = el.type === "text" ? (el.text || "Texte") : el.type === "image" ? ((el as EditorImageElement).layerName || ((el as EditorImageElement).source === "generated" ? "Génération" : "Image")) : (el.shape === "rect" ? "Rectangle" : el.shape === "circle" ? "Cercle" : "Triangle"); return <div key={el.id} className={`group flex items-center gap-1.5 rounded-lg border px-2 py-2 ${selectedIds.includes(el.id) ? "border-orange-400/60 bg-orange-400/10" : "border-transparent hover:border-border hover:bg-muted/50"}`}><button onClick={() => toggleElementFlag(el.id, "visible")} className="shrink-0 text-muted-foreground hover:text-foreground" title={el.visible === false ? "Afficher" : "Masquer"}>{el.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button><button onClick={event => selectLayer(el.id, event.metaKey || event.ctrlKey)} className="min-w-0 flex-1 truncate text-left text-xs text-foreground">{el.groupId ? "▦ " : ""}{label}</button><button onClick={() => toggleElementFlag(el.id, "locked")} className="shrink-0 text-muted-foreground hover:text-orange-300" title={el.locked ? "Déverrouiller" : "Verrouiller"}>{el.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}</button><button onClick={() => moveLayer(el.id, reverseIndex === 0 ? "down" : "up")} className="hidden shrink-0 text-[10px] text-muted-foreground group-hover:inline" title="Réordonner">↕</button></div>; })}{elements.length === 0 && <p className="px-2 py-8 text-center text-xs text-muted-foreground">Ajoute du texte, une forme ou une image pour commencer.</p>}</div>
+      {selectedElement && <div className="grid grid-cols-3 gap-1 border-t border-border p-2"><button onClick={duplicateSelected} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Dupliquer"><Copy className="mx-auto h-3.5 w-3.5" /></button><button onClick={groupSelectedWithNearest} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Grouper la sélection"><FolderPlus className="mx-auto h-3.5 w-3.5" /></button><button onClick={ungroupSelected} disabled={!selectedIds.some(id => elements.find(el => el.id === id)?.groupId)} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80 disabled:opacity-40" title="Dissocier"><Ungroup className="mx-auto h-3.5 w-3.5" /></button><button onClick={deleteSelected} className="rounded-md bg-muted px-2 py-2 text-red-300 hover:bg-red-500/10" title="Supprimer la sélection"><Trash2 className="mx-auto h-3.5 w-3.5" /></button><button onClick={() => setShowLayersPanel(false)} className="rounded-md bg-muted px-2 py-2 text-foreground hover:bg-muted/80" title="Fermer"><X className="mx-auto h-3.5 w-3.5" /></button></div>}
     </aside>
   );
 
@@ -1432,6 +1452,7 @@ export default function Editor() {
               </select>
               <input ref={textureInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const url = String(reader.result); setCustomTextureUrl(url); updateElement(selectedElement.id, { textEffect: "texture", textureUrl: url }); toast.success("Texture importée"); }; reader.readAsDataURL(file); event.target.value = ""; }} />
               <div className="mt-2 grid grid-cols-2 gap-1.5"><button type="button" onClick={() => textureInputRef.current?.click()} className="rounded-lg border border-dashed border-orange-400/50 px-2 py-1.5 text-xs text-orange-300 hover:bg-orange-400/10">Importer une texture</button><button type="button" onClick={() => setCompareTextId(selectedElement.id)} className="rounded-lg border border-border px-2 py-1.5 text-xs text-foreground hover:bg-muted">Avant / après</button></div>
+              <div className="mt-2"><p className="mb-1 text-[10px] text-muted-foreground">Bibliothèque</p><div className="grid grid-cols-5 gap-1">{TEXTURE_LIBRARY.map(texture => <button key={texture.id} type="button" title={texture.label} onClick={() => updateElement(selectedElement.id, { textEffect: "texture", texturePreset: texture.id, textureUrl: undefined })} className={`h-7 rounded border ${((selectedElement as EditorTextElement).texturePreset === texture.id) ? "border-orange-400" : "border-border"}`} style={{ backgroundImage: texture.background, backgroundSize: texture.size ?? "auto" }} />)}</div></div>
               <div className="mt-2 flex items-center gap-2"><input type="color" value={(selectedElement as EditorTextElement).effectColor ?? "#000000"} onChange={e => updateElement(selectedElement.id, { effectColor: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><label className="flex-1 text-[10px] text-muted-foreground">Intensité<input type="range" min="0" max="100" value={((selectedElement as EditorTextElement).effectIntensity ?? .55) * 100} onChange={e => updateElement(selectedElement.id, { effectIntensity: Number(e.target.value) / 100 })} className="w-full accent-orange-400" /></label></div>
             </div>
             <div>
@@ -1631,12 +1652,13 @@ export default function Editor() {
     const cursorStyle = isDragging && isSelected ? "grabbing" : "grab";
 
     if (el.type === "text") {
+      const texturePreset = TEXTURE_LIBRARY.find(texture => texture.id === el.texturePreset);
       return (
         <div
           key={el.id}
           data-element-id={el.id}
           onMouseDown={e => handleElementMouseDown(e, el.id)}
-          onDoubleClick={e => { e.stopPropagation(); setSelectedId(el.id); setEditingTextId(el.id); }}
+          onDoubleClick={e => { e.stopPropagation(); selectLayer(el.id); setEditingTextId(el.id); }}
           onInput={e => updateElement(el.id, { text: (e.currentTarget as HTMLDivElement).innerText })}
           onBlur={() => setEditingTextId(null)}
           style={{
@@ -1663,7 +1685,8 @@ export default function Editor() {
             paddingLeft: el.indent ?? 0,
             textShadow: el.textEffect === "shadow" ? `2px 2px ${Math.max(1, (el.effectIntensity ?? .55) * 8)}px ${el.effectColor ?? "#000"}` : el.textEffect === "glow" ? `0 0 ${Math.max(4, (el.effectIntensity ?? .55) * 18)}px ${el.effectColor ?? el.color}` : undefined,
             WebkitTextStroke: el.textEffect === "outline" ? `${Math.max(1, (el.effectIntensity ?? .55) * 3)}px ${el.effectColor ?? "#000"}` : undefined,
-            backgroundImage: el.textEffect === "texture" ? `url(${el.textureUrl ?? customTextureUrl ?? ""}), repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,.28) 5px 7px)` : el.textEffect === "blend" ? `linear-gradient(90deg, ${el.color}, ${el.effectColor ?? "#F97316"})` : undefined,
+            backgroundImage: el.textEffect === "texture" ? (el.textureUrl ?? customTextureUrl ? `url(${el.textureUrl ?? customTextureUrl})` : texturePreset?.background ?? "repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,.28) 5px 7px)") : el.textEffect === "blend" ? `linear-gradient(90deg, ${el.color}, ${el.effectColor ?? "#F97316"})` : undefined,
+            backgroundSize: el.textEffect === "texture" ? (texturePreset?.size ?? "cover") : undefined,
             backgroundClip: el.textEffect === "texture" || el.textEffect === "blend" ? "text" : undefined,
             WebkitBackgroundClip: el.textEffect === "texture" || el.textEffect === "blend" ? "text" : undefined,
             WebkitTextFillColor: el.textEffect === "texture" || el.textEffect === "blend" ? "transparent" : undefined,
