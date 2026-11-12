@@ -72,4 +72,22 @@ describe("Canvas P1 interaction contract", () => {
     expect(shell).toContain("currentLabel");
     expect(header).toContain("Création assistée par IA");
   });
+
+  it("cleans imported avatar storage and exposes admin texture packs", () => {
+    const storage = readFileSync(resolve(process.cwd(), "server/storage.ts"), "utf8");
+    const admin = readFileSync(resolve(process.cwd(), "client/src/pages/AdminModels.tsx"), "utf8");
+    expect(storage).toContain("storageDelete");
+    expect(storage).toContain("v1/storage/delete");
+    expect(admin).toContain("texturePacks");
+    expect(admin).toContain("Importer un pack");
+    expect(admin).toContain("deleteTexturePack");
+  });
+
+  it("supports multi-layer manipulation and keeps the blank board centered", () => {
+    expect(editor).toContain("selectedIds.length > 1");
+    expect(editor).toContain("Calques centrés");
+    expect(editor).toContain("items-center justify-center overflow-auto");
+    expect(editor).toContain("widthDelta");
+    expect(editor).toContain("offsetX");
+  });
 });

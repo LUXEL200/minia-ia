@@ -1572,6 +1572,26 @@ export async function setAppSetting(settingKey: string, settingValue: string, up
   return rows[0] ?? null;
 }
 
+export type TexturePackItem = { id: string; label: string; background: string; size?: string };
+
+export async function getTexturePackItems(): Promise<TexturePackItem[]> {
+  const settings = await getAppSettings(["editor.textureLibrary"]);
+  if (!settings["editor.textureLibrary"]) return [];
+  try {
+    const parsed = JSON.parse(settings["editor.textureLibrary"]);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is TexturePackItem =>
+      item && typeof item.id === "string" && typeof item.label === "string" && typeof item.background === "string",
+    ).slice(0, 100);
+  } catch {
+    return [];
+  }
+}
+
+export async function setTexturePackItems(items: TexturePackItem[], updatedBy: number) {
+  return setAppSetting("editor.textureLibrary", JSON.stringify(items.slice(0, 100)), updatedBy);
+}
+
 /** Réserve une génération invitée dans MySQL, sans état mémoire de processus. */
 export async function consumeGuestDemoUsage(usageKey: string, limit: number, periodStart: Date) {
   const db = await getDb();

@@ -95,3 +95,18 @@ export async function storageGetSignedUrl(relKey: string): Promise<string> {
   const { url } = (await resp.json()) as { url: string };
   return url;
 }
+
+/** Delete a managed object from Forge Storage. The caller must already have verified ownership. */
+export async function storageDelete(relKey: string): Promise<void> {
+  const { forgeUrl, forgeKey } = getForgeConfig();
+  const deleteUrl = new URL("v1/storage/delete", forgeUrl + "/");
+  deleteUrl.searchParams.set("path", normalizeKey(relKey));
+  const resp = await fetch(deleteUrl, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${forgeKey}` },
+  });
+  if (!resp.ok && resp.status !== 404) {
+    const msg = await resp.text().catch(() => resp.statusText);
+    throw new Error(`Storage delete failed (${resp.status}): ${msg}`);
+  }
+}

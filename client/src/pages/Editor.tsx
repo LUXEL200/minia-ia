@@ -195,6 +195,8 @@ export default function Editor() {
   const [versionName, setVersionName] = useState("");
 
   const { data: creditsData } = trpc.thumbnail.credits.useQuery();
+  const { data: serverTextures } = trpc.textures.useQuery();
+  const textureLibrary = useMemo(() => [...TEXTURE_LIBRARY, ...(serverTextures ?? [])].filter((texture, index, all) => all.findIndex(item => item.id === texture.id) === index).slice(0, 100), [serverTextures]);
   const isFreePlan = creditsData?.planType !== "pro" && creditsData?.planType !== "max";
   const { data: exportPolicy } = trpc.thumbnail.exportPolicy.useQuery();
   const { data: serverProject } = trpc.editor.project.useQuery(thumbnailId > 0 ? { thumbnailId } : undefined);
@@ -399,12 +401,12 @@ export default function Editor() {
   };
 
   const alignSelected = (axis: "x" | "y") => {
-    const element = elements.find(el => el.id === selectedId);
-    if (!element) return;
-    const next = elements.map(el => el.id !== selectedId ? el : axis === "x"
+    const ids = selectedIds.length ? selectedIds : selectedId ? [selectedId] : [];
+    if (!ids.length) return;
+    const next = elements.map(el => !ids.includes(el.id) ? el : axis === "x"
       ? { ...el, x: Math.round((canvasSize.w - el.width) / 2) }
       : { ...el, y: Math.round((canvasSize.h - (el.type === "text" ? Math.max(40, el.fontSize) : el.height)) / 2) });
-    setElements(next); pushHistory(next); toast.success(axis === "x" ? "Calque centré horizontalement" : "Calque centré verticalement");
+    setElements(next); pushHistory(next); toast.success(ids.length > 1 ? "Calques centrés" : axis === "x" ? "Calque centré horizontalement" : "Calque centré verticalement");
   };
 
   const deleteSelected = () => {
@@ -624,7 +626,19 @@ export default function Editor() {
             else if (dir === "sw") { newX = resizeStart.x + (resizeStart.w - newW); }
           }
         }
-        updateElement(selectedId, { width: Math.round(newW), height: Math.round(newH), x: Math.round(newX), y: Math.round(newY) });
+        if (selectedIds.length > 1) {
+          const widthDelta = newW - resizeStart.w;
+          const heightDelta = newH - resizeStart.h;
+          const moveX = newX - resizeStart.x;
+          const moveY = newY - resizeStart.y;
+          setElements(elements.map(item => {
+            if (!selectedIds.includes(item.id) || item.locked) return item;
+            if (item.type === "text") return { ...item, width: Math.max(MIN, item.width + widthDelta), fontSize: Math.max(12, item.fontSize + heightDelta), x: item.x + moveX, y: item.y + moveY };
+            return { ...item, width: Math.max(MIN, item.width + widthDelta), height: Math.max(MIN, item.height + heightDelta), x: item.x + moveX, y: item.y + moveY };
+          }));
+        } else {
+          updateElement(selectedId, { width: Math.round(newW), height: Math.round(newH), x: Math.round(newX), y: Math.round(newY) });
+        }
         return;
       }
       // --- Drag in progress
@@ -640,6 +654,10 @@ export default function Editor() {
         const offsetX = snapped.x - el.x;
         const offsetY = snapped.y - el.y;
         setElements(elements.map(item => item.groupId === groupId ? { ...item, x: item.x + offsetX, y: item.y + offsetY } : item));
+      } else if (selectedIds.length > 1 && selectedIds.includes(selectedId)) {
+        const offsetX = snapped.x - el.x;
+        const offsetY = snapped.y - el.y;
+        setElements(elements.map(item => selectedIds.includes(item.id) ? { ...item, x: item.x + offsetX, y: item.y + offsetY } : item));
       } else {
         updateElement(selectedId, { x: snapped.x, y: snapped.y });
       }
@@ -662,7 +680,7 @@ export default function Editor() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, selectedId, dragStart, dragElStart, effectiveZoom, elements, pushHistory, resizeHandle, resizeStart, rotationStart, canvasSize]);
+  }, [isDragging, selectedId, selectedIds, dragStart, dragElStart, effectiveZoom, elements, pushHistory, resizeHandle, resizeStart, rotationStart, canvasSize]);
 
   const { run: runDownload, isRunning: downloadRunning } = useDownloadAnimation();
   const [downloadState, setDownloadState] = useState<DownloadAnimationState | null>(null);
@@ -1452,7 +1470,7 @@ export default function Editor() {
               </select>
               <input ref={textureInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={event => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const url = String(reader.result); setCustomTextureUrl(url); updateElement(selectedElement.id, { textEffect: "texture", textureUrl: url }); toast.success("Texture importée"); }; reader.readAsDataURL(file); event.target.value = ""; }} />
               <div className="mt-2 grid grid-cols-2 gap-1.5"><button type="button" onClick={() => textureInputRef.current?.click()} className="rounded-lg border border-dashed border-orange-400/50 px-2 py-1.5 text-xs text-orange-300 hover:bg-orange-400/10">Importer une texture</button><button type="button" onClick={() => setCompareTextId(selectedElement.id)} className="rounded-lg border border-border px-2 py-1.5 text-xs text-foreground hover:bg-muted">Avant / après</button></div>
-              <div className="mt-2"><p className="mb-1 text-[10px] text-muted-foreground">Bibliothèque</p><div className="grid grid-cols-5 gap-1">{TEXTURE_LIBRARY.map(texture => <button key={texture.id} type="button" title={texture.label} onClick={() => updateElement(selectedElement.id, { textEffect: "texture", texturePreset: texture.id, textureUrl: undefined })} className={`h-7 rounded border ${((selectedElement as EditorTextElement).texturePreset === texture.id) ? "border-orange-400" : "border-border"}`} style={{ backgroundImage: texture.background, backgroundSize: texture.size ?? "auto" }} />)}</div></div>
+              <div className="mt-2"><p className="mb-1 text-[10px] text-muted-foreground">Bibliothèque</p><div className="grid grid-cols-5 gap-1">{textureLibrary.map(texture => <button key={texture.id} type="button" title={texture.label} onClick={() => updateElement(selectedElement.id, { textEffect: "texture", texturePreset: texture.id, textureUrl: undefined })} className={`h-7 rounded border ${((selectedElement as EditorTextElement).texturePreset === texture.id) ? "border-orange-400" : "border-border"}`} style={{ backgroundImage: texture.background, backgroundSize: texture.size ?? "auto" }} />)}</div></div>
               <div className="mt-2 flex items-center gap-2"><input type="color" value={(selectedElement as EditorTextElement).effectColor ?? "#000000"} onChange={e => updateElement(selectedElement.id, { effectColor: e.target.value })} className="h-7 w-8 rounded border-0 bg-transparent" /><label className="flex-1 text-[10px] text-muted-foreground">Intensité<input type="range" min="0" max="100" value={((selectedElement as EditorTextElement).effectIntensity ?? .55) * 100} onChange={e => updateElement(selectedElement.id, { effectIntensity: Number(e.target.value) / 100 })} className="w-full accent-orange-400" /></label></div>
             </div>
             <div>
@@ -1652,7 +1670,7 @@ export default function Editor() {
     const cursorStyle = isDragging && isSelected ? "grabbing" : "grab";
 
     if (el.type === "text") {
-      const texturePreset = TEXTURE_LIBRARY.find(texture => texture.id === el.texturePreset);
+      const texturePreset = textureLibrary.find(texture => texture.id === el.texturePreset);
       return (
         <div
           key={el.id}
@@ -1981,7 +1999,7 @@ export default function Editor() {
         <div className="flex-1 min-h-0 min-w-0 flex items-center justify-center p-2 lg:p-4 overflow-hidden">
         <div
           ref={canvasContainerRef}
-          className="relative min-w-0 max-w-full max-h-[calc(100dvh-7rem)] w-full overflow-auto overscroll-contain border border-border rounded-lg transition-colors"
+          className="relative flex min-w-0 max-w-full max-h-[calc(100dvh-7rem)] w-full items-center justify-center overflow-auto overscroll-contain border border-border rounded-lg transition-colors"
           style={{ cursor: "default" }}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}

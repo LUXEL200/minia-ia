@@ -130,6 +130,8 @@ import {
   getAdminHistoricalMetrics,
   getAppSettings,
   setAppSetting,
+  getTexturePackItems,
+  setTexturePackItems,
   consumeGuestDemoUsage,
   refundGuestDemoUsage,
   getEditorProject,
@@ -646,6 +648,12 @@ export const avatarsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const avatar = (await db.select().from(avatars).where(and(eq(avatars.id, input.id), eq(avatars.userId, ctx.user.id))).limit(1))[0];
+      if (!avatar) throw new TRPCError({ code: "NOT_FOUND", message: "Avatar introuvable" });
+      if (avatar.style === "uploaded" && avatar.imageUrl.startsWith("/manus-storage/")) {
+        const { storageDelete } = await import("./storage");
+        await storageDelete(avatar.imageUrl.slice("/manus-storage/".length));
+      }
       await db.delete(avatars).where(and(eq(avatars.id, input.id), eq(avatars.userId, ctx.user.id)));
       return { success: true } as const;
     }),
@@ -951,6 +959,23 @@ export const adminRouter = router({
     const access = await getAdminAccess(ctx.user.id);
     return access ? { owner: false, enabled: access.enabled === "yes", role: access.role, permissions: access.permissions } : { owner: false, enabled: false, role: null, permissions: [] as string[] };
   }),
+  texturePacks: adminProcedure.query(async () => getTexturePackItems()),
+  saveTexturePack: adminProcedure
+    .input(z.object({ id: z.string().min(1).max(64), label: z.string().min(1).max(80), background: z.string().min(1).max(1000), size: z.string().max(64).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const items = await getTexturePackItems();
+      const next = [...items.filter(item => item.id !== input.id), input];
+      await setTexturePackItems(next, ctx.user.id);
+      await createAdminAuditLog({ actorUserId: ctx.user.id, action: "users_notified", details: JSON.stringify({ kind: "texture-pack-updated", id: input.id }) });
+      return { success: true, items: next } as const;
+    }),
+  deleteTexturePack: adminProcedure
+    .input(z.object({ id: z.string().min(1).max(64) }))
+    .mutation(async ({ ctx, input }) => {
+      const next = (await getTexturePackItems()).filter(item => item.id !== input.id);
+      await setTexturePackItems(next, ctx.user.id);
+      return { success: true, items: next } as const;
+    }),
   clientSettings: adminProcedure.query(async () => getClientSettings()),
   updateClientSetting: adminProcedure
     .input(z.object({ key: z.enum(["client.guestDemoEnabled", "client.guestDailyLimit", "client.guestGlobalDailyLimit", "client.generationEnabled", "client.batchEnabled", "client.freeWatermark", "ai.defaultModel", "ai.proModel", "ai.maxModel", "ai.fallbackModel", "ai.costPerCall", "ai.dailyCap", "ai.monthlyCap"]), value: z.string().max(32) }))
@@ -1884,6 +1909,7 @@ export const appRouter = router({
     /** Admin moderation list — all reviews including pending */
     list: adminProcedure.query(async () => listAllTestimonials()),
   }),
+  textures: protectedProcedure.query(async () => getTexturePackItems()),
   // === Organization ===
   org: orgRouter,
 
