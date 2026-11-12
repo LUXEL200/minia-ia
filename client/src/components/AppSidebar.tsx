@@ -103,13 +103,13 @@ export function AppSidebar({
 
   // ===== Overlay =====
   const overlay = open && (
-    <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-x-0 bottom-0 top-12 z-[60] bg-black/60 backdrop-blur-sm" onClick={onClose} />
   );
 
   // ===== Sidebar panel =====
   const panel = (
     <aside
-      className={`fixed top-0 left-0 h-full w-[300px] max-w-[85vw] z-[70] bg-background border-r border-border shadow-2xl transition-transform duration-300 ${
+      className={`fixed top-12 left-0 h-[calc(100%-3rem)] w-[300px] max-w-[85vw] z-[70] bg-background border-r border-border shadow-2xl transition-transform duration-300 ${
         open ? "translate-x-0" : "-translate-x-full"
       }`}
     >

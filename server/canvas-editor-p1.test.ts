@@ -62,6 +62,7 @@ describe("Canvas P1 interaction contract", () => {
     const app = readFileSync(resolve(process.cwd(), "client/src/App.tsx"), "utf8");
     const shell = readFileSync(resolve(process.cwd(), "client/src/components/AppShell.tsx"), "utf8");
     const header = readFileSync(resolve(process.cwd(), "client/src/components/FloatingMenu.tsx"), "utf8");
+    const sidebarSource = readFileSync(resolve(process.cwd(), "client/src/components/AppSidebar.tsx"), "utf8");
     expect(avatars).toContain("avatars.upload");
     expect(routers).toContain("user-images/${ctx.user.id}/avatars/");
     expect(sidebar).toContain('href="/team"');
@@ -71,6 +72,8 @@ describe("Canvas P1 interaction contract", () => {
     expect(app).toContain('path={"/team"}');
     expect(shell).toContain("currentLabel");
     expect(header).toContain("Création assistée par IA");
+    expect(sidebarSource).toContain("top-12");
+    expect(sidebarSource).toContain("h-[calc(100%-3rem)]");
   });
 
   it("cleans imported avatar storage and exposes admin texture packs", () => {
